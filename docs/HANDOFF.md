@@ -1,10 +1,10 @@
 # Handoff — Interpolating Polynomial Program Backend
 
 ## Current Task
-Write the approved backend design specification for the Numerical Analysis interpolation backend using the `superpowers:brainstorming` workflow, then update this handoff with the documentation change and test status.
+Create the detailed backend implementation plan from the approved interpolation backend design, using the `superpowers:writing-plans` workflow. No backend code implementation is in scope for this step.
 
 ## Current Status
-- Overall status: Design specification written; implementation not started.
+- Overall status: Design specification committed; detailed implementation plan written; implementation not started.
 - Backend status: Not implemented.
 - Math engine status: Not implemented.
 - API status: Proposed contract documented, not implemented.
@@ -31,6 +31,10 @@ Write the approved backend design specification for the Numerical Analysis inter
 - On the repeat request, re-read all coordination files before proceeding and confirmed implementation is still gated by the invoked brainstorming skill approval rule.
 - Used the `superpowers:brainstorming` workflow to refine and approve the backend design sections before writing a spec.
 - Created the spec directory `docs/superpowers/specs/`.
+- Reviewed the staged documentation diff before implementation.
+- Configured repo-local Git author identity as requested and committed the approved design documentation.
+- Used the `superpowers:writing-plans` workflow to create a detailed task-by-task implementation plan.
+- Created the plan directory `docs/superpowers/plans/`.
 
 ## What Was Finished
 - `AGENTS.md` created with durable backend-only project rules.
@@ -39,6 +43,8 @@ Write the approved backend design specification for the Numerical Analysis inter
 - `docs/API_CONTRACT.md` created with planned endpoint paths, request examples, response schema, error schema, warning schema, and frontend consumption notes.
 - `docs/FRONTEND_HANDOFF.md` created with Claude Opus integration guidance.
 - `docs/superpowers/specs/2026-05-22-interpolation-backend-design.md` written with the approved design sections.
+- Initial documentation commit created: `2d1749c docs: add interpolation backend design spec`.
+- `docs/superpowers/plans/2026-05-22-interpolation-backend-implementation.md` written with the implementation plan.
 
 ## Files Created
 | File | Purpose |
@@ -49,11 +55,13 @@ Write the approved backend design specification for the Numerical Analysis inter
 | `docs/API_CONTRACT.md` | Planned backend endpoint and JSON contract for frontend consumption. |
 | `docs/FRONTEND_HANDOFF.md` | Claude Opus frontend integration guidance. |
 | `docs/superpowers/specs/2026-05-22-interpolation-backend-design.md` | Approved brainstorming design spec for backend architecture, core boundaries, math behavior, response contract, tests, milestones, and risks. |
+| `docs/superpowers/plans/2026-05-22-interpolation-backend-implementation.md` | Detailed Superpowers implementation plan with backend-only, test-first tasks. |
 
 ## Files Modified
 | File | What changed | Why |
 |---|---|---|
 | `docs/HANDOFF.md` | Updated current task/status, spec file path, command/test status, and next steps. | Required to record the approved design-spec change and preserve project state outside chat history. |
+| `docs/PLAN.md` | Added detailed implementation plan milestone and updated remaining work. | Required to keep project state aligned with the new implementation plan. |
 
 ## API Contract Notes
 Planned endpoint list:
@@ -148,32 +156,37 @@ Lecture PDF alignment found:
 | `git diff --staged` | PASS | Inspected staged documentation diff. All staged files are expected documentation/coordination files. `AGENTS.md` is intentionally staged because this repo started empty and the project requires it as the durable agent rules file. |
 | `git config --local user.name "Ethan"` | PASS | Configured repo-local Git author name to unblock the documentation commit. |
 | `git config --local user.email "your-email@example.com"` | PASS | Configured repo-local Git author email exactly as requested to unblock the documentation commit. |
+| `git commit -m "docs: add interpolation backend design spec"` | PASS | Created root commit `2d1749c` with `AGENTS.md`, coordination docs, and the approved design spec. |
+| `git status --short` | PASS | Worktree was clean after the design-spec commit. |
+| `Get-Content -Raw 'C:\Users\Emmy Lou\.codex\plugins\cache\openai-curated\superpowers\004da724\skills\writing-plans\SKILL.md'` | PASS | Read the required implementation-planning workflow before writing the plan. |
+| `New-Item -ItemType Directory -Force -Path 'docs\superpowers\plans' \| Out-Null` | PASS | Created the implementation plan directory. |
+| `rg -n "TBD\|TODO\|PLACEHOLDER\|FIXME\|\.\.\.\|similar to\|implement later\|fill in details\|appropriate error handling\|Write tests for the above" docs\superpowers\plans\2026-05-22-interpolation-backend-implementation.md` | PASS | No red-flag placeholder matches found; `rg` exited with code 1 because there were no matches. |
+| `Test-Path docs\superpowers\plans\2026-05-22-interpolation-backend-implementation.md; (Get-Item docs\superpowers\plans\2026-05-22-interpolation-backend-implementation.md).Length` | PASS | Implementation plan exists; size reported as 62965 bytes. |
 | Tests | NOT RUN | Documentation-only change; backend implementation and test suite do not exist yet. |
 
 ## Known Issues / Risks
-- Implementation has not started. The approved design spec now exists, but backend scaffolding and tests are still pending.
+- Implementation has not started. The approved design spec and detailed implementation plan now exist, but backend scaffolding and tests are still pending.
 - The first Git commit attempt failed because author identity was missing; repo-local `user.name` and `user.email` were then configured as requested.
 - Local default `python` is 3.10.11, below the requested Python 3.11+ target. A project virtual environment should use Python 3.11+ or the bundled Python 3.12.13 if suitable.
 - Required backend packages (`sympy`, `mpmath`, `fastapi`, `scipy`, `pytest`, `ruff`) are not installed in the bundled Python environment.
 - Network access may be restricted; dependency installation may require user approval if package installation is needed.
 - PDF extraction produced warnings about malformed PDF object pointers, but relevant text snippets were still extracted.
-- No backend tests exist yet; no tests were run for the documentation-only spec write.
+- No backend tests exist yet; no tests were run for the documentation-only spec and planning work.
 
 ## Next Steps
-1. User should review `docs/superpowers/specs/2026-05-22-interpolation-backend-design.md`.
-2. After approval, invoke the implementation planning workflow and convert the design into a detailed implementation plan.
-3. Create the backend project structure under `backend/`.
-4. Add `backend/pyproject.toml` with Python 3.11+ dependencies.
-5. Implement schemas and validation.
-6. Implement safe function parser.
-7. Implement precision utilities.
-8. Implement Lagrange, Newton, barycentric, Neville, graph-data, and explanations core modules.
-9. Implement FastAPI endpoints.
-10. Add pytest coverage for known examples, method agreement, duplicate validation, and unsafe function rejection.
-11. Run tests and update this handoff with exact results.
+1. Choose an execution mode for `docs/superpowers/plans/2026-05-22-interpolation-backend-implementation.md`: subagent-driven implementation or inline execution.
+2. Create the backend project structure under `backend/`.
+3. Add `backend/pyproject.toml` with Python 3.11+ dependencies.
+4. Implement schemas and validation.
+5. Implement safe function parser.
+6. Implement precision utilities.
+7. Implement Lagrange, Newton, barycentric, Neville, graph-data, and explanations core modules.
+8. Implement FastAPI endpoints.
+9. Add pytest coverage for known examples, method agreement, duplicate validation, and unsafe function rejection.
+10. Run tests and update this handoff with exact results.
 
 ## Frontend Handoff for Claude Opus
-Claude Opus should build only the React frontend after backend implementation lands. The approved design spec is at `docs/superpowers/specs/2026-05-22-interpolation-backend-design.md`. Planned integration details:
+Claude Opus should build only the React frontend after backend implementation lands. The approved design spec is at `docs/superpowers/specs/2026-05-22-interpolation-backend-design.md`, and the backend implementation plan is at `docs/superpowers/plans/2026-05-22-interpolation-backend-implementation.md`. Planned integration details:
 
 - backend endpoint paths:
   - `GET /health`
