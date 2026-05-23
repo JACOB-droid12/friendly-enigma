@@ -1,0 +1,279 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-22T00:00:00Z",
+  "title": "Design System: Interpolating Polynomial Calculator",
+  "extensions": {
+    "colorMeta": {
+      "indigo-deep": {
+        "role": "primary",
+        "displayName": "Indigo Deep",
+        "canonical": "oklch(0.4 0.12 260)",
+        "tonalRamp": [
+          "oklch(0.15 0.06 260)",
+          "oklch(0.25 0.09 260)",
+          "oklch(0.35 0.11 260)",
+          "oklch(0.4 0.12 260)",
+          "oklch(0.5 0.13 260)",
+          "oklch(0.65 0.15 260)",
+          "oklch(0.8 0.1 260)",
+          "oklch(0.94 0.03 260)"
+        ]
+      },
+      "indigo-bright": {
+        "role": "primary",
+        "displayName": "Indigo Bright",
+        "canonical": "oklch(0.65 0.15 260)",
+        "tonalRamp": [
+          "oklch(0.15 0.06 260)",
+          "oklch(0.25 0.09 260)",
+          "oklch(0.4 0.12 260)",
+          "oklch(0.5 0.13 260)",
+          "oklch(0.65 0.15 260)",
+          "oklch(0.75 0.12 260)",
+          "oklch(0.85 0.07 260)",
+          "oklch(0.95 0.02 260)"
+        ]
+      },
+      "slate-ink": {
+        "role": "neutral",
+        "displayName": "Slate Ink",
+        "canonical": "oklch(0.13 0.02 250)",
+        "tonalRamp": [
+          "oklch(0.1 0.015 250)",
+          "oklch(0.13 0.02 250)",
+          "oklch(0.2 0.015 250)",
+          "oklch(0.3 0.012 250)",
+          "oklch(0.45 0.02 250)",
+          "oklch(0.6 0.01 250)",
+          "oklch(0.8 0.006 250)",
+          "oklch(0.96 0.004 250)"
+        ]
+      },
+      "surface-warm": {
+        "role": "neutral",
+        "displayName": "Surface Warm",
+        "canonical": "oklch(0.985 0.001 250)",
+        "tonalRamp": [
+          "oklch(0.1 0.015 250)",
+          "oklch(0.2 0.01 250)",
+          "oklch(0.4 0.008 250)",
+          "oklch(0.6 0.006 250)",
+          "oklch(0.8 0.004 250)",
+          "oklch(0.91 0.008 250)",
+          "oklch(0.96 0.004 250)",
+          "oklch(0.985 0.001 250)"
+        ]
+      },
+      "amber-caution": {
+        "role": "semantic",
+        "displayName": "Amber Caution",
+        "canonical": "oklch(0.65 0.16 55)",
+        "tonalRamp": [
+          "oklch(0.2 0.06 55)",
+          "oklch(0.3 0.08 55)",
+          "oklch(0.4 0.1 55)",
+          "oklch(0.5 0.13 55)",
+          "oklch(0.65 0.16 55)",
+          "oklch(0.75 0.14 55)",
+          "oklch(0.85 0.1 55)",
+          "oklch(0.95 0.04 55)"
+        ]
+      },
+      "coral-error": {
+        "role": "semantic",
+        "displayName": "Coral Error",
+        "canonical": "oklch(0.55 0.22 25)",
+        "tonalRamp": [
+          "oklch(0.2 0.08 25)",
+          "oklch(0.3 0.12 25)",
+          "oklch(0.4 0.16 25)",
+          "oklch(0.55 0.22 25)",
+          "oklch(0.65 0.18 25)",
+          "oklch(0.75 0.14 25)",
+          "oklch(0.85 0.08 25)",
+          "oklch(0.95 0.03 25)"
+        ]
+      },
+      "cyan-data": {
+        "role": "semantic",
+        "displayName": "Cyan Data",
+        "canonical": "oklch(0.55 0.12 250)",
+        "tonalRamp": [
+          "oklch(0.15 0.05 250)",
+          "oklch(0.25 0.07 250)",
+          "oklch(0.35 0.09 250)",
+          "oklch(0.45 0.11 250)",
+          "oklch(0.55 0.12 250)",
+          "oklch(0.7 0.1 250)",
+          "oklch(0.82 0.06 250)",
+          "oklch(0.94 0.02 250)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "App identity mark in the header. Serif voice. Used exactly once."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "All interface text: descriptions, helper copy, educational notes. Sans voice."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Column headers, field labels, category markers. Uppercase, tracked, structural."
+      },
+      "numeric": {
+        "displayName": "Numeric",
+        "purpose": "All mathematical values, coefficients, table cells, coordinates. Monospace voice."
+      }
+    },
+    "shadows": [
+      {
+        "name": "tab-active",
+        "value": "0 1px 2px rgba(0,0,0,0.05)",
+        "purpose": "Subtle lift on active tab triggers to feel selected."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Default easing for state transitions (hover, focus, color shifts)."
+      },
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Entrance animations and result panel appearance."
+      },
+      {
+        "name": "duration-fast",
+        "value": "150ms",
+        "purpose": "Hover states, focus rings, button press feedback."
+      },
+      {
+        "name": "duration-normal",
+        "value": "200ms",
+        "purpose": "Tab transitions, card state changes, copy-button reveal."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main action button for compute operations. Compact, indigo, with press feedback.",
+      "html": "<button class=\"ds-btn-primary\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polygon points=\"6 3 20 12 6 21 6 3\"/></svg> Compute</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 8px 10px; background: oklch(0.4 0.12 260); color: oklch(0.98 0.005 260); border: 1px solid transparent; border-radius: 8px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-primary:hover { background: oklch(0.35 0.11 260); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: none; border-color: oklch(0.4 0.12 260); box-shadow: 0 0 0 3px oklch(0.4 0.12 260 / 0.5); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action button for validate, export, and auxiliary operations.",
+      "html": "<button class=\"ds-btn-outline\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M22 11.08V12a10 10 0 1 1-5.93-9.14\"/><polyline points=\"22 4 12 14.01 9 11.01\"/></svg> Validate Function</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 32px; padding: 8px 10px; background: transparent; color: oklch(0.13 0.02 250); border: 1px solid oklch(0.91 0.008 250); border-radius: 8px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-outline:hover { background: oklch(0.96 0.004 250); color: oklch(0.13 0.02 250); } .ds-btn-outline:focus-visible { outline: none; border-color: oklch(0.4 0.12 260); box-shadow: 0 0 0 3px oklch(0.4 0.12 260 / 0.5); }"
+    },
+    {
+      "name": "Numeric Input",
+      "kind": "input",
+      "refersTo": "input-default",
+      "description": "Compact input for mathematical values. Monospace font, tabular-nums.",
+      "html": "<input class=\"ds-input-numeric\" type=\"text\" placeholder=\"0\" value=\"3.14159\" />",
+      "css": ".ds-input-numeric { height: 32px; width: 100%; min-width: 0; padding: 4px 10px; background: transparent; color: oklch(0.13 0.02 250); border: 1px solid oklch(0.91 0.008 250); border-radius: 8px; font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 14px; font-variant-numeric: tabular-nums; transition: border-color 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-input-numeric::placeholder { color: oklch(0.45 0.02 250); } .ds-input-numeric:focus { outline: none; border-color: oklch(0.4 0.12 260); box-shadow: 0 0 0 3px oklch(0.4 0.12 260 / 0.5); }"
+    },
+    {
+      "name": "Result Card",
+      "kind": "card",
+      "refersTo": "card-panel",
+      "description": "Primary container for result sections. Outlined, with tinted section header.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-header\"><h2 class=\"ds-card-title\">Polynomial Forms</h2><p class=\"ds-card-desc\">Equivalent representations of the interpolating polynomial</p></div><div class=\"ds-card-content\"><p class=\"ds-card-formula\">P(x) = 6 − x</p></div></div>",
+      "css": ".ds-card { display: flex; flex-direction: column; overflow: hidden; border-radius: 12px; background: oklch(1 0 0); box-shadow: inset 0 0 0 1px oklch(0.13 0.02 250 / 0.1); } .ds-card-header { padding: 12px 20px; border-bottom: 1px solid oklch(0.91 0.008 250); background: oklch(0.96 0.004 250 / 0.3); } .ds-card-title { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 14px; font-weight: 600; color: oklch(0.13 0.02 250); margin: 0; } .ds-card-desc { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 12px; color: oklch(0.45 0.02 250); margin: 2px 0 0; } .ds-card-content { padding: 20px; } .ds-card-formula { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: oklch(0.13 0.02 250); margin: 0; }"
+    },
+    {
+      "name": "Warning Notice",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Amber warning callout for numerical caution (high degree, Runge, close x-values).",
+      "html": "<div class=\"ds-warning\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ds-warning-icon\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg><div class=\"ds-warning-body\"><span class=\"ds-warning-label\">HIGH DEGREE</span><p class=\"ds-warning-msg\">Degree 12 interpolation may exhibit Runge phenomenon with equally spaced nodes.</p></div></div>",
+      "css": ".ds-warning { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-radius: 8px; background: oklch(0.65 0.16 55 / 0.05); box-shadow: inset 0 0 0 1px oklch(0.65 0.16 55 / 0.2); } .ds-warning-icon { color: oklch(0.65 0.16 55); flex-shrink: 0; margin-top: 2px; } .ds-warning-body { flex: 1; } .ds-warning-label { display: block; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: oklch(0.65 0.16 55); } .ds-warning-msg { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 12px; color: oklch(0.45 0.02 250); line-height: 1.5; margin: 2px 0 0; }"
+    },
+    {
+      "name": "Method Badge",
+      "kind": "chip",
+      "refersTo": "badge-method",
+      "description": "Pill-shaped badge for method names and status indicators in result summaries.",
+      "html": "<span class=\"ds-badge\">lagrange</span><span class=\"ds-badge ds-badge-warning\">2 warnings</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; justify-content: center; height: 20px; padding: 2px 8px; border-radius: 9999px; background: oklch(0.96 0.008 250); color: oklch(0.25 0.03 250); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 11px; font-weight: 500; text-transform: capitalize; } .ds-badge-warning { background: oklch(0.65 0.16 55 / 0.2); color: oklch(0.3 0.06 55); border: 1px solid oklch(0.65 0.16 55 / 0.5); }"
+    },
+    {
+      "name": "Tab Trigger",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "Tab navigation for switching between polynomial forms, methods, and input modes.",
+      "html": "<div class=\"ds-tabs-list\"><button class=\"ds-tab ds-tab-active\">Expanded</button><button class=\"ds-tab\">Factored</button><button class=\"ds-tab\">Lagrange</button><button class=\"ds-tab\">Newton</button></div>",
+      "css": ".ds-tabs-list { display: inline-flex; align-items: center; gap: 0; padding: 3px; background: oklch(0.96 0.004 250); border-radius: 8px; height: 32px; } .ds-tab { display: inline-flex; align-items: center; justify-content: center; padding: 4px 6px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: oklch(0.45 0.02 250); font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-tab:hover { color: oklch(0.13 0.02 250); } .ds-tab-active { background: oklch(1 0 0); color: oklch(0.13 0.02 250); box-shadow: 0 1px 2px rgba(0,0,0,0.05); } .ds-tab:focus-visible { outline: none; border-color: oklch(0.4 0.12 260); box-shadow: 0 0 0 3px oklch(0.4 0.12 260 / 0.5); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Analysis Bench",
+    "overview": "A polished scientific workbench for interpolation experiments, where formulas, tables, warnings, and graphs are laid out with clarity and care. This is not a lecture display or a proof notebook alone; it is a working numerical-analysis environment where users enter data, compare methods, inspect tables, evaluate targets, and study graph behavior.\n\nThe system draws academic credibility from \"The Lecture Instrument\" (professor-ready seriousness, scholarly notation) and step-by-step clarity from \"The Proof Notebook\" (typographic respect for math, nothing extraneous). But the primary metaphor is the bench: organized, precise, modern, and made for real mathematical work.\n\nThe Analysis Bench rejects generic SaaS dashboards, purple-gradient AI aesthetics, toy calculators, cluttered 2005 academic software, raw debug panels, and Inter-heavy generated UIs. It also rejects flat, sterile, lifeless interfaces. The bench is alive: color is used with intention, motion responds to interaction, and surfaces have enough depth to feel tactile without becoming decorative.",
+    "keyCharacteristics": [
+      "Scholarly tone aligned with numerical analysis lectures",
+      "Precise controls sized for mathematical input",
+      "Trustworthy presentation that never hides warnings or errors",
+      "Premium polish through typography, spacing, and restrained depth",
+      "Modern and quietly expressive through color, motion, and layout rhythm"
+    ],
+    "rules": [
+      { "name": "The Semantic Honesty Rule", "body": "Color always means something. Amber means numerical caution. Coral means error or failure. Indigo means interactive or selected. Cyan means informational. No color is used decoratively without semantic purpose.", "section": "colors" },
+      { "name": "The Tinted Neutral Rule", "body": "Every neutral is tinted toward hue 250 (blue-slate). Pure black (#000), pure white (#fff), and untinted grays are prohibited. Even at chroma 0.005, the tint is present.", "section": "colors" },
+      { "name": "The Three-Voice Rule", "body": "Every piece of text belongs to exactly one voice: serif (scholarly identity), sans (interface), or mono (mathematical values). Mixing voices within a single element is prohibited.", "section": "typography" },
+      { "name": "The Numeric Respect Rule", "body": "Mathematical values are never set in the body font. Every number that represents a computed result, coordinate, coefficient, weight, or table entry uses the numeric voice (JetBrains Mono, tabular-nums).", "section": "typography" },
+      { "name": "The Flat-at-Rest Rule", "body": "Surfaces are flat by default. Outlines define containment. Shadows and depth appear only as responses to state (hover, focus, selection, importance).", "section": "elevation" },
+      { "name": "The Inset Containment Rule", "body": "Warnings and notices use ring-1 ring-inset with semantic color rather than heavy borders or side-stripes. This creates elegant containment without the visual weight of border-left: 4px solid.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use OKLCH for all color definitions. Reduce chroma as lightness approaches 0 or 100.",
+      "Do tint every neutral toward hue 250 (blue-slate), even at chroma 0.005.",
+      "Do use the three-voice typography system consistently: serif for scholarly identity, sans for interface, mono for all mathematical values.",
+      "Do cap body text line length at 65-75ch.",
+      "Do use ring-1 ring-inset with semantic color for warning/notice containment.",
+      "Do show all backend warnings prominently and elegantly. Warnings are pedagogically valuable.",
+      "Do use tabular-nums on all numeric displays for proper column alignment.",
+      "Do use purposeful animation: smooth tab transitions, gentle hover states, clean result appearance, copy-button reveal.",
+      "Do use exponential ease-out curves (quart/quint/expo) for all transitions.",
+      "Do respect prefers-reduced-motion by disabling non-essential animations.",
+      "Do provide visible focus states on every interactive element (3px ring, ring/50 opacity).",
+      "Do associate validation errors with their relevant inputs.",
+      "Do preserve plain-text formula output alongside KaTeX rendering for accessibility.",
+      "Do use color with semantic purpose: indigo for interactive, amber for caution, coral for error, cyan for informational."
+    ],
+    "donts": [
+      "Don't use #000 or #fff. Every neutral must carry the blue-slate tint.",
+      "Don't use border-left or border-right greater than 1px as a colored accent stripe on cards, warnings, or callouts.",
+      "Don't use gradient text (background-clip: text with gradient).",
+      "Don't use glassmorphism, backdrop-blur, or frosted-glass effects decoratively.",
+      "Don't use bounce or elastic easing.",
+      "Don't animate CSS layout properties (width, height, margin, padding).",
+      "Don't nest cards inside cards.",
+      "Don't use modals as the first solution.",
+      "Don't hide warnings or errors to make the page look cleaner.",
+      "Don't use Inter, Arial, or system-default sans-serif as the primary font.",
+      "Don't use purple-to-blue gradients, neon accents, or AI app aesthetic patterns.",
+      "Don't use the hero-metric template (big number, small label, gradient accent).",
+      "Don't use identical card grids (same-sized cards with icon + heading + text repeated).",
+      "Don't use oversized colorful buttons or toy-calculator styling.",
+      "Don't sacrifice warning visibility, error clarity, or mathematical precision for visual aesthetics.",
+      "Don't use em dashes in UI copy.",
+      "Don't use slow transitions (>300ms) or distracting shimmer effects.",
+      "Don't use color as the only indicator of severity."
+    ]
+  }
+}
