@@ -24,6 +24,7 @@ v1 backend implementation is complete in `backend/` with FastAPI endpoints, shar
 | FastAPI endpoints | Completed | `GET /health`, `POST /api/interpolate`, and `POST /api/validate-function` are implemented. |
 | Tests | Completed | 43 backend tests cover parser safety, API contract paths, validation, normalization, precision, all methods, graph data, and lecture example. |
 | API/frontend handoff documentation | Completed | `docs/API_CONTRACT.md` and `docs/FRONTEND_HANDOFF.md` describe implemented v1 behavior. |
+| V1 contract stabilization | Completed 2026-05-23 | Frontend Lagrange basis rendering now consumes the backend `basis` field; smoke coverage guards linear, 1/x, Newton, Neville, barycentric, and backend graph-data rendering cases. |
 
 ## Validation Commands
 Run these from `backend/`:
@@ -56,5 +57,6 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 ## Remaining Work
 - No required backend v1 implementation work remains.
-- Recommended next step: Claude Opus can begin frontend integration against `docs/API_CONTRACT.md` and `docs/FRONTEND_HANDOFF.md`.
+- Recommended backend next step: rerun the full backend verification under Python 3.11+ to satisfy `backend/pyproject.toml` rather than the current Python 3.10.11 runtime.
+- Recommended frontend next step: Claude Opus should review and commit the untracked frontend/design assets that are intended to become the V1 frontend baseline.
 - Optional backend hardening: run the same verification commands under Python 3.11+ or 3.13. The current `python` on this machine is Python 3.10.11, while `backend/pyproject.toml` declares the intended Python 3.11+ target.

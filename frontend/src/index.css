@@ -1,0 +1,409 @@
+@import "tailwindcss";
+@import "@fontsource-variable/ibm-plex-sans";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --background: oklch(0.985 0.001 250);
+  --foreground: oklch(0.13 0.02 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.13 0.02 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.13 0.02 250);
+  --primary: oklch(0.4 0.12 260);
+  --primary-foreground: oklch(0.98 0.005 260);
+  --secondary: oklch(0.96 0.008 250);
+  --secondary-foreground: oklch(0.25 0.03 250);
+  --muted: oklch(0.96 0.004 250);
+  --muted-foreground: oklch(0.45 0.02 250);
+  --accent: oklch(0.94 0.012 250);
+  --accent-foreground: oklch(0.2 0.03 250);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.98 0.01 25);
+  --border: oklch(0.91 0.008 250);
+  --input: oklch(0.91 0.008 250);
+  --ring: oklch(0.4 0.12 260);
+  --radius: 0.5rem;
+  --warning: oklch(0.65 0.16 55);
+  --warning-foreground: oklch(0.3 0.06 55);
+  --info: oklch(0.55 0.12 250);
+  --info-foreground: oklch(0.2 0.05 250);
+  /* Success: green-leaning hue distinct from indigo (interactive) and cyan (info).
+   * Used by HealthIndicator and any future success affirmations. */
+  --success: oklch(0.6 0.13 155);
+  --success-foreground: oklch(0.25 0.06 155);
+
+  /* Graph data tokens.
+   *
+   * Recharts strokes/fills accept arbitrary CSS color values, so the chart in
+   * GraphCard.tsx references these tokens through `var(--graph-*)`. They must
+   * stay in sync with the dark-mode block below: f(x) is the indigo voice,
+   * P(x) is a warm amber (no semantic conflict with the warning amber because
+   * it never appears next to a warning surface), nodes/error use the coral
+   * destructive hue, and the brush track uses muted neutrals. */
+  --graph-fx: oklch(0.55 0.15 260);
+  --graph-px: oklch(0.65 0.18 45);
+  --graph-node: oklch(0.55 0.2 25);
+  --graph-error: oklch(0.55 0.2 25);
+  --graph-brush-stroke: oklch(0.4 0.12 260);
+  --graph-brush-fill: oklch(0.96 0.008 250);
+
+  /* Layout tokens.
+   *
+   * --header-h is the sticky page-header height. Components that need to sit
+   * directly underneath the header (the result-tab nav in ResultsPanel.tsx)
+   * reference this as `top: var(--header-h)`. Updating the header padding
+   * should also bump this value so the tab nav stays glued to the header. */
+  --header-h: 60px;
+
+  /* Motion tokens.
+   *
+   * Curves: ease-standard for symmetric short transitions (color, opacity),
+   * the three exponential ease-out curves for entrances. No bounce / elastic
+   * (DESIGN.md "Don't" list: bounce or elastic easing).
+   *
+   * Durations match the product register's 150-250ms feedback budget. New
+   * motion handles below MUST reference these tokens, not magic numbers,
+   * so changing the budget is one edit. */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+}
+
+.dark {
+  --background: oklch(0.1 0.015 250);
+  --foreground: oklch(0.92 0.005 250);
+  --card: oklch(0.14 0.015 250);
+  --card-foreground: oklch(0.13 0.02 250);
+  --popover: oklch(0.14 0.015 250);
+  --popover-foreground: oklch(0.92 0.005 250);
+  --primary: oklch(0.65 0.15 260);
+  --primary-foreground: oklch(0.1 0.015 250);
+  --secondary: oklch(0.2 0.015 250);
+  --secondary-foreground: oklch(0.88 0.005 250);
+  --muted: oklch(0.2 0.01 250);
+  --muted-foreground: oklch(0.6 0.01 250);
+  --accent: oklch(0.22 0.02 250);
+  --accent-foreground: oklch(0.88 0.005 250);
+  --destructive: oklch(0.6 0.22 25);
+  --destructive-foreground: oklch(0.98 0.01 25);
+  --border: oklch(0.25 0.015 250);
+  --input: oklch(0.25 0.015 250);
+  --ring: oklch(0.65 0.15 260);
+  --warning: oklch(0.7 0.16 55);
+  --warning-foreground: oklch(0.15 0.05 55);
+  --info: oklch(0.65 0.12 250);
+  --info-foreground: oklch(0.12 0.05 250);
+  --success: oklch(0.7 0.13 155);
+  --success-foreground: oklch(0.15 0.05 155);
+
+  /* Graph tokens, dark mode.
+   *
+   * f(x) shifts to indigo-bright so the line carries through the darker
+   * canvas; P(x) gains lightness for the same reason. Nodes and error
+   * use a brighter coral so scatter points stay visible against the dark
+   * card. The brush track uses dark-mode muted neutrals. */
+  --graph-fx: oklch(0.72 0.15 260);
+  --graph-px: oklch(0.78 0.18 55);
+  --graph-node: oklch(0.7 0.22 25);
+  --graph-error: oklch(0.7 0.22 25);
+  --graph-brush-stroke: oklch(0.65 0.15 260);
+  --graph-brush-fill: oklch(0.22 0.015 250);
+}
+
+* {
+  border-color: var(--border);
+}
+
+/* ---------------------------------------------------------------------------
+ * Three-Voice + label voice typography contract (DESIGN.md, design.json).
+ *
+ * The four CSS handles below are the canonical entry points for every text
+ * element in the app. They are intentional, not accidental, and are bound
+ * to the role keys in `.impeccable/design.json` (display, body, label,
+ * numeric). Mixing voices inside a single element is prohibited by the
+ * Three-Voice Rule.
+ *
+ *   body         -> IBM Plex Sans Variable (body voice). Interface text,
+ *                   helper paragraphs, educational notes.
+ *   .font-math   -> Iowan Old Style + Palatino/Georgia (display voice).
+ *                   Identity mark and scholarly mathematical headings only.
+ *   .font-numeric-> JetBrains Mono + Fira Code/SF Mono (numeric voice) with
+ *                   `font-variant-numeric: tabular-nums`. Required for every
+ *                   coordinate, coefficient, weight, divided-difference cell,
+ *                   Neville cell, polynomial fragment, and table entry
+ *                   (Numeric Respect Rule, Requirements 2.3 / 5.1).
+ *   .font-label  -> IBM Plex Sans Variable, 0.625rem / 500 / 0.05em /
+ *                   uppercase (label voice). Column headers, field labels,
+ *                   role tags, severity words (Requirements 2.3 / 5.2).
+ *
+ * Adding a fifth voice handle, or rerouting any of these four through a
+ * different stack, is a design-system change and should not be done
+ * silently. -------------------------------------------------------------- */
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  /* Body voice: IBM Plex Sans Variable + system fallbacks (DESIGN.md). */
+  font-family: "IBM Plex Sans Variable", "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Display voice: scholarly serif for the identity mark and mathematical
+ * headings. Used at most once per screen on the application identity. */
+.font-math {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+}
+
+/* Numeric voice: every mathematical numeric value, coefficient, weight,
+ * table cell, and polynomial fragment. `tabular-nums` is required by the
+ * Numeric Respect Rule so columns of numbers align (Requirement 5.1). */
+.font-numeric {
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Cascadia Code", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Label voice: column headers, field labels, role tags, severity words.
+ * Compact and structural; the canonical replacement for the ad-hoc
+ * `text-[10px] uppercase tracking-wider font-medium` utility string
+ * (Requirements 2.3 / 5.2). */
+.font-label {
+  font-family: "IBM Plex Sans Variable", system-ui, sans-serif;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------------------
+ * Motion handles.
+ *
+ * Every motion entry point lives here. Components reference these handles
+ * by class name; they MUST NOT inline-author durations, easings, or
+ * keyframes. New handles MUST also be neutralised in the reduced-motion
+ * block below (the contract is enforced by inspection during review).
+ *
+ * Roles, in order of appearance below:
+ *   .transition-subtle      generic interactive transition (hover, focus,
+ *                           background, color). Already widely used.
+ *   .transition-colors-fast color-only transition. Use when you need to
+ *                           cross-fade a color without paying for an
+ *                           `all` transition that may pick up shadow or
+ *                           transform changes you didn't intend.
+ *   .animate-in-results     results panel + warning row + status line
+ *                           entrance. Fade + 6px slide.
+ *   .animate-row-enter      single-shot entrance for a freshly added row
+ *                           in the points/x-values/targets editors. Fades
+ *                           in and slides 4px from above. Trimmed to the
+ *                           new row only by the components themselves;
+ *                           existing rows never re-animate.
+ *   .animate-success-pop    transient confirmation, e.g. "Copied" badge.
+ *                           A small scale up-and-back (1 -> 1.06 -> 1)
+ *                           with no displacement, so adjacent layout
+ *                           does not shift.
+ * ------------------------------------------------------------------------ */
+
+/* Generic interactive transition (hover, focus, color, opacity, ring). */
+.transition-subtle {
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+
+/* Color-only transition. Used by surfaces that change color across state
+ * (e.g. health indicator dot/icon) without animating layout. */
+.transition-colors-fast {
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+/* Results panel + persistent warning row + offline status line entrance. */
+.animate-in-results {
+  animation: fadeSlideIn var(--duration-normal) var(--ease-out-expo) both;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fresh-row entrance in the points / x-values / targets editors. */
+.animate-row-enter {
+  animation: rowEnter var(--duration-normal) var(--ease-out-quart) both;
+}
+
+@keyframes rowEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Transient confirmation pulse (copy success). Scale only, no
+ * displacement, so adjacent layout does not shift. */
+.animate-success-pop {
+  animation: successPop var(--duration-normal) var(--ease-out-quint) both;
+}
+
+@keyframes successPop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Respect reduced motion.
+ *
+ * Contract (Requirement 2.11, DESIGN.md motion rules): when the user has
+ * `prefers-reduced-motion: reduce` set, non-essential motion is disabled.
+ * The five motion handles defined above are the complete set of
+ * non-essential motion entry points and are all neutralised here:
+ *   - `.transition-subtle`     hover/focus/color transitions
+ *   - `.transition-colors-fast` color-only state transition
+ *   - `.animate-in-results`    results panel entrance
+ *   - `.animate-row-enter`     fresh-row entrance in editor lists
+ *   - `.animate-success-pop`   transient confirmation pulse
+ *
+ * If a new handle is added above, it MUST also be reset here. This block
+ * is part of the accessibility contract; do not remove it as part of
+ * cleanup. The `Loader2` spinner (Tailwind's `animate-spin`) is a
+ * functional progress indicator and is left running deliberately:
+ * removing it would imply "computation has stopped" to the user. */
+@media (prefers-reduced-motion: reduce) {
+  .transition-subtle,
+  .transition-colors-fast {
+    transition: none;
+  }
+  .animate-in-results,
+  .animate-row-enter,
+  .animate-success-pop {
+    animation: none;
+  }
+}
+
+/* KaTeX display improvements */
+.katex-display {
+  margin: 0.75em 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5em 0;
+}
+
+.katex {
+  font-size: 1.1em !important;
+}
+
+/* Custom range slider styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--muted);
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid var(--card);
+  box-shadow: 0 1px 3px oklch(0.13 0.02 250 / 0.15);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  transform: scale(0.95);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid var(--card);
+  box-shadow: 0 1px 3px oklch(0.13 0.02 250 / 0.15);
+  cursor: pointer;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}

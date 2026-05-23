@@ -208,7 +208,22 @@ Validation:
   "methods": {
     "lagrange": {
       "status": "ok",
-      "basis_polynomials": [],
+      "basis_polynomials": [
+        {
+          "index": 0,
+          "x_i": "2",
+          "basis": "5/3 - x/3",
+          "expanded": "5/3 - x/3",
+          "latex": "\\frac{5}{3} - \\frac{x}{3}"
+        },
+        {
+          "index": 1,
+          "x_i": "5",
+          "basis": "x/3 - 2/3",
+          "expanded": "x/3 - 2/3",
+          "latex": "\\frac{x}{3} - \\frac{2}{3}"
+        }
+      ],
       "summation_form": "",
       "expanded": "6 - x",
       "latex_expanded": "6 - x",
@@ -342,7 +357,7 @@ Implemented warning codes:
 ## Frontend Display Notes
 - Display polynomial strings and LaTeX exactly as returned.
 - Show method sections independently.
-- Render Lagrange basis polynomials as a list or table.
+- Render Lagrange basis polynomials from `methods.lagrange.basis_polynomials[].basis` as a list or table. `basis` is the backend wire field; do not expect or invent an `expression` alias.
 - Render Newton divided differences as a triangular table.
 - Render Neville data as one triangular table per target x-value.
 - Show barycentric weights in a table with one row per node.
