@@ -10,10 +10,13 @@ interface MethodSelectorProps {
  * Barycentric is highlighted because it is the unique source of graph data
  * in the API contract, not because it is "best".
  *
- * Visual treatment is intentionally softer than `font-label` would imply:
- * the role tag is sentence-cased, weight 400 instead of 500, and rendered
- * in `text-muted-foreground` (or a tinted indigo for Barycentric) so the
- * categorical signal does not visually outshout the method name.
+ * The role tag is rendered in the design-system label voice (`font-label`):
+ * IBM Plex Sans, 0.625rem / 500 / 0.05em / uppercase. Size, weight, padding,
+ * and layout are identical across the four cards; the only differentiator
+ * is the Barycentric tint (`text-primary/80` vs `text-muted-foreground`).
+ * The role-tag strings stay exactly as the design spec dictates
+ * (`Construction` / `Construction` / `Stable Evaluator` / `Target-Specific`);
+ * the `font-label` utility uppercases them at render time.
  */
 const ALL_METHODS: {
   value: MethodName
@@ -26,26 +29,26 @@ const ALL_METHODS: {
     value: "lagrange",
     label: "Lagrange",
     role: "Construction",
-    description: "Basis polynomials, summation form, expanded polynomial.",
+    description: "Lagrange shows basis polynomials and summation form.",
   },
   {
     value: "newton",
     label: "Newton",
     role: "Construction",
-    description: "Divided-difference table and nested form for hand-checking.",
+    description: "Newton shows divided-difference tables and nested form.",
   },
   {
     value: "barycentric",
     label: "Barycentric",
     role: "Stable Evaluator",
     highlight: true,
-    description: "Stable evaluator; required when generating graph data.",
+    description: "Barycentric provides stable evaluation and is the source for graph data.",
   },
   {
     value: "neville",
     label: "Neville",
     role: "Target-Specific",
-    description: "Triangular tables for specific evaluation x-values.",
+    description: "Neville produces target-specific triangular tables.",
   },
 ]
 
@@ -85,10 +88,8 @@ export function MethodSelector({ selected, onChange }: MethodSelectorProps) {
                 <span className="text-sm font-medium text-foreground">{m.label}</span>
                 <span
                   className={
-                    "text-[11px] font-normal tracking-normal " +
-                    (m.highlight
-                      ? "text-primary/80"
-                      : "text-muted-foreground")
+                    "font-label " +
+                    (m.highlight ? "text-primary/80" : "text-muted-foreground")
                   }
                 >
                   {m.role}

@@ -752,3 +752,215 @@ Frontend, from `frontend/`:
 ### Remaining Risk
 
 Python 3.11+ remains unverified. The active `python` command is Python 3.10.11, while `backend/pyproject.toml` declares `requires-python = ">=3.11"`.
+
+
+---
+
+## Session 2026-05-24: Frontend Design System Overhaul (Spec `frontend-design-system-overhaul`)
+
+This is the polish-pass session that builds on the `frontend-analysis-bench-overhaul` baseline. Most work is audit-and-confirm on top of the prior spec; five small behavioral edits land in this session, plus the verification commands from Requirement 12 and the documented Live Visual Check fallback per Requirement 11.
+
+### 1. Plan Followed
+Implemented the seven-group plan from `.kiro/specs/frontend-design-system-overhaul/design.md`:
+
+- **Group A — Foundation** (audit-only). Confirmed OKLCH tokens, four typography voices (`body`, `.font-math`, `.font-numeric`, `.font-label`), the five motion handles, and the canonical 32px / `rounded-lg` / 3px focus ring contract on `input.tsx`, `select.tsx`, `switch.tsx`, `tabs.tsx`, `button.tsx` (+ `button.variants.ts`), and `table.tsx`. No drift; no edit.
+- **Group B — Mode layouts**. Three behavioral edits and two audits. `XValuesInput.tsx` already carries `md:min-w-[10rem]` on each x-value row Input. `FunctionIntervalInput.tsx` already routes the four field labels through `font-label text-muted-foreground` with the inline numeric `a`/`b` symbols preserved. `App.tsx` already derives `isFormBlocked` and passes it into the Compute `disabled` and `aria-disabled` predicates with a `title` of "Node count out of range (2–50)". `PointsInput.tsx` and `InputPanel.tsx` audited as compliant.
+- **Group C — Math input typography & spacing** (audit-only). Confirmed `XValuesInput.tsx` and `FunctionIntervalInput.tsx` numeric voice routing, `EvaluationTargets.tsx` chip width and focus-within ring, `WarningsDisplay.tsx` severity-word voice, and `font-label` headers across `NodesTable.tsx`, `EvaluationTable.tsx`, and `MethodDetails.tsx`. No drift.
+- **Group D — Method emphasis and method details**. Two behavioral edits and two audits. `MethodSelector.tsx` carries the canonical descriptions (Lagrange "shows basis polynomials and summation form"; Newton "shows divided-difference tables and nested form"; Barycentric "provides stable evaluation and is the source for graph data"; Neville "produces target-specific triangular tables") and the role-tag span uses `font-label text-muted-foreground` (with `font-label text-primary/80` on Barycentric only). `MethodDetails.tsx` carries the `pickInitialTab(available)` helper (Lagrange → Newton → Neville with Barycentric-only fallback) and uses it for the initial tab. Panel structure audited compliant (`bg-muted/30 rounded-lg p-3` containers inside the card outline, no inner border, Newton coefficient chips flat at rest, Neville `<TableHeader>` row of `P[k]` columns in `font-label`).
+- **Group E — Error and warning hierarchy** (audit-only). Confirmed `App.tsx` inline routing of `unsafe_expression` / `function_domain_error` to `functionError` outside Points mode and the top-level fallback in Points mode; `XValuesInput.tsx` and `FunctionIntervalInput.tsx` inline `ErrorNotice` wiring (`severity="error"`, `layout="inline"`, `aria-describedby` to `function-error` / `fn-interval-error`); `WarningsDisplay.tsx` consumption of the `lib/warnings.ts` catalog with the canonical labels for every documented code (`nodes_reordered`, `expanded_polynomial_omitted`, `neville_requires_evaluation_x`, `high_degree_warning`, `runge_warning`, `close_x_warning`, `extrapolation_warning`, `method_disagreement_warning`, `graph_sampling_domain_error`, `method_failed`); `ErrorNotice.tsx` code-to-guidance map keys exactly `too_few_nodes`, `duplicate_x`, `unsafe_expression`, `function_domain_error`, `invalid_interval`, `no_methods_selected`; and `MethodDetails.tsx` per-method delegation to `ErrorNotice` for both `MethodError` and `MethodWarnings`. No drift.
+- **Group F — Results panel and chrome polish** (audit-only). Confirmed opaque `bg-card` masthead and Compute Flat-at-Rest in `App.tsx`; `ResultsPanel.tsx` persistent warning bar above the tab list, sticky `top: var(--header-h, 60px)` opaque `bg-background` tab nav, `overflow-x-auto`, active tab `bg-primary/10 text-primary`, and Notes tab warning-variant Badge; `SummaryCard.tsx` four-cell grid with status chip mapping and per-method badge taxonomy; `PolynomialCard.tsx` KaTeX `bg-muted/30 rounded-lg p-4` and `<pre>` `overflow-x-auto whitespace-pre-wrap break-all`; `EvaluationTable.tsx` columns and missing-cell glyph (`<span aria-label="not available">·</span>`) with `overflow-x-auto rounded-lg` wrapper; `GraphCard.tsx` consumption of `graph_data.x | f_x | P_x | error` only with `--graph-*` token routing and the canonical `aria-label`; `NodesTable.tsx` and `EducationalNotes.tsx`; `HealthIndicator.tsx` token-aliased colors paired with icons; and `MethodSelector.tsx` equal-prominence rendering. No drift.
+- **Group G — Verification, live visual check, and handoff**. Verification commands and handoff updates landed this session.
+
+### 2. Files Changed (Implementation Files under `frontend/src/`, grouped by directory)
+
+`frontend/src/`
+- `App.tsx` — derived `isFormBlocked` flag wired into Compute `disabled`, `aria-disabled`, and the existing `title`/`computeDisabledReason` mechanism.
+
+`frontend/src/components/`
+- `XValuesInput.tsx` — `md:min-w-[10rem]` appended to each x-value row Input class.
+- `FunctionIntervalInput.tsx` — four field labels upgraded to `font-label text-muted-foreground` with inline `<span className="font-numeric">a</span>` / `b` preserved.
+- `MethodSelector.tsx` — canonical one-sentence descriptions and role-tag voice upgraded to `font-label` (`text-muted-foreground`, with `text-primary/80` on Barycentric only).
+
+`frontend/src/components/results/`
+- `MethodDetails.tsx` — `pickInitialTab(available)` helper and replacement of the prior `availableMethods[0] || "lagrange"` initial-tab expression.
+
+(`EvaluationTargets.tsx` shows up in `git status` from prior work in the same series; it is not edited in this polish pass.)
+
+**Reporting Files Updated.** `docs/HANDOFF.md` (this session entry), `docs/FRONTEND_HANDOFF.md` (behavior delta).
+
+### 3. UI Areas Improved
+
+- **Workbench surface.** No tonal change. Header still opaque `bg-card`, Compute still flat at rest, masthead identity mark unchanged.
+- **Input modes.**
+  - X + f(x): each row's numeric input now carries an explicit 160px minimum at `md:` and above, so the input no longer collapses below 10rem when the surrounding column shrinks. Below 768px the constraint is dropped and the input fills the input card content width.
+  - Interval: the four field labels (Interval Start (a), Interval End (b), Node Strategy, Node Count) now read in the design-system label voice while keeping the math symbols `a` and `b` in numeric voice, fulfilling the canonical Three-Voice contract for math-bearing labels. Compute is now blocked at the action bar when the typed Node Count is finite and outside [2, 50]; the same destructive inline notice that already showed the constraint inside the field stays in place.
+- **Method selection and Method Details.** The four selector cards now carry the canonical one-sentence descriptions (Lagrange / Newton are construction methods; Barycentric is the stable evaluator and graph-data source; Neville is target-specific). The role-tag span across all four cards is in label voice with the Barycentric tint as the only differentiator; Method Details now defaults to the first available Classroom-Facing Method (Lagrange → Newton → Neville) and falls back to whatever is available (e.g., Barycentric only) when no Classroom-Facing Method is present.
+- **Results surfaces.** No structural change this pass. Audited compliant: SummaryCard four-cell grid with status chip and method-badge taxonomy; PolynomialCard tonal `bg-muted/30 rounded-lg p-4` containers without an inner border, KaTeX `aria-hidden` plus an adjacent plain-text accessible name, copyable `<pre>` blocks that wrap and scroll horizontally inside the card; EvaluationTable column set and centered muted-dot missing-cell glyph; GraphCard consumes only backend `graph_data` with `--graph-*` token-routed strokes; NodesTable horizontal-scroll wrapper; EducationalNotes primary-tinted bullets; HealthIndicator token-aliased colors paired with icon and text label.
+- **Error and warning hierarchy.** No structural change this pass. Audited compliant: shared `ErrorNotice` renders the canonical primary-message-secondary-code hierarchy with optional recovery sentence from a six-key code-to-guidance map; inline routing for `unsafe_expression` and `function_domain_error` keeps the function-input region as the destination outside Points mode and falls back to the top-level banner inside Points mode; `WarningsDisplay` consumes the `lib/warnings.ts` catalog and routes severe warnings (`severity: error`) through the destructive register and non-severe warnings through the warning or info register.
+- **Responsiveness behavior.** The new 160px minimum on x-value rows is `md:` only, so it does not introduce any 320–767px overflow. All other breakpoints unchanged.
+
+### 4. API Contract Preservation
+
+Confirmed: no endpoint path, request shape, or response shape was changed. The frontend continues to call only `GET /health`, `POST /api/interpolate`, and `POST /api/validate-function`. No interpolation math (basis polynomials, divided-difference tables, Neville tables, barycentric weights, function values, graph samples, error magnitudes) was added to or moved into client code. `frontend/src/lib/api-client.ts` and `frontend/src/lib/api-types.ts` are unchanged in this pass.
+
+### 5. No Backend Files Changed
+
+`git status --short` from the repository root shows no path under `backend/`. The Repository Hygiene Checks from Requirement 13 pass: no Generated Folder (`node_modules/`, `dist/`, `coverage/`, `.vite/`, `*.tsbuildinfo`) is staged or modified, and `.gitignore` was not edited.
+
+### 6. Verification Results
+
+Command-by-command capture, run against the working tree at HEAD `7383416`:
+
+- `npm run build` — working directory `frontend/`. Exit code **0**. `tsc -b` clean; Vite emitted `dist/assets/index-C9V47VTZ.js` (393.80 kB, 120.48 kB gzipped), `dist/assets/PolynomialCard-DVZOQHl5.js` (263.59 kB, 79.12 kB gzipped), `dist/assets/GraphCard-C9TuaAVG.js` (378.37 kB, 109.63 kB gzipped), `dist/assets/index-CxOEB48O.css` (61.56 kB, 10.92 kB gzipped). Build completed in 1.79 s.
+- `npm run lint` — working directory `frontend/`. Exit code **0**. Zero ESLint errors and no warnings.
+- `npm test` — working directory `frontend/`. Exit code **0**. `vitest run` reported `Test Files 1 passed (1)`, `Tests 7 passed (7)` in 7.75 s. The smoke suite at `frontend/src/components/results/results.smoke.test.tsx` was not relaxed, skipped, or removed.
+- `git status --short` — working directory repository root. Exit code **0**. Output verbatim:
+
+```
+ M frontend/src/App.tsx
+ M frontend/src/components/EvaluationTargets.tsx
+ M frontend/src/components/FunctionIntervalInput.tsx
+ M frontend/src/components/MethodSelector.tsx
+ M frontend/src/components/XValuesInput.tsx
+ M frontend/src/components/results/MethodDetails.tsx
+?? .kiro/specs/frontend-design-system-overhaul/design.md
+?? .kiro/specs/frontend-design-system-overhaul/requirements.md
+?? .kiro/specs/frontend-design-system-overhaul/tasks.md
+```
+
+No `backend/` path appears. No Generated Folder is staged or modified.
+
+### 7. Live Visual Check Result
+
+**Live browser inspection was not performed in this session.** Reason: the Chrome DevTools MCP integration is connected but only the default `about:blank` page is open, the Vite dev server (`npm run dev` in `frontend/`) and the FastAPI backend (`uvicorn app.main:app` in `backend/`) are not running, and the orchestrator's hard rules forbid starting long-running dev/backend processes via shell tools. The implementer did not start either server.
+
+The seven scenarios from `design.md` Section 7.1 are therefore unverified by direct browser observation in this session:
+
+1. Points mode at desktop and at narrow viewport — unverified.
+2. X + f(x) mode at desktop and at narrow viewport — unverified.
+3. Function Interval mode at desktop and at narrow viewport — unverified.
+4. Results surfaces against at least one Backend response (Overview, Polynomial, Evaluations, Graph, Method Details for all four methods, Notes) — unverified.
+5. Canonical error hierarchy with at least one validation error and one function error such as `unsafe_expression` — unverified.
+6. 320px page-level horizontal-scroll inspection across Points, X + f(x), Function Interval, Polynomial, Evaluations, Graph, and Method Details — unverified.
+7. Method Details navigation reachability and method-emphasis preservation at narrow viewport — unverified.
+
+The smoke-test suite in `frontend/src/components/results/results.smoke.test.tsx` is the structural backstop for the result-rendering contract (linear points polynomial and `P(3)`, the `f(x)=1/x` evaluation `29/88`, Lagrange basis from the `basis` field, Newton divided differences, Neville triangular tables, barycentric weights, and Graph rendering from backend `graph_data`) and passed at exit code 0 above. It does not substitute for the visual check; it confirms the surfaces still render the canonical fields, not that they look polished.
+
+To perform the Live Visual Check in a follow-up session, start the backend (`python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000` from `backend/`) and the dev server (`npm run dev` from `frontend/`), then re-run the seven scenarios via the Chrome DevTools MCP.
+
+### 8. Remaining UI Issues and Risks
+
+- **Live Visual Check pending.** The seven scenarios in Section 7 above are unverified by direct browser observation. The smoke-test backstop covers the result-rendering contract but not the polish register.
+- **Bundle size.** The main chunk is ~394 kB (~120 kB gzipped) plus lazy-loaded `PolynomialCard` (~264 kB / ~79 kB gz) and `GraphCard` (~378 kB / ~110 kB gz). Already lazy-loaded; further code-splitting is out of scope for this pass.
+- **Pre-existing accepted lint configuration.** `react-refresh/only-export-components` is silent in this pass; the lint exit was clean. If a future maintainer adds new exports to shadcn primitive files, that warning may resurface.
+- **`prefers-reduced-motion` reliance.** The five motion handles are neutralized under `prefers-reduced-motion: reduce` in `index.css`; the loader spinner is intentionally left running because removing it would imply computation has stopped.
+
+### 9. Recommended Next Step
+
+Run the Live Visual Check from a session where the dev server and backend can be started, completing the seven scenarios from Section 7.1 and capturing screenshots into `.kiro/specs/frontend-design-system-overhaul/screenshots/` or `.impeccable/critique/screens/`. After the visual check passes, commit the polish-pass changes on a new branch and open a PR.
+
+### 10. Honesty Clause
+
+The verification commands in Section 6 were actually executed and observed in this session; their exit codes are copied verbatim. The Live Visual Check in Section 7 was **not** performed in this session and is not claimed to have passed. The audit findings in Section 1 are based on direct inspection of the named source files in this session.
+
+
+---
+
+## Session 2026-05-24 (cont.): Live Visual Check + 320px Header Fix
+
+Follow-up session to the Frontend Design System Overhaul polish pass. The build/lint/test verification ran clean in the prior session, but the Live Visual Check was not performed. This session executed the seven Requirement 11 scenarios via the Chrome DevTools MCP integration with the dev server and backend running, observed one defect (page-level horizontal scroll at 320px caused by the masthead, pre-existing — not introduced by this polish pass), applied the smallest scoped fix that resolves it, and re-ran the verification commands.
+
+### What Ran
+
+- Backend started: `python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000` from `backend/`. Health endpoint returned `{"status":"ok","service":"interpolation-backend","version":"0.1.0"}`.
+- Frontend dev server started: `npm run dev` from `frontend/`. Vite ready at `http://localhost:5173/` in 1817 ms.
+- Chrome DevTools MCP attached to the running tab.
+
+### Live Visual Check Scenarios — Outcomes
+
+| # | Scenario | Outcome | Screenshot |
+| --- | --- | --- | --- |
+| 1a | Points mode at desktop (1280×800) | PASS — labelled grid (`i`/`x`/`y`/remove), inputs in numeric voice, helper paragraph in body voice, no page overflow | `01-points-desktop-empty.png`, `02-points-desktop-result.png` |
+| 1b | Points mode at narrow (320×568 mobile-emulated) | PASS — fits 320px after the header fix below; before the fix, page-level scroll was 397px | `04-points-320-overflow.png` (before), `17-points-320-fixed.png` (after) |
+| 2a | X + f(x) mode at desktop | PASS — function input full-width, x-value rows 686.4 px wide (well above the 160 px md+ minimum), inline "Valid: 1/x" success indicator | `05-xfx-desktop-loaded.png` |
+| 2b | X + f(x) mode at narrow (320) | PASS — x-value list collapses to single column, no page overflow | observed during sweep |
+| 3a | Function Interval mode at desktop | PASS — full-width function input, two-column `[a, b]` row, `2fr_1fr` strategy/count row, label-voice field labels (`INTERVAL START (a)`, `INTERVAL END (b)`, `NODE STRATEGY`, `NODE COUNT`) with the `a` and `b` symbols rendered in numeric voice; node count spinbutton `valuemin=2 valuemax=50` | observed mid-sweep |
+| 3b | Function Interval mode at narrow (320) | PASS — `[a, b]` and strategy/count rows stack vertically, no page overflow | `20-interval-320.png` |
+| 4a | Overview surface (Runge result) | PASS — status chip `ok` in success register, four-cell grid `DEGREE 10 / NODES 11 / COMPUTE PRECISION 50 / MODE NUMERIC`, method badges (Lagrange + Barycentric for the two-method Runge run), 2-warning counter, 11-row Nodes table with full-precision numeric voice values | `07-results-runge-overview.png` |
+| 4b | Polynomial surface (Runge expanded form, degree 10) | PASS — long polynomial wraps cleanly inside the `bg-muted/30 rounded-lg p-4` container, "5 near-zero terms hidden at 12 digits" hint surfaced, copyable `<pre>` reflows | `06-results-runge-polynomial.png` |
+| 4c | Evaluations surface | PASS — column headers `x | Best P(x) | Method | lagrange | barycentric | f(x) | |Error|` in label voice, all cells in numeric voice with `tabular-nums` | `08-results-runge-evaluations.png` |
+| 4d | Graph surface | PASS — visible legend (Nodes / P(x) / f(x)), chart container carries `aria-label="Interpolation graph. Drag the handles below the chart to zoom into a region."`, error subchart "Approximation Error \|f(x) − P(x)\|" rendered, numeric tick labels via the canonical `--graph-*` token chain | `09-results-runge-graph.png`, `18-graph-320.png` |
+| 4e | Method Details — Lagrange (1/x with all four methods selected) | PASS — basis polynomials L₀, L₁, L₂ render in numeric voice, summation form, three construction-step bullets | `10-methods-runge-lagrange.png` |
+| 4f | Method Details — Newton | PASS — coefficients `c₀ = 1/2`, `c₁ = -2/11`, `c₂ = 1/22`; divided-difference table headers `f[xᵢ] | Δ¹ | Δ²` in label voice; cells `1/2 / -2/11 / 1/22 / 4/11 / -1/11 / 1/4` with centered muted-dot for empty positions; Newton nested form rendered | `11-methods-1ofx-newton.png` |
+| 4g | Method Details — Barycentric | PASS — weights table headers `i | xᵢ | wᵢ` in label voice | `12-methods-1ofx-barycentric.png` |
+| 4h | Method Details — Neville | PASS — heading `Neville Table for x = 3` with body-voice prefix and numeric-voice value, triangular table headers `P₀ | P₁ | P₂` in label voice, target results section above | `13-methods-1ofx-neville.png` |
+| 4i | Notes tab | PASS — "Educational Notes" heading, primary-tinted bullet list with the canonical educational copy | `14-results-1ofx-notes.png` |
+| 5a | Validation error (`too_few_nodes`, Compute on empty Points) | PASS — top-level `ErrorNotice` reads `ERROR` (severity word, label voice) → `At least two points are required.` (primary message) → `Code: too_few_nodes` (secondary, numeric voice) → `Add at least two distinct (x, y) points and recompute.` (recovery sentence) | `15-error-too-few-nodes.png` |
+| 5b | Function error (`unsafe_expression`, X+f(x) mode with `__import__('os')`) | PASS — inline `ErrorNotice` rendered directly beneath the function input via `aria-describedby="function-error"`; inline layout shows `Function expression contains unsafe or unsupported syntax.` (primary) + `Code: unsafe_expression` (secondary, numeric voice). The error correctly routed inline (not as a top-level banner) because a function input was mounted | `16-error-unsafe-inline.png` |
+| 6 | 320px page-level horizontal-scroll inspection | PASS after fix — every named surface (Points, X + f(x), Function Interval, Polynomial, Evaluations, Graph, Method Details) reports `document.scrollingElement.scrollWidth === clientWidth === 320` after the masthead fix below. Tables, the chart, and the long polynomial container all scroll horizontally **inside their wrappers** without producing page-level overflow, which is permitted by Requirement 9.3 | `17-points-320-fixed.png`, `18-graph-320.png`, `19-methods-320.png`, `20-interval-320.png` |
+| 7 | Method Details navigation reachability + Method Emphasis Rule at 320 | PASS — all four method tabs (`lagrange`, `newton`, `barycentric`, `neville`) reachable inside the inner `overflow-x-auto` tab list at 320px; selector card order Lagrange → Newton → Barycentric → Neville preserved; role tags `CONSTRUCTION / CONSTRUCTION / STABLE EVALUATOR / TARGET-SPECIFIC` rendered in label voice with Barycentric tinted via `text-primary/80` only | `19-methods-320.png` |
+
+### Defect Observed and Fixed
+
+**Defect.** At 320px viewport, the page exhibited a horizontal scroll: `document.scrollingElement.scrollWidth = 397` vs `clientWidth = 320`. The single offender was the masthead's right cluster — the "Backend connected" status indicator block plus its parent `<div>` extended to right edge 396 px because the header used a fixed `px-6` (24 px) horizontal padding, no `gap` between the title cluster and the trailing controls, and the HealthIndicator's "Backend connected" text label was always rendered. This violates Requirement 9.3 ("the page itself SHALL NOT acquire a horizontal scroll bar at viewport widths of 320 px and above").
+
+This defect was pre-existing (the masthead structure pre-dated the polish pass and was audit-only in Group F). The fix is small and scoped to the masthead.
+
+**Fix applied.** Two minimal edits:
+
+1. `frontend/src/App.tsx` — header inner container: `px-6` → `px-4 sm:px-6`; added `gap-2`; added `min-w-0` on the title cluster and `shrink-0` on the trailing controls cluster and on the identity-mark badge so the right side can shrink without wrapping; the "Lagrange · Newton · Barycentric · Neville" subtitle is now `hidden sm:block` (hidden below 640 px). The four-method order remains visible at every breakpoint via the method selector cards, the role tags, and the Result Summary methods row, so Requirement 6.2 is not weakened.
+2. `frontend/src/components/HealthIndicator.tsx` — the visual `<span>{label}</span>` is now `hidden sm:inline`, with an `sr-only sm:hidden` companion `<span>` that carries the same label text so the screen-reader announcement is preserved at every breakpoint. Below `sm`, the 1.5 px dot and the `Check` / `X` / `Loader2` icon remain visible, paired with the still-active `role="status" aria-live="polite"` semantics so severity is never carried by color alone (Requirement 10.3 still satisfied).
+
+Verified: at 320 px the page-level overflow is gone; at 1280 px the visible status indicator still reads `Backend connected` (the `sr-only` copy is excluded from visible rendering by `getComputedStyle`).
+
+### Files Changed (this follow-up session)
+
+- `frontend/src/App.tsx` — masthead padding, gap, `min-w-0` / `shrink-0`, subtitle `hidden sm:block`.
+- `frontend/src/components/HealthIndicator.tsx` — label `hidden sm:inline` with `sr-only sm:hidden` companion span.
+
+The five behavioral edits from the polish pass remain in place; this follow-up adds two further small responsive adjustments to satisfy Requirement 9.3 at 320 px. No backend file was modified.
+
+### Verification Re-run
+
+| Command | Working directory | Exit code | Notes |
+| --- | --- | --- | --- |
+| `npm run build` | `frontend/` | **0** | `tsc -b && vite build` clean. `dist/assets/index-BO8aiDhu.js` 393.95 kB / 120.51 kB gz, `dist/assets/index-DJvZ2ltD.css` 61.66 kB / 10.93 kB gz. 1.30 s. |
+| `npm run lint` | `frontend/` | **0** | Zero ESLint errors and no warnings. |
+| `npm test` | `frontend/` | **0** | `vitest run`: Test Files 1 passed (1), Tests 7 passed (7), 7.21 s. The smoke suite at `frontend/src/components/results/results.smoke.test.tsx` was not relaxed. |
+| `git status --short` | repo root | **0** | Verbatim output below; no `backend/` path; no Generated Folder staged. |
+
+```
+ M docs/FRONTEND_HANDOFF.md
+ M docs/HANDOFF.md
+ M frontend/src/App.tsx
+ M frontend/src/components/EvaluationTargets.tsx
+ M frontend/src/components/FunctionIntervalInput.tsx
+ M frontend/src/components/HealthIndicator.tsx
+ M frontend/src/components/MethodSelector.tsx
+ M frontend/src/components/XValuesInput.tsx
+ M frontend/src/components/results/MethodDetails.tsx
+?? .kiro/specs/frontend-design-system-overhaul/design.md
+?? .kiro/specs/frontend-design-system-overhaul/requirements.md
+?? .kiro/specs/frontend-design-system-overhaul/screenshots/
+?? .kiro/specs/frontend-design-system-overhaul/tasks.md
+```
+
+`git status --short backend/` returned empty output. No backend file was modified during this session.
+
+### Live Visual Check Verdict
+
+**Live Visual Check passed** for all seven scenarios after the small masthead fix. Every scenario was actually executed against the running dev server and backend with the Chrome DevTools MCP integration, and 21 screenshots were captured under `.kiro/specs/frontend-design-system-overhaul/screenshots/`.
+
+### Remaining UI Issues and Risks (post visual check)
+
+- **DevTools MCP viewport floor.** The `mcp_chrome_devtools_resize_page` tool clamps viewport widths to a minimum of ~500 px in non-mobile mode; the true 320 px check requires `mcp_chrome_devtools_emulate` with mobile mode. This is a tooling note, not a UI issue; the application's 320 px behavior is now verified.
+- **Bundle size unchanged.** Main chunk 393.95 kB (120.51 kB gz) plus lazy-loaded `PolynomialCard` (263.59 kB / 79.12 kB gz) and `GraphCard` (378.37 kB / 109.63 kB gz). Already lazy-loaded; further code-splitting is out of scope.
+- **The 320 px masthead fix changed visible chrome.** Below `sm` (640 px), the "Lagrange · Newton · Barycentric · Neville" subtitle and the "Backend connected" text label are visually hidden. The four-method order is still surfaced via the method selector and Result Summary; the health status is still surfaced via the dot + icon + `role="status"` `aria-live` announcement (the text label is preserved as `sr-only`). No semantic information is lost.
+
+### Recommended Next Step
+
+The polish pass is now visually verified. Stage the seven modified frontend files plus the two updated docs and commit the V1 polish pass. The four untracked spec files under `.kiro/specs/frontend-design-system-overhaul/` (requirements.md, design.md, tasks.md, screenshots/) can be staged separately or together with the polish pass per the user's preference; they are spec artifacts, not implementation files.
+
+### Honesty Clause
+
+Every command in the Verification Re-run above was actually executed and observed in this session; exit codes are copied verbatim. Every Live Visual Check scenario was actually driven through the Chrome DevTools MCP against the running dev server and backend; no scenario is claimed to have passed without direct observation. The 320 px page-level overflow was directly observed before the fix (`scrollWidth=397, clientWidth=320`) and directly observed to be absent after the fix (`scrollWidth=320, clientWidth=320`).

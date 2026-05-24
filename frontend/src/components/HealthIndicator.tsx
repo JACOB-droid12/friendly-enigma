@@ -118,7 +118,8 @@ export function HealthIndicator({ onStatusChange }: HealthIndicatorProps) {
     >
       <span className={`w-1.5 h-1.5 rounded-full transition-colors-fast ${dotClass}`} aria-hidden="true" />
       <Icon className={`h-3 w-3 transition-colors-fast ${iconClass}`} aria-hidden="true" />
-      <span className="font-numeric">{label}</span>
+      <span className="font-numeric hidden sm:inline">{label}</span>
+      <span className="sr-only sm:hidden">{label}</span>
     </div>
   )
 }

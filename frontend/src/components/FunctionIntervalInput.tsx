@@ -73,7 +73,7 @@ export function FunctionIntervalInput({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <Label htmlFor="interval-start" className="text-xs">
+          <Label htmlFor="interval-start" className="font-label text-muted-foreground">
             Interval Start (<span className="font-numeric">a</span>)
           </Label>
           <Input
@@ -86,7 +86,7 @@ export function FunctionIntervalInput({
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="interval-end" className="text-xs">
+          <Label htmlFor="interval-end" className="font-label text-muted-foreground">
             Interval End (<span className="font-numeric">b</span>)
           </Label>
           <Input
@@ -102,7 +102,7 @@ export function FunctionIntervalInput({
 
       <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-4">
         <div className="space-y-1.5">
-          <Label htmlFor="node-strategy" className="text-xs">Node Strategy</Label>
+          <Label htmlFor="node-strategy" className="font-label text-muted-foreground">Node Strategy</Label>
           <Select
             id="node-strategy"
             value={nodeStrategy}
@@ -119,7 +119,7 @@ export function FunctionIntervalInput({
           </p>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="node-count" className="text-xs">Node Count</Label>
+          <Label htmlFor="node-count" className="font-label text-muted-foreground">Node Count</Label>
           <Input
             id="node-count"
             type="number"

@@ -220,31 +220,38 @@ function AppShell() {
     disabled: loading,
   })
 
+  const isFormBlocked =
+    form.mode === "function_interval" &&
+    Number.isFinite(form.nodeCount) &&
+    (form.nodeCount < 2 || form.nodeCount > 50)
+
   const computeDisabledReason = !backendOnline
     ? "Backend offline"
     : loading
     ? "Computing"
+    : isFormBlocked
+    ? "Node count out of range (2\u201350)"
     : undefined
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-10">
-        <div className="max-w-[1100px] mx-auto px-6 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3.5">
-            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/8 ring-1 ring-primary/15">
+        <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/8 ring-1 ring-primary/15 shrink-0">
               <span className="font-math text-xl font-semibold italic text-primary">P</span>
             </div>
-            <div>
+            <div className="min-w-0">
               <h1 className="font-math text-[1.25rem] font-semibold leading-tight tracking-tight text-foreground">
                 Polynomial Interpolation
               </h1>
-              <p className="text-[11px] text-muted-foreground tracking-wide mt-0.5">
+              <p className="text-[11px] text-muted-foreground tracking-wide mt-0.5 hidden sm:block">
                 Lagrange · Newton · Barycentric · Neville
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <ShortcutsDialog
               open={showShortcuts}
               onOpenChange={setShowShortcuts}
@@ -308,8 +315,8 @@ function AppShell() {
               <div className="flex items-center gap-3">
                 <Button
                   onClick={handleCompute}
-                  disabled={loading || !backendOnline}
-                  aria-disabled={loading || !backendOnline}
+                  disabled={loading || !backendOnline || isFormBlocked}
+                  aria-disabled={loading || !backendOnline || isFormBlocked}
                   aria-describedby={!backendOnline ? "compute-status" : undefined}
                   title={computeDisabledReason}
                   size="lg"

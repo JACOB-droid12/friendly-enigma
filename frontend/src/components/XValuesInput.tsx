@@ -97,7 +97,7 @@ export function XValuesInput({
                 placeholder="x-value"
                 value={val}
                 onChange={(e) => updateValue(i, e.target.value)}
-                className="font-numeric"
+                className="font-numeric md:min-w-[10rem]"
                 aria-label={`X-value ${i}`}
               />
               <button

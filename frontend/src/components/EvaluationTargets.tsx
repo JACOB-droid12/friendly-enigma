@@ -45,7 +45,7 @@ export function EvaluationTargets({ targets, onChange }: EvaluationTargetsProps)
                 placeholder="x"
                 value={target}
                 onChange={(e) => updateTarget(i, e.target.value)}
-                className="font-numeric text-sm h-6 w-32 border-0 bg-transparent p-0"
+                className="font-numeric text-sm h-6 w-32 border-0 bg-transparent p-0 focus-visible:ring-0 focus-visible:border-0"
                 aria-label={`Evaluation target ${i + 1}`}
               />
               <button

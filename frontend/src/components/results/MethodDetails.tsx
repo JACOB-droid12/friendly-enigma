@@ -4,8 +4,23 @@ import { Badge } from "@/components/ui/badge"
 import { ErrorNotice } from "@/components/ErrorNotice"
 import { AlertTriangle } from "lucide-react"
 import { useMemo, useState } from "react"
-import type { InterpolateResponse } from "@/lib/api-types"
+import type { InterpolateResponse, MethodName } from "@/lib/api-types"
 import { useDisplayDigits } from "@/lib/display-digits"
+
+/**
+ * Pick the default tab for `MethodDetails`. Prefers Classroom-Facing Methods
+ * (Lagrange → Newton → Neville) when any are available, since those are the
+ * methods most users want to inspect first. Falls back to whatever `available`
+ * contains (for example Barycentric only) when no Classroom-Facing Method is
+ * present, and finally to `"lagrange"` as a last resort if `available` is
+ * empty (callers should already guard against the empty case).
+ */
+function pickInitialTab(available: MethodName[]): MethodName {
+  const classroom: MethodName[] = ["lagrange", "newton", "neville"]
+  const first = classroom.find((m) => available.includes(m))
+  if (first) return first
+  return available[0] ?? "lagrange"
+}
 
 interface MethodDetailsProps {
   data: InterpolateResponse
@@ -39,7 +54,7 @@ export function MethodDetails({ data }: MethodDetailsProps) {
   const availableMethods = data.input_summary.methods_requested.filter(
     (m) => data.methods[m]
   )
-  const [tab, setTab] = useState<string>(availableMethods[0] || "lagrange")
+  const [tab, setTab] = useState<string>(pickInitialTab(availableMethods))
 
   if (availableMethods.length === 0) return null
 
