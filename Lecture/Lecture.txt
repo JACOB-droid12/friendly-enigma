@@ -1,0 +1,2336 @@
+NUMERICAL ANALYSIS -APRIL, 2026 
+MERCIALES, Mark Anthony C.
+Course Instructor
+
+--- PAGE BREAK ---
+Introduction
+v A census of the population of a country is taken every 10 years. The 
+following table lists the population, in thousands of people, from 1950 to 
+2000, and the data are also represented in the figure:
+
+--- PAGE BREAK ---
+Introduction
+v A census of the population of a country is taken every 10 years. The 
+following table lists the population, in thousands of people, from 1950 to 
+2000.
+v In reviewing these data, we might ask whether they could be used to 
+provide a reasonable estimate of the population, say, in 1975 or even in the 
+year 2026. 
+v Predictions of this type can be obtained by using a function that fits the 
+given data. This process is called interpolation.
+
+--- PAGE BREAK ---
+Interpolation
+v One of the most useful and well-known classes of functions mapping the set 
+of real numbers into itself is the algebraic polynomials.
+ü The set of functions of the form 
+𝑃! 𝑥= 𝑎!𝑥!  + 𝑎!"#𝑥!"#  +··· + 𝑎#𝑥 + 𝑎$
+where 𝑛 is a nonnegative integer and 𝑎$, … , 𝑎! are real constants. 
+v One reason for their importance is that they uniformly approximate 
+continuous functions.
+ü i..e. Given any function, defined and continuous on a closed and bounded 
+interval, there exists a polynomial that is as “close” to the given function 
+as desired.
+
+--- PAGE BREAK ---
+Interpolation
+
+--- PAGE BREAK ---
+Interpolation
+Theorem: Weierstrass Approximation Theorem.
+Suppose that 𝑓 is defined and continuous on [𝑎, 𝑏]. For each 𝜀> 0, there exists 
+a polynomial 𝑃(𝑥), with the property that |𝑓(𝑥) −𝑃(𝑥)| < 𝜀, for all 𝑥 in [𝑎, 𝑏].
+Example: Use graphing calculator to approximate 𝑓𝑥= sin 𝑥
+On the interval [−1, 1], the function 𝑓𝑥= sin 𝑥 
+can be approximated using the function 
+𝑃𝑥= 𝑥−𝑥%
+6
+
+--- PAGE BREAK ---
+Interpolation
+v Another important reason for considering the class of polynomials in the 
+approximation of functions is that the derivative and indefinite integral of a 
+polynomial are easy to determine and are also polynomials. 
+v A good interpolation polynomial needs to provide a relatively accurate 
+approximation over an entire interval.
+ü we do not simply approximate values at a point.
+ü we approximate the “behavior” of a function on an interval.
+
+--- PAGE BREAK ---
+Lagrange Interpolating Polynomials
+v Suppose we have two points (𝑥$, 𝑦$) and (𝑥#, 𝑦#)
+ü determining a polynomial of degree one that passes through these distinct 
+points is the same as approximating a function 𝑓 for which 𝑓(𝑥$) = 𝑦$ and 
+𝑓(𝑥#) = 𝑦# by means of a first-degree polynomial interpolating, or agreeing 
+with, the values of 𝑓 at the given points.
+ü Recall that if we have a function 𝑓 with two points (𝑥$, 𝑦$) and 
+(𝑥#, 𝑦#), then we have 
+𝑓𝑥$ = 𝑦$
+𝑓(𝑥#) = 𝑦#
+v Using this polynomial for approximation within the interval given by the 
+endpoints is called polynomial interpolation.
+
+--- PAGE BREAK ---
+Lagrange Interpolating Polynomials
+v We define
+𝐿$ 𝑥= 𝑥−𝑥#
+𝑥$ −𝑥#
+and 𝐿# 𝑥= 𝑥−𝑥$
+𝑥# −𝑥$
+The linear Lagrange interpolating polynomial through 
+(𝑥$, 𝑦$) and (𝑥#, 𝑦#) is
+𝑃(𝑥) = 𝐿$ 𝑥𝑓(𝑥$) + 𝐿#(𝑥)𝑓(𝑥#)
+𝑃(𝑥) = 𝑥−𝑥#
+𝑥$ −𝑥#
+𝑓(𝑥$) + 𝑥−𝑥$
+𝑥# −𝑥$
+𝑓(𝑥#)
+
+--- PAGE BREAK ---
+Lagrange Interpolating Polynomials
+Observe that
+𝐿$ 𝑥$ = 𝑥$ −𝑥#
+𝑥$ −𝑥#
+= 1 and
+𝐿# 𝑥$ = 𝑥$ −𝑥$
+𝑥# −𝑥$
+= 0
+𝐿$ 𝑥# = 𝑥# −𝑥#
+𝑥$ −𝑥#
+= 0 and
+𝐿# 𝑥# = 𝑥# −𝑥$
+𝑥# −𝑥$
+= 1
+𝑃(𝑥$) = 𝐿$ 𝑥$ 𝑓(𝑥$) + 𝐿#(𝑥$)𝑓(𝑥#)
+Hence, we have 
+= (1)𝑓(𝑥$) + (0)𝑓(𝑥#)= 𝑓𝑥$ = 𝑦$
+𝑃(𝑥#) = 𝐿$ 𝑥# 𝑓(𝑥$) + 𝐿#(𝑥#)𝑓(𝑥#) = (0)𝑓(𝑥$) + (1)𝑓(𝑥#)= 𝑓𝑥# = 𝑦#
+So 𝑃 is the unique polynomial of degree at most one that passes through 
+(𝑥$, 𝑦$) and (𝑥#, 𝑦#). 
+
+--- PAGE BREAK ---
+Lagrange Interpolating Polynomials
+Example: Determine the linear Lagrange interpolating polynomial that passes 
+through the points(2, 4) and (5, 1).
+Solution: Given points (2, 4) and (5, 1), we let 𝑥$ = 2 and 𝑥# = 5. It follows 
+that 𝑓𝑥$ = 4 while 𝑓𝑥# = 1. 
+Solution: Given points (2, 4) and (5, 1), we let 𝑥$ = 2 and 𝑥# = 5. It follows 
+that 𝑓𝑥$ = 4 while 𝑓𝑥# = 1. Thus we have
+𝑃𝑥= 𝑥−𝑥#
+𝑥$ −𝑥#
+𝑓𝑥$ + 𝑥−𝑥$
+𝑥# −𝑥$
+𝑓𝑥#  
+𝑃(𝑥) = 𝑥−5
+2 −5 (4) + 𝑥−2
+5 −2 (1)
+𝑃(𝑥) = 4𝑥−20
+−3
+ + 𝑥−2
+3
+𝑃𝑥= −𝑥+ 6          Answer.
+
+--- PAGE BREAK ---
+Lagrange Interpolating Polynomials
+v We generalize the concept of linear interpolation, extending it to the 
+construction of a polynomial of degree at most 𝑛 that passes through 
+the 𝑛 +  1 points 
+(𝑥$, 𝑓(𝑥$)), (𝑥#, 𝑓(𝑥#)), (𝑥&, 𝑓(𝑥&)), … , (𝑥!, 𝑓(𝑥!))
+
+--- PAGE BREAK ---
+Lagrange Interpolating Polynomials
+v We generalize the concept of linear interpolation, extending it to the 
+construction of a polynomial of degree at most 𝑛 that passes through 
+the 𝑛 +  1 points 
+(𝑥$, 𝑓(𝑥$)), (𝑥#, 𝑓(𝑥#)), (𝑥&, 𝑓(𝑥&)), … , (𝑥!, 𝑓(𝑥!))
+v In this case, we first construct a function 𝐿!,((𝑥) with the property that 
+𝐿!,( 𝑥) = 0 when 𝑖≠𝑘 and 𝐿!,( 𝑥( = 1, for each 𝑘 =  0, 1, … , 𝑛.
+ü To satisfy 𝐿!,( 𝑥) = 0 for each 𝑖= 𝑘 requires that the numerator of 
+𝐿!,((𝑥) contain the term
+(𝑥−𝑥$)(𝑥−𝑥#) ··· (𝑥−𝑥("#)(𝑥−𝑥(*#) ··· (𝑥−𝑥!).
+ü To satisfy 𝐿!,( 𝑥( = 1, the denominator must be of the form
+(𝑥( −𝑥$)(𝑥( −𝑥#) ··· (𝑥( −𝑥("#)(𝑥( −𝑥(*#) ··· (𝑥( −𝑥!).
+
+--- PAGE BREAK ---
+Lagrange Interpolating Polynomials
+v Hence, we have 
+𝐿!,( 𝑥=
+(𝑥−𝑥$)(𝑥−𝑥#) ··· (𝑥−𝑥("#)(𝑥−𝑥(*#) ··· (𝑥−𝑥!)
+(𝑥( −𝑥$)(𝑥( −𝑥#) ··· (𝑥( −𝑥("#)(𝑥( −𝑥(*#) ··· (𝑥( −𝑥!)
+v A sketch of the graph of a typical 𝐿!,( (when n is even) is given by 
+
+--- PAGE BREAK ---
+Lagrange Interpolating Polynomials
+Theorem: If 𝑥$, 𝑥#, … , 𝑥! are 𝑛+ 1 distinct numbers and 𝑓 is a function 
+whose values are given at these numbers, then a unique polynomial 𝑃(𝑥) 
+of degree at most 𝑛 exists with 𝑓(𝑥() = 𝑃(𝑥(), for each 𝑘 =  0, 1, … , 𝑛
+This polynomial is given by
+𝑃𝑥= 𝑓𝑥$ 𝐿!,$ 𝑥+··· +𝑓𝑥! 𝐿!,! 𝑥= F
+(+$
+!
+𝑓𝑥( 𝐿!,((𝑥)
+where, for each 𝑘 =  0, 1, … , 𝑛,
+𝐿!,( 𝑥=
+(𝑥−𝑥$)(𝑥−𝑥#) ··· (𝑥−𝑥("#)(𝑥−𝑥(*#) ··· (𝑥−𝑥!)
+(𝑥( −𝑥$)(𝑥( −𝑥#) ··· (𝑥( −𝑥("#)(𝑥( −𝑥(*#) ··· (𝑥( −𝑥!)
+= G
+)+$
+),(
+!
+(𝑥−𝑥))
+(𝑥( −𝑥)) 
+We will write 𝐿!,( 𝑥 simply as 𝐿( 𝑥 when 
+there is no confusion as to its degree.
+
+--- PAGE BREAK ---
+Lagrange Interpolating Polynomials
+Example: (a) Use the numbers (called nodes) 𝑥$ = 2, 𝑥# = 2.75, and 𝑥&  = 4 
+to find the second Lagrange interpolating polynomial for 𝑓𝑥=
+#
+-.
+(b) Use this polynomial to approximate 𝑓(3) =
+#
+%.
+Answer: (a) 𝑃𝑥=
+#
+&& 𝑥& −
+%.
+// 𝑥+
+01
+00
+(b) 𝑃3 =
+&1
+// ≈0.32955
+
+--- PAGE BREAK ---
+Example: In the previous example, we found the second Lagrange polynomial for 𝑓(𝑥) =
+!
+" on [2, 4] using the nodes 𝑥# = 2, 𝑥! = 2.75, and 𝑥$  = 4 . Determine the error form for 
+this polynomial, and the maximum error when the polynomial is used to approximate 𝑓(𝑥) 
+for 𝑥 ∈[2, 4].
+
+--- PAGE BREAK ---
+
+--- PAGE BREAK ---
+Lagrange Interpolating Polynomials
+Theorem: Suppose 𝑥$, 𝑥#, … , 𝑥! are 𝑛+ 1 are distinct numbers in the 
+interval [𝑎, 𝑏] and 𝑓∈𝐶!*#[𝑎, 𝑏]. Then, for each 𝑥 in [𝑎, 𝑏], a number 
+𝜉(𝑥) (generally unknown) between 𝑥$, 𝑥#, … , 𝑥!, and hence in (𝑎, 𝑏), 
+exists with
+𝑓𝑥= 𝑃𝑥+ 𝑓!*#
+𝜉𝑥
+𝑛+ 1 !
+(𝑥−𝑥$)(𝑥−𝑥#) ··· (𝑥−𝑥!)
+where 𝑃(𝑥) is the interpolating polynomial.
+ü The error formula in this theorem is an important theoretical result 
+because Lagrange polynomials are used extensively for deriving 
+numerical differentiation and integration methods. 
+ü Error bounds for these techniques are obtained from the Lagrange error 
+formula
+
+--- PAGE BREAK ---
+Lagrange Interpolating Polynomials
+Example: In the previous example, we found the second Lagrange polynomial 
+for 𝑓(𝑥) =
+#
+- on [2, 4] using the nodes 𝑥$ = 2, 𝑥# = 2.75, and 𝑥&  = 4 . 
+Determine the error form for this polynomial, and the maximum error when 
+the polynomial is used to approximate 𝑓(𝑥) for 𝑥 ∈[2, 4].
+
+--- PAGE BREAK ---
+Example: In the previous example, we found the second Lagrange polynomial for 𝑓(𝑥) =
+!
+" on [2, 4] using the nodes 𝑥# = 2, 𝑥! = 2.75, and 𝑥$  = 4 . Determine the error form for 
+this polynomial, and the maximum error when the polynomial is used to approximate 𝑓(𝑥) 
+for 𝑥 ∈[2, 4].
+
+--- PAGE BREAK ---
+Example: In the previous example, we found the second Lagrange polynomial for 𝑓(𝑥) =
+!
+" on [2, 4] using the nodes 𝑥# = 2, 𝑥! = 2.75, and 𝑥$  = 4 . Determine the error form for 
+this polynomial, and the maximum error when the polynomial is used to approximate 𝑓(𝑥) 
+for 𝑥 ∈[2, 4].
+
+--- PAGE BREAK ---
+Example: In the previous example, we found the second Lagrange polynomial for 𝑓(𝑥) =
+!
+" on [2, 4] using the nodes 𝑥# = 2, 𝑥! = 2.75, and 𝑥$  = 4 . Determine the error form for 
+this polynomial, and the maximum error when the polynomial is used to approximate 𝑓(𝑥) 
+for 𝑥 ∈[2, 4].
+
+--- PAGE BREAK ---
+Lagrange Interpolating Polynomials
+
+--- PAGE BREAK ---
+Lagrange Interpolating Polynomials
+Example: Suppose a table is to be prepared for the function 𝑓(𝑥) = 𝑒-, for 
+𝑥 in [0, 1]. Assume the number of decimal places to be given per entry is 
+𝑑 ≥ 8 and that the difference between adjacent 𝑥-values, the step size, is 
+ℎ. What step size ℎ will ensure that linear interpolation gives an absolute 
+error of at most 10"2 for all 𝑥 in 0, 1 .
+
+--- PAGE BREAK ---
+Lagrange Interpolating Polynomials
+
+--- PAGE BREAK ---
+Lagrange Interpolating Polynomials
+
+--- PAGE BREAK ---
+Data Approximation and Neville’s Method
+v Previously, we found an explicit representation for Lagrange 
+polynomials and their error when approximating a function on an 
+interval. 
+v A frequent use of these polynomials involves the interpolation of 
+tabulated data. 
+ü In this case an explicit representation of the polynomial might not 
+be needed, only the values of the polynomial at specified points. 
+ü In this situation the function underlying the data might not be 
+known so the explicit form of the error cannot be used. 
+
+--- PAGE BREAK ---
+Data Approximation and Neville’s Method
+v The most appropriate linear polynomial uses 𝑥# = 1.3 
+and 𝑥& = 1.6 because 1.5 is between 1.3 and 1.6. 
+v The value of the interpolating polynomial at 1.5 is
+=  0.5102968 
+v Suppose we want to approximate the value of the 
+function at 𝑥= 1.5.
+
+--- PAGE BREAK ---
+Data Approximation and Neville’s Method
+v Two polynomials of degree 2 can reasonably be used, 
+one with 𝑥$ = 1.3, 𝑥# = 1.6, and 𝑥& = 1.9, which 
+gives
+v The value of the interpolating polynomial at 1.5 is
+v 𝑃&(1.5) = 0.5112857
+v and one with 𝑥$ = 1.0, 𝑥# = 1.3, and 𝑥& = 1.6, which 
+gives T𝑃&(1.5) = 0.5124715.
+
+--- PAGE BREAK ---
+Data Approximation and Neville’s Method
+v In the third-degree case, there are also two 
+reasonable choices for the polynomial. One with 𝑥$ =
+1.3, 𝑥# = 1.6, 𝑥& =  1.9, and 𝑥% = 2.2, which gives 
+𝑃%(1.5) =  0.5118302.
+v The second third-degree approximation is obtained 
+with 𝑥$ = 1.0, 𝑥# = 1.3, 𝑥& = 1.6, and 𝑥% = 1.9, 
+which gives T𝑃%(1.5) =  0.5118127.
+
+--- PAGE BREAK ---
+Data Approximation and Neville’s Method
+v The fourth-degree Lagrange polynomial uses all the 
+entries in the table. With 𝑥$ = 1.0, 𝑥# = 1.3, 𝑥& =
+ 1.6, 𝑥% = 1.9 and 𝑥0 = 2.2, the approximation is 
+𝑃0(1.5) = 0.5118200.
+
+--- PAGE BREAK ---
+Data Approximation and Neville’s Method
+v In summary, we have 
+𝑃# 1.5 =  0.5102968
+𝑃& 1.5 = 0.5112857
+T𝑃&(1.5) = 0.5124715
+𝑃% 1.5 =  0.5118302
+T𝑃% 1.5 =  0.5118127
+𝑃0(1.5) = 0.5118200
+v Because 𝑃% 1.5 , T𝑃% 1.5 , and 𝑃0(1.5) all agree to 
+within 2×10". units(safe bound for the differences in 
+values), we expect this degree of accuracy for these 
+approximations. 
+v We also expect P4(1.5) to be the most accurate 
+approximation, since it uses more of the given data.
+
+--- PAGE BREAK ---
+Data Approximation and Neville’s Method
+v The function we are approximating is actually the Bessel function of the 
+first kind of order zero, whose value at 1.5 is known to be 0.5118277. 
+𝑃# 1.5 =  0.5102968
+𝑃& 1.5 = 0.5112857
+T𝑃&(1.5) = 0.5124715
+𝑃% 1.5 =  0.5118302
+T𝑃% 1.5 =  0.5118127
+𝑃0(1.5) = 0.5118200
+𝑓1.5 = 0.5118277
+v If  𝑓(1.5) is known, we accept 𝑃% 1.5 . If 𝑓1.5  is unknown, we accept 
+𝑃0(1.5). 
+
+--- PAGE BREAK ---
+Data Approximation and Neville’s Method
+v The function we are approximating is actually the Bessel function of the 
+first kind of order zero, whose value at 1.5 is known to be 0.5118277. 
+𝑃# 1.5 =  0.5102968
+𝑃& 1.5 = 0.5112857
+T𝑃&(1.5) = 0.5124715
+𝑃% 1.5 =  0.5118302
+T𝑃% 1.5 =  0.5118127
+𝑃0(1.5) = 0.5118200
+𝑓1.5 = 0.5118277
+v The Lagrange error term cannot be applied here (𝑓(0) is unknown). 
+Unfortunately, this is generally the case.
+
+--- PAGE BREAK ---
+Neville’s Method
+𝑓𝑥= 𝑃𝑥+ 𝑓!*#
+𝜉𝑥
+𝑛+ 1 !
+(𝑥−𝑥$)(𝑥−𝑥#) ··· (𝑥−𝑥!)
+v A practical difficulty with Lagrange interpolation is that the error term is 
+difficult to apply.
+ü Suppose you want an error of  ≤10"2. Then we would need 
+an 𝑛. 
+üBut because the error formula contains an unknown 𝜉 a complicated 
+product term, it is difficult to determine in advance what 𝑛should be.
+v so the degree of the polynomial needed for the desired accuracy is 
+generally not known until computations have been performed.
+
+--- PAGE BREAK ---
+Neville’s Method
+v A common practice is to compute the results given from various 
+polynomials until appropriate agreement is obtained
+      [as previously  illustrated].
+v Calculating the approximation by the second polynomial does not lessen 
+the work needed to calculate the third approximation; nor is the fourth 
+approximation easier to obtain once the third approximation is known, 
+and so on. 
+v We will present a formula in a manner that uses the previous calculations 
+to greater advantage.
+
+--- PAGE BREAK ---
+Neville’s Method
+Definition: Let 𝑓 be a function defined at 𝑥$, 𝑥#, 𝑥&, … , 𝑥!, and suppose that 
+𝑚#, 𝑚&, … , 𝑚( are 𝑘 distinct integers, with 0 ≤𝑚) ≤𝑛 for each 𝑖. The 
+Lagrange polynomial that agrees with 𝑓(𝑥) at the 𝑘 points 𝑥5! , 𝑥5" , … , 𝑥5# 
+is denoted 𝑃5!,5",…,5#(𝑥).
+𝑃! 𝑥 
+ü nth Lagrange polynomial
+𝑃5!,5",…,5# 𝑥 
+ü  Lagrange polynomial that agrees with 𝑓(𝑥) at the 𝑘 points 
+𝑥5! , 𝑥5" , … , 𝑥5#
+
+--- PAGE BREAK ---
+Neville’s Method
+Example: Suppose that 𝑥$ = 1, 𝑥# = 2, 𝑥& = 3, 𝑥% = 4, 𝑥0 = 6, and 
+𝑓(𝑥) = 𝑒-. Determine the interpolating polynomial denoted 𝑃#,&,0(𝑥), and 
+use this polynomial to approximate 𝑓(5).
+Solution: This is the Lagrange polynomial that agrees with 𝑓(𝑥) at 𝑥# = 2, 𝑥& =
+3, and 𝑥0 = 6. Hence
+𝑃#,&,0 𝑥= 𝑥−3
+𝑥−6
+2 −3
+2 −6 𝑒& + 𝑥−2
+𝑥−6
+3 −2
+3 −6 𝑒% + 𝑥−2
+𝑥−3
+6 −2
+6 −3 𝑒2
+𝑓(5) ≈𝑃#,&,0 𝑥= 5 −3
+5 −6
+2 −3
+2 −6 𝑒& + 5 −2
+5 −6
+3 −2
+3 −6 𝑒% + 5 −2
+5 −3
+6 −2
+6 −3 𝑒2
+= −1
+2 𝑒& + 𝑒% + 1
+2 𝑒2≈ 218.105.
+
+--- PAGE BREAK ---
+Neville’s Method
+Example: Suppose that 𝑥$ = 1, 𝑥# = 2, 𝑥& = 3, 𝑥% = 4, 𝑥0 = 6, and 𝑓(𝑥)
+= 𝑒-. Determine the interpolating polynomial denoted 𝑃#,&,0(𝑥), and use 
+this polynomial to approximate 𝑓(5).
+Solution: This is the Lagrange polynomial that agrees with 𝑓(𝑥) at 𝑥# = 2, 𝑥& =
+3, and 𝑥0 = 6. Hence
+𝑃#,&,0 𝑥= 𝑥−3
+𝑥−6
+2 −3
+2 −6 𝑒& + 𝑥−2
+𝑥−6
+3 −2
+3 −6 𝑒% + 𝑥−2
+𝑥−3
+6 −2
+6 −3 𝑒2
+𝑓(5) ≈𝑃#,&,0 𝑥= 5 −3
+5 −6
+2 −3
+2 −6 𝑒& + 5 −2
+5 −6
+3 −2
+3 −6 𝑒% + 5 −2
+5 −3
+6 −2
+6 −3 𝑒2
+= −1
+2 𝑒& + 𝑒% + 1
+2 𝑒2≈ 218.105.
+
+--- PAGE BREAK ---
+Neville’s Method
+Example: Suppose that 𝑥$ = 1, 𝑥# = 2, 𝑥& = 3, 𝑥% = 4, 𝑥0 = 6, and 
+𝑓(𝑥) = 𝑒-. Determine the interpolating polynomial denoted 𝑃#,&,0(𝑥), and 
+use this polynomial to approximate 𝑓(5).
+Solution: This is the Lagrange polynomial that agrees with 𝑓(𝑥) at 𝑥# = 2, 𝑥& =
+3, and 𝑥0 = 6. Hence
+𝑃#,&,0 𝑥= 𝑥−3
+𝑥−6
+2 −3
+2 −6 𝑒& + 𝑥−2
+𝑥−6
+3 −2
+3 −6 𝑒% + 𝑥−2
+𝑥−3
+6 −2
+6 −3 𝑒2
+𝑓(5) ≈𝑃#,&,0 𝑥= 5 −3
+5 −6
+2 −3
+2 −6 𝑒& + 5 −2
+5 −6
+3 −2
+3 −6 𝑒% + 5 −2
+5 −3
+6 −2
+6 −3 𝑒2
+= −1
+2 𝑒& + 𝑒% + 1
+2 𝑒2≈ 218.105.
+
+--- PAGE BREAK ---
+Neville’s Method
+Theorem: Let 𝑓 be defined at 𝑥$, 𝑥#, … , 𝑥( and let 𝑥7 and 𝑥) be two distinct 
+numbers in this set. Then
+𝑃𝑥= 𝑥−𝑥7 𝑃$,#,&,…,7"#,7*#,…,( 𝑥−(𝑥−𝑥))𝑃$,#,&,…,)"#,)*#,…,((𝑥)
+𝑥) −𝑥7
+is the 𝑘th Lagrange polynomial that interpolates 𝑓 at 𝑘+ 1 points 𝑥$, 𝑥#, … , 𝑥(. 
+ü The theorem implies that the interpolating polynomials can be generated 
+recursively.
+ü Example: 
+𝑃$,# =
+-"-$ 8!" -"-! 8$
+(-!"-$)
+, 𝑃#,& =
+-"-! 8"" -"-" 8!
+(-""-!)
+, 𝑃$,#,& =
+-"-$ 8!,"" -"-" 8$,!
+(-""-$)
+
+--- PAGE BREAK ---
+Neville’s Method
+v The procedure that uses the result of the previous theorem to recursively 
+generate interpolating polynomial approximations is called Neville’s method. 
+ü The 𝑃 notation is cumbersome because of the number of subscripts used to 
+represent the entries. Note, however, that as an array is being constructed, 
+only two subscripts are needed. 
+
+--- PAGE BREAK ---
+Neville’s Method
+ü The 𝑃 notation is cumbersome because of the number of subscripts used to 
+represent the entries. Note, however, that as an array is being constructed, 
+only two subscripts are needed. 
+ü To avoid the multiple subscripts, we let 𝑄),7(𝑥), for 0 ≤𝑗≤𝑖, denote the 
+interpolating polynomial of degree 𝑗 on the (𝑗+ 1) numbers 
+𝑥)"7, 𝑥)"7*#, … , 𝑥)"#, 𝑥); that is,
+
+--- PAGE BREAK ---
+Neville’s Method
+Example: Apply Neville’s method to the data(on the 
+right) by constructing a recursive table to interpolate 
+the value of the function at 𝑥= 1.5
+Solution: Let 𝑥$ = 1.0, 𝑥# = 1.3, 𝑥& =  1.6, 𝑥% =
+1.9 and 𝑥0 = 2.2.
+𝑄$,$ = 𝑓1.0 = 0.7651977
+𝑄#,$ = 𝑓1.3 = 0.6200860
+𝑄&,$ = 𝑓1.6 = 0.4554022
+𝑄%,$ = 𝑓1.9 = 0.2818186
+𝑄0,$ = 𝑓2.2 = 0.1103623
+
+--- PAGE BREAK ---
+Neville’s Method
+Example: Apply Neville’s method to the data(on the 
+right) by constructing a recursive table to interpolate 
+the value of the function at 𝑥= 1.5
+Solution: Let 𝑥$ = 1.0, 𝑥# = 1.3, 𝑥& =  1.6, 𝑥% =
+1.9 and 𝑥0 = 2.2.
+𝑄#,# = 𝑥−𝑥$ 𝑄#,$ −𝑥−𝑥# 𝑄$,$
+𝑥# −𝑥$
+𝑄#,#(1.5) = 1.5 −1.0 (0.6200860) −1.5 −1.3 (0.7651977)
+1.3 −1.0
+= 0.5233449
+
+--- PAGE BREAK ---
+Neville’s Method
+Example: Apply Neville’s method to the data(on the 
+right) by constructing a recursive table to interpolate 
+the value of the function at 𝑥= 1.5
+Solution: Let 𝑥$ = 1.0, 𝑥# = 1.3, 𝑥& =  1.6, 𝑥% =
+1.9 and 𝑥0 = 2.2.
+𝑄#,#(1.5) = 0.5233449
+𝑄&,#(1.5) = 0.5102968
+𝑄%,#(1.5) = 0.5132634
+𝑄0,#(1.5) = 0.5104270
+ü The best linear approximation is expected to be 𝑄&,# because 
+1.5 is between 𝑥# = 1.3 and 𝑥& = 1.6.
+
+--- PAGE BREAK ---
+Neville’s Method
+Example: Apply Neville’s method to the data(on the 
+right) by constructing a recursive table to interpolate 
+the value of the function at 𝑥= 1.5
+Solution: Let 𝑥$ = 1.0, 𝑥# = 1.3, 𝑥& =  1.6, 𝑥% =
+1.9 and 𝑥0 = 2.2.
+𝑄&,& = (𝑥−𝑥$)𝑄&,# −(𝑥−𝑥&)𝑄#,#
+𝑥& −𝑥$
+ 
+𝑄&,&(1.5) = (1.5 −1.0)(0.5102968) −(1.5 −1.6)(0.5233449)
+1.6 −1.0
+ 
+= 0.5124715
+𝑥!, 𝑥" 𝑚𝑖𝑠𝑠𝑖𝑛𝑔 𝑥#
+𝑥#, 𝑥! 𝑚𝑖𝑠𝑠𝑖𝑛𝑔 𝑥"
+
+--- PAGE BREAK ---
+Neville’s Method
+Example: Apply Neville’s method to the data(on the 
+right) by constructing a recursive table to interpolate 
+the value of the function at 𝑥= 1.5
+Solution: Let 𝑥$ = 1.0, 𝑥# = 1.3, 𝑥& =  1.6, 𝑥% =
+1.9 and 𝑥0 = 2.2.
+𝑄&,&(1.5) = 0.5124715
+𝑄%,&(1.5) = 0.5112857
+𝑄0,&(1.5) = 0.5137361
+
+--- PAGE BREAK ---
+Neville’s Method
+Example: Apply Neville’s method to the data(on the 
+right) by constructing a recursive table to interpolate 
+the value of the function at 𝑥= 1.5
+Solution: Let 𝑥$ = 1.0, 𝑥# = 1.3, 𝑥& =  1.6, 𝑥% =
+1.9 and 𝑥0 = 2.2.
+
+--- PAGE BREAK ---
+Neville’s Method
+Example: Apply Neville’s method to the data(on the right) by constructing a 
+recursive table to interpolate the value of the function at 𝑥= 1.5
+
+--- PAGE BREAK ---
+Neville’s Method
+Example: The table on the right lists the values of 
+𝑓𝑥= ln 𝑥 accurate to the places given. Use 
+Neville’s method and four-digit rounding arithmetic 
+to approximate 𝑓(2.1) = ln 2.1 by completing the 
+Neville.
+Solution: Let 𝑥$ = 2.0, 𝑥# = 2.2, 𝑥& = 2.3.
+𝑖
+𝑥)
+𝑥−𝑥)
+𝑄),$
+𝑄),#
+𝑄),&
+
+--- PAGE BREAK ---
+Neville’s Method
+
+--- PAGE BREAK ---
+Newton’s Divided Difference
+v Suppose that 𝑃!(𝑥) is the 𝑛th Lagrange polynomial that agrees with the 
+function 𝑓 at the distinct numbers 𝑥$, 𝑥#, … , 𝑥!. 
+𝑃!(𝑥) = 𝑎$ + 𝑎#(𝑥−𝑥$) + 𝑎&(𝑥−𝑥$)(𝑥−𝑥#) +··· +𝑎!(𝑥−𝑥$) ··· (𝑥−𝑥!"#)
+v Although this Lagrange polynomial is unique, there are alternate algebraic 
+representations that are useful in certain situations. 
+v The divided differences of 𝑓 with respect to 𝑥$, 𝑥#, … , 𝑥! are used to 
+express 𝑃!(𝑥) in the form
+for appropriate constants 𝑎$, 𝑎#, … , 𝑎!.
+v Our objective is to identify the constants 𝑎$, 𝑎#, … , 𝑎!.
+
+--- PAGE BREAK ---
+Newton’s Divided Difference
+ü Observe that when we evaluate the function 𝑃!(𝑥) at 𝑥= 𝑥$, we’ll have
+𝑃!(𝑥) = 𝑎$ + 𝑎#(𝑥−𝑥$) + 𝑎&(𝑥−𝑥$)(𝑥−𝑥#) +··· +𝑎!(𝑥−𝑥$) ··· (𝑥−𝑥!"#)
+𝑃!(𝑥$) = 𝑎$ = 𝑓𝑥$
+ü Also, when we evaluate the function 𝑃!(𝑥) at 𝑥= 𝑥#, we’ll have
+𝑃!(𝑥#) = 𝑎$ + 𝑎#(𝑥# −𝑥$)= 𝑓𝑥#
+𝑓(𝑥$) + 𝑎#(𝑥# −𝑥$) = 𝑓𝑥#
+𝑎# = 𝑓𝑥# −𝑓(𝑥$)
+𝑥# −𝑥$
+
+--- PAGE BREAK ---
+Newton’s Divided Difference
+ü Observe that when we evaluate the function 𝑃!(𝑥) at 𝑥= 𝑥&, we’ll have
+𝑃!(𝑥) = 𝑎$ + 𝑎#(𝑥−𝑥$) + 𝑎&(𝑥−𝑥$)(𝑥−𝑥#) +··· +𝑎!(𝑥−𝑥$) ··· (𝑥−𝑥!"#)
+𝑃!(𝑥&) = 𝑎$ + 𝑎#(𝑥& −𝑥$) + 𝑎&(𝑥& −𝑥$)(𝑥& −𝑥#)
+𝑓(𝑥&) = 𝑓𝑥$ + 𝑓𝑥# −𝑓(𝑥$)
+𝑥# −𝑥$
+(𝑥& −𝑥$) + 𝑎&(𝑥& −𝑥$)(𝑥& −𝑥#)
+= 𝑓𝑥&
+𝑓𝑥& −𝑓𝑥$ −𝑓𝑥# −𝑓𝑥$
+𝑥# −𝑥$
+(𝑥& −𝑥$)
+(𝑥& −𝑥$)(𝑥& −𝑥#)
+= 𝑎&
+
+--- PAGE BREAK ---
+Newton’s Divided Difference
+𝑎& =
+𝑓𝑥& −𝑓𝑥$ −𝑓𝑥# −𝑓𝑥$
+𝑥# −𝑥$
+(𝑥& −𝑥$)
+(𝑥& −𝑥$)(𝑥& −𝑥#)
+=
+𝑓𝑥& −𝑓𝑥# + 𝑓𝑥# −𝑓𝑥$
+−𝑓𝑥# −𝑓𝑥$
+𝑥# −𝑥$
+(𝑥& −𝑥$)
+(𝑥& −𝑥$)(𝑥& −𝑥#)
+=
+𝑓𝑥& −𝑓𝑥# + 𝑓𝑥# −𝑓𝑥$
+1 −𝑥& −𝑥$
+𝑥# −𝑥$
+(𝑥& −𝑥$)(𝑥& −𝑥#)
+=
+𝑓𝑥& −𝑓𝑥# + 𝑓𝑥# −𝑓𝑥$
+𝑥# −𝑥&
+𝑥# −𝑥$
+(𝑥& −𝑥$)(𝑥& −𝑥#)
+
+--- PAGE BREAK ---
+Newton’s Divided Difference
+=
+𝑓𝑥& −𝑓𝑥# + 𝑓𝑥# −𝑓𝑥$
+𝑥# −𝑥&
+𝑥# −𝑥$
+(𝑥& −𝑥$)(𝑥& −𝑥#)
+=
+𝑓𝑥& −𝑓𝑥#
+(𝑥& −𝑥$)(𝑥& −𝑥#) +
+𝑓𝑥# −𝑓𝑥$
+𝑥# −𝑥&
+𝑥# −𝑥$
+(𝑥& −𝑥$)(𝑥& −𝑥#)
+=
+𝑓𝑥& −𝑓𝑥#
+(𝑥& −𝑥$)(𝑥& −𝑥#) −
+𝑓𝑥# −𝑓𝑥$
+1
+𝑥# −𝑥$
+(𝑥& −𝑥$)
+𝑎& =
+1
+𝑥& −𝑥$
+𝑓𝑥& −𝑓𝑥#
+𝑥& −𝑥#
+−𝑓𝑥# −𝑓𝑥$
+𝑥# −𝑥$
+
+--- PAGE BREAK ---
+Newton’s Divided Difference
+v We now introduce the following notation:
+ü zeroth divided difference
+𝑓[𝑥)] = 𝑓(𝑥))
+ü first divided difference
+𝑓𝑥), 𝑥)*# = 𝑓𝑥)*# −𝑓[𝑥)]
+𝑥)*# −𝑥)
+ü second divided difference
+𝑓𝑥), 𝑥)*#, 𝑥)*& = 𝑓𝑥)*#, 𝑥)*& −𝑓[𝑥), 𝑥)*#]
+𝑥)*& −𝑥)
+ü 𝑘th divided difference relative to 𝑥), 𝑥)*#, 𝑥)*&, … , 𝑥)*( is
+𝑓𝑥), 𝑥)*#, 𝑥)*&, … , 𝑥)*( = 𝑓𝑥)*#, 𝑥)*&, … , 𝑥)*( −𝑓[𝑥), 𝑥)*#, … , 𝑥)*("#]
+𝑥)*( −𝑥)
+
+--- PAGE BREAK ---
+Newton’s Divided Difference
+v We now introduce the following notation:
+ü zeroth divided difference
+𝑓[𝑥)] = 𝑓(𝑥))
+ü first divided difference
+𝑓𝑥), 𝑥)*# = 𝑓𝑥)*# −𝑓[𝑥)]
+𝑥)*# −𝑥)
+ü second divided difference
+𝑓𝑥), 𝑥)*#, 𝑥)*& = 𝑓𝑥)*#, 𝑥)*& −𝑓[𝑥), 𝑥)*#]
+𝑥)*& −𝑥)
+ü 𝑘th divided difference relative to 𝑥$, 𝑥#, 𝑥&, … , 𝑥( is
+𝑓𝑥$, 𝑥#, 𝑥&, … , 𝑥( = 𝑓𝑥#, 𝑥&, … , 𝑥( −𝑓[𝑥$, 𝑥#, … , 𝑥("#]
+𝑥( −𝑥$
+
+--- PAGE BREAK ---
+Newton’s Divided Difference
+𝑓𝑥$, 𝑥#, 𝑥&, … , 𝑥( = 𝑓𝑥#, 𝑥&, … , 𝑥( −𝑓[𝑥$, 𝑥#, … , 𝑥("#]
+𝑥( −𝑥$
+v Based on our previous results, we have
+𝑎$ = 𝑓(𝑥$)
+𝑎# = 𝑓𝑥# −𝑓(𝑥$)
+𝑥# −𝑥$
+𝑎& =
+𝑓𝑥& −𝑓𝑥#
+𝑥& −𝑥#
+−𝑓𝑥# −𝑓𝑥$
+𝑥# −𝑥$
+𝑥& −𝑥$
+𝑓𝑥$ = 𝑓(𝑥$)
+𝑓𝑥$, 𝑥# = 𝑓𝑥# −𝑓[𝑥$]
+𝑥# −𝑥$
+𝑓𝑥$, 𝑥#, 𝑥& = 𝑓𝑥#, 𝑥& −𝑓[𝑥$, 𝑥#]
+𝑥& −𝑥$
+
+--- PAGE BREAK ---
+Newton’s Divided Difference
+𝑃! 𝑥= 𝑓𝑥$ + F
+(+#
+!
+𝑓𝑥$, 𝑥#, 𝑥&, … , 𝑥(
+𝑥−𝑥$
+𝑥−𝑥# … (𝑥−𝑥("#)
+v We now have the Newton’s divided difference formula given by
+
+--- PAGE BREAK ---
+Newton’s Divided Difference
+𝑃𝑥= 𝑓𝑥$ + F
+(+#
+!
+𝑓𝑥#, 𝑥&, … , 𝑥(
+𝑥−𝑥$
+𝑥−𝑥# … (𝑥−𝑥("#)
+
+--- PAGE BREAK ---
+Newton’s Divided Difference
+Example: Complete the divided difference table for 
+the data on the right, and construct the interpolating 
+polynomial that uses all this data.
+Solution: Let 𝑥$ = 1.0, 𝑥# = 1.3, 𝑥& =  1.6, 𝑥% =
+1.9 and 𝑥0 = 2.2.
+𝑓𝑥$, 𝑥# = 0.6200860 −0.7651977
+1.3 −1.0
+
+--- PAGE BREAK ---
+Newton’s Divided Difference
+Example: Complete the divided difference table for the data on the right, and 
+construct the interpolating polynomial that uses all this data.
+Solution: Let 𝑥$ = 1.0, 𝑥# = 1.3, 𝑥& =  1.6, 𝑥% = 1.9 and 𝑥0 = 2.2.
+Answer: 𝑃𝑥=  0.7651977 − 0.4837057(𝑥 − 1.0) − 0.1087339(𝑥 − 1.0)(
+ 1.3) +  0.0658784(𝑥 − 1.0)(𝑥 − 1.3)(𝑥 − 1.6) +  0.0018251(𝑥 − 1.0)(𝑥 
+ 1.3)(𝑥 − 1.6)(𝑥 − 1.9).
+
+--- PAGE BREAK ---
+Newton Forward-Difference Formula
+Definition: For a given sequence 𝑝! !+$
+9
+, the forward difference∆𝑝! 
+(read “delta 𝑝!”) is defined by 
+∆𝑝!= 𝑝!*# −𝑝!, for 𝑛≥0
+Higher powers of the operator ∆ are defined recursively by ∆(𝑝! =
+∆∆("#𝑝! , for 𝑘≥2
+ü The definition implies that 
+∆&𝑝! = ∆𝑝!*# −𝑝!
+= ∆𝑝!*# −∆𝑝!
+= (𝑝!*& −𝑝!*#) −(𝑝!*# −𝑝!)
+= 𝑝!*& −2𝑝!*# + 𝑝!.
+
+--- PAGE BREAK ---
+Newton Forward-Difference Formula
+v Newton’s divided-difference formula can be expressed in a simplified 
+form when the nodes are arranged consecutively with equal spacing. 
+ü We introduce the notation ℎ= 𝑥)*# −𝑥), for each 𝑖= 0, 1, … , 𝑛−
+1 and let 𝑥= 𝑥$ + 𝑠ℎ wherein 𝑠 is a nonnegative integer.
+distance ℎ
+𝑥$
+𝑥$ + 1 ℎ𝑥$ + 2 ℎ
+𝑥$ + 3 ℎ
+𝑥$ + 4 ℎ𝑥$ + 5 ℎ
+
+--- PAGE BREAK ---
+Newton Forward-Difference Formula
+v Newton’s divided-difference formula can be expressed in a simplified 
+form when the nodes are arranged consecutively with equal spacing. 
+ü We introduce the notation ℎ= 𝑥)*# −𝑥), for each 𝑖= 0, 1, … , 𝑛−
+1 and let 𝑥= 𝑥$ + 𝑠ℎ wherein 𝑠 is a nonnegative integer.
+ü It follows that
+𝑥= 𝑥$ + 𝑠ℎ
+𝑥−𝑥# = 𝑥$ + 𝑠ℎ−𝑥#
+𝑥−𝑥# = 𝑥$ + 𝑠ℎ−(ℎ+ 𝑥$)
+𝑥−𝑥# = 𝑥$ + 𝑠ℎ−ℎ−𝑥$
+𝑥−𝑥# = (𝑠−1)ℎ
+
+--- PAGE BREAK ---
+Newton Forward-Difference Formula
+v Newton’s divided-difference formula can be expressed in a simplified 
+form when the nodes are arranged consecutively with equal spacing. 
+ü We introduce the notation ℎ= 𝑥)*# −𝑥), for each 𝑖= 0, 1, … , 𝑛−
+1 and let 𝑥= 𝑥$ + 𝑠ℎ wherein 𝑠 is a nonnegative integer.
+ü It follows that
+𝑥= 𝑥$ + 𝑠ℎ
+𝑥−𝑥& = 𝑥$ + 𝑠ℎ−𝑥&
+𝑥−𝑥& = 𝑥$ + 𝑠ℎ−(ℎ+ 𝑥#)
+𝑥−𝑥& = 𝑥$ + 𝑠ℎ−ℎ−(ℎ+ 𝑥$)
+𝑥−𝑥& = (𝑠−2)ℎ
+
+--- PAGE BREAK ---
+Newton Forward-Difference Formula
+v Newton’s divided difference formula can be expressed in a simplified 
+form when the nodes are arranged consecutively with equal spacing. 
+ü We introduce the notation ℎ= 𝑥)*# −𝑥), for each 𝑖= 0, 1, … , 𝑛−
+1 and let 𝑥= 𝑥$ + 𝑠ℎ wherein 𝑠 is not zero.
+ü It follows that
+𝑥−𝑥) = 𝑠−𝑖ℎ
+𝑃! 𝑥= 𝑓𝑥$ + 𝑓𝑥$, 𝑥#
+𝑥−𝑥$ + 𝑓𝑥$, 𝑥#, 𝑥&
+𝑥−𝑥$
+𝑥−𝑥#
++ ⋯+ 𝑓[𝑥$, 𝑥#, … , 𝑥!](𝑥−𝑥$) ··· (𝑥−𝑥!"#)
+𝑃!(𝑥$ + 𝑠ℎ) = 𝑓𝑥$ + 𝑓𝑥$, 𝑥#
+𝑠ℎ+ 𝑓𝑥$, 𝑥#, 𝑥&
+𝑠ℎ( 𝑠−1 ℎ)
++ ⋯+ 𝑓[𝑥$, 𝑥#, … , 𝑥!](𝑠ℎ)( 𝑠−1 ℎ) ···
+𝑠−𝑛−1
+ℎ
+
+--- PAGE BREAK ---
+Newton Forward-Difference Formula
+𝑃! 𝑥= 𝑓𝑥$ + F
+(+#
+!
+𝑓𝑥#, 𝑥&, … , 𝑥(
+𝑠ℎ
+𝑠−1 ℎ…
+𝑠−𝑘−1
+ℎ
+𝑃! 𝑥= 𝑓𝑥$ + 𝑓𝑥$, 𝑥#
+𝑠ℎ+ 𝑓𝑥$, 𝑥#, 𝑥&
+𝑠ℎ( 𝑠−1 ℎ)
++ ⋯+ 𝑓[𝑥$, 𝑥#, … , 𝑥!"#](𝑠ℎ)( 𝑠−1 ℎ) ···
+𝑠−𝑛−1
+ℎ
+𝑃! 𝑥= 𝑓𝑥$ + F
+(+#
+!
+𝑓𝑥#, 𝑥&, … , 𝑥(
+𝑠
+𝑠−1
+…
+𝑠−𝑘−1
+ℎ(
+𝑃! 𝑥= 𝑓𝑥$ + F
+(+#
+!
+𝑠
+𝑘𝑘! ℎ(𝑓𝑥#, 𝑥&, … , 𝑥(
+𝑤ℎ𝑒𝑟𝑒𝑖𝑛
+𝑠
+𝑘= 𝑠𝑠−1
+𝑠−2 … (𝑠−𝑘+ 1)
+𝑘!
+
+--- PAGE BREAK ---
+Newton Forward-Difference Formula
+v We now have 
+𝑃! 𝑥= 𝑃! 𝑥$ + 𝑠ℎ= 𝑓𝑥$ + F
+(+#
+!
+𝑠
+𝑘𝑘! ℎ(𝑓𝑥$, 𝑥#, … , 𝑥(
+𝑤ℎ𝑒𝑟𝑒𝑖𝑛
+𝑠
+𝑘= 𝑠𝑠−1
+𝑠−2 … (𝑠−𝑘+ 1)
+𝑘!
+
+--- PAGE BREAK ---
+Newton Forward-Difference Formula
+v Using the forward difference notation ∆𝑝!= 𝑝!*# −𝑝!, we will get
+𝑓𝑥$, 𝑥# = 𝑓𝑥# −𝑓(𝑥$)
+𝑥# −𝑥$
+= 1
+ℎ(𝑓𝑥# −𝑓(𝑥$))= 1
+ℎ∆𝑓(𝑥$) 
+𝑓𝑥$, 𝑥#, 𝑥& =
+𝑓𝑥& −𝑓𝑥#
+𝑥& −𝑥#
+−𝑓𝑥# −𝑓𝑥$
+𝑥# −𝑥$
+𝑥& −𝑥$
+= 1
+2ℎ
+∆𝑓𝑥#
+ℎ
+−∆𝑓𝑥$
+ℎ
+= 1
+2ℎ& ∆&𝑓(𝑥$) 
+v In general, we have 
+𝑓𝑥$, 𝑥#, 𝑥&, … , 𝑥( =
+1
+𝑘! ℎ( ∆(𝑓(𝑥$)
+
+--- PAGE BREAK ---
+Newton Forward-Difference Formula
+v Since we have 
+𝑓𝑥$, 𝑥#, 𝑥&, … , 𝑥( =
+1
+𝑘! ℎ( ∆(𝑓𝑥$
+then we can rewrite 
+𝑃! 𝑥= 𝑃! 𝑥$ + 𝑠ℎ= 𝑓𝑥$ + F
+(+#
+!
+𝑠
+𝑘𝑘! ℎ(𝑓𝑥$, 𝑥#, … , 𝑥(
+into the Newton forward-difference formula
+𝑃! 𝑥= 𝑃! 𝑥$ + 𝑠ℎ= 𝑓𝑥$ + F
+(+#
+!
+𝑠
+𝑘∆(𝑓𝑥$
+
+--- PAGE BREAK ---
+Newton Forward-Difference Formula
+Example:  Consider the following divided difference table we previously 
+obtained.
+We will interpolate f at 𝑥= 1.1 and 𝑥= 2 using the given five points.
+
+--- PAGE BREAK ---
+Solution:
+Given: 
+𝑥= 1.1 = 1 + 0.1 
+ℎ= 1.3 −1.0 = 0.3 
+so 𝑠=
+#
+%, that is
+𝑥= 1.1 = 1 +
+#
+% (0.3) 
+Using Newton’s Divided difference formula:
+𝑃!(𝑥$ + 𝑠ℎ) = 𝑓𝑥$ + 𝑓𝑥$, 𝑥#
+𝑠ℎ+ 𝑓𝑥$, 𝑥#, 𝑥&
+𝑠ℎ( 𝑠−1 ℎ)
++ ⋯+ 𝑓[𝑥$, 𝑥#, … , 𝑥!](𝑠ℎ)( 𝑠−1 ℎ) ···
+𝑠−𝑛−1
+ℎ
+Using Newton’s Divided difference formula:
+𝑃0 1 + 1
+3 0.3
+= 0.7196459912
+
+--- PAGE BREAK ---
+Using Newton’s Divided difference formula:
+𝑃0 1 +
+#
+% 0.3
+ 
+= 0.7651977 + (−0.4837057) 1
+3
+0.3  
++(−0.1087339) 1
+3 0.3
+1
+3 −1
+0.3
++ (0.0658784) 1
+3
+0.3
+1
+3 −1
+0.3
+1
+3 −2
+0.3
++ (0.0018251) 1
+3
+0.3
+1
+3 −1
+0.3
+1
+3 −2
+0.3
+1
+3 −3
+0.3
+= 0.7196459912
+
+--- PAGE BREAK ---
+Solution:
+Given: 
+𝑥= 1.1 = 1 + 0.1 
+ℎ= 1.3 −1.0 = 0.3 
+so 𝑠=
+#
+%, that is
+𝑥= 1.1 = 1 +
+#
+% (0.3) 
+Using Newton’s Divided difference formula:
+𝑃! 𝑥$ + 𝑠ℎ= 𝑓𝑥$ + F
+(+#
+!
+𝑠
+𝑘𝑘! ℎ(𝑓𝑥$, 𝑥#, … , 𝑥(
+𝑃0 1 + 1
+3 (0.3) = 𝑓𝑥$ + F
+(+#
+0
+1/3
+𝑘
+𝑘! (0.3)(𝑓𝑥$, 𝑥#, … , 𝑥(
+
+--- PAGE BREAK ---
+𝑃0 1 + 1
+3 (0.3) = 𝑓𝑥$ + F
+(+#
+0
+1/3
+𝑘
+𝑘! (0.3)(𝑓𝑥$, 𝑥#, … , 𝑥(
+= 𝑓𝑥$ + 1/3
+1
+1! (0.3)#𝑓𝑥$, 𝑥# + 1/3
+2
+2! (0.3)&𝑓𝑥$, 𝑥#, 𝑥&  
++ 1/3
+3
+3! (0.3)%𝑓𝑥$, 𝑥#, 𝑥&, 𝑥% + 1/3
+4
+4! (0.3)0𝑓𝑥$, 𝑥#, 𝑥&, 𝑥%, 𝑥0
+= 0.7651977 +
+1
+3
+1
+1! 0.3 #(−0.4837057) +
+1
+3
+2
+2! (0.3)&(−0.1087339)
++
+1
+3
+3
+3! 0.3 %(0.0658784) +
+1
+3
+4
+4! 0.3 0(0.0018251)
+
+--- PAGE BREAK ---
+𝑃0 1 + 1
+3 (0.3) = 𝑓𝑥$ + F
+(+#
+0
+1/3
+𝑘
+𝑘! (0.3)(𝑓𝑥$, 𝑥#, … , 𝑥(
+= 0.7651977 + (−0.4837057) 1
+3
+0.3  
++(−0.1087339) 1
+3
+1
+3 −1
+0.3 & + (0.0658784) 1
+3
+1
+3 −1
+1
+3 −2
+0.3 %
++ (0.0018251) 1
+3
+1
+3 −1
+1
+3 −2
+1
+3 −3
+0.3 0
+= 0.7196459912
+
+--- PAGE BREAK ---
+Solution:
+Given: 
+𝑥= 1.1 = 1 + 0.1 
+ℎ= 1.3 −1.0 = 0.3 
+so 𝑠=
+#
+%, that is
+𝑥= 1.1 = 1 +
+#
+% (0.3) 
+Using Newton forward-difference formula:
+𝑃! 𝑥$ + 𝑠ℎ= 𝑓𝑥$ + F
+(+#
+!
+𝑠
+𝑘∆(𝑓𝑥$
+𝑃0 1 + 1
+3 (0.3) = 𝑓𝑥$ + F
+(+#
+0
+1
+3
+𝑘
+∆(𝑓(𝑥$)
+
+--- PAGE BREAK ---
+𝑃0 1 + 1
+3 (0.3) = 𝑓𝑥$ + F
+(+#
+0
+1
+3
+𝑘
+∆(𝑓(𝑥$)
+= 𝑓𝑥$ +
+1
+3
+1
+∆#𝑓𝑥$ +
+1
+3
+2
+∆&𝑓𝑥$ +
+1
+3
+3
+∆%𝑓𝑥$ +
+1
+3
+4
+∆0𝑓(𝑥$)
+Note that
+ü ∆#𝑓𝑥$ = 𝑓𝑥# −𝑓(𝑥$)
+ü ∆&𝑓𝑥$ = ∆𝑓𝑥# −∆𝑓𝑥$ = 𝑓𝑥& −2𝑓𝑥# + 𝑓(𝑥$)
+ü ∆%𝑓𝑥$ = ∆𝑓𝑥& −∆2𝑓𝑥#
++ ∆𝑓𝑥$
+= 𝑓𝑥% −𝑓𝑥& −2𝑓𝑥& −2𝑓𝑥#
++ 𝑓𝑥# −𝑓(𝑥$)
+= 𝑓𝑥% −3𝑓𝑥& + 3𝑓𝑥# −𝑓𝑥$  
+ü ∆0𝑓𝑥$ = 𝑓𝑥0 −4𝑓𝑥% + 6𝑓𝑥& −4𝑓𝑥# + 𝑓𝑥$
+
+--- PAGE BREAK ---
+𝑃0 1 + 1
+3 (0.3) = 𝑓𝑥$ + F
+(+#
+0
+1
+3
+𝑘
+∆(𝑓(𝑥$)
+= 𝑓𝑥$ +
+1
+3
+1
+∆#𝑓𝑥$ +
+1
+3
+2
+∆&𝑓𝑥$ +
+1
+3
+3
+∆%𝑓𝑥$ +
+1
+3
+4
+∆0𝑓(𝑥$)
+Note that
+ü ∆#𝑓𝑥$ = 𝑓𝑥# −𝑓(𝑥$)
+= 0.6200860 −0.7651977= −0.1451117 
+ü ∆&𝑓𝑥$ = 𝑓𝑥& −2𝑓𝑥# + 𝑓(𝑥$)
+ = 0.4554022 −2(0.6200860) + 0.7651977= −0.0195721
+ü ∆%𝑓𝑥$ = 𝑓𝑥% −3𝑓𝑥& + 3𝑓𝑥# −𝑓𝑥$
+= 0.2818186 −3(0.4554022) + 3(0.6200860) −0.7651977=0.0106723
+ü ∆0𝑓𝑥$ = 𝑓𝑥0 −4𝑓𝑥% + 6𝑓𝑥& −4𝑓𝑥# + 𝑓𝑥$
+=  0.1103623 −4(0.2818186) + 6(0.4554022) −4(0.6200860) + 0.7651977
+ = 0.0003548 
+
+--- PAGE BREAK ---
+𝑃0 1 + 1
+3 (0.3) = 𝑓𝑥$ + F
+(+#
+0
+1
+3
+𝑘
+∆(𝑓(𝑥$)
+= 𝑓𝑥$ +
+1
+3
+1
+∆#𝑓𝑥$ +
+1
+3
+2
+∆&𝑓𝑥$ +
+1
+3
+3
+∆%𝑓𝑥$ +
+1
+3
+4
+∆0𝑓(𝑥$)
+Note that
+ü ∆#𝑓𝑥$ = −0.1451117
+ü ∆&𝑓𝑥$ = −0.0195721
+ü ∆%𝑓𝑥$ = 0.0106723
+ü ∆0𝑓𝑥$ = 0.0003548
+= 0.7651977 +
+1
+3
+1
+ (−0.1451117) +
+1
+3
+2
+ (−0.0195721)
++
+1
+3
+3
+ (0.0106723) +
+1
+3
+4
+ (0.0003548)
+
+--- PAGE BREAK ---
+𝑃0 1 + 1
+3 (0.3)
+= 0.7651977 +
+1
+3
+1
+ (−0.1451117) +
+1
+3
+2
+ (−0.0195721)
++
+1
+3
+3
+ (0.0106723) +
+1
+3
+4
+ (0.0003548)
+= 0.7651977 + 1
+3
+−0.1451117 +
+1
+3
+1
+3 −1
+2!
+−0.0195721
++
+1
+3
+1
+3 −1
+1
+3 −2
+3!
+0.0106723
++
+1
+3
+1
+3 −1
+1
+3 −2
+1
+3 −3
+4!
+0.0003548  
+𝑠
+𝑘= 𝑠𝑠−1
+𝑠−2 … (𝑠−𝑘+ 1)
+𝑘!
+
+--- PAGE BREAK ---
+𝑃0 1 + 1
+3 (0.3)
+= 0.7651977 + 1
+3
+−0.1451117 +
+1
+3
+1
+3 −1
+2!
+−0.0195721
++
+1
+3
+1
+3 −1
+1
+3 −2
+3!
+0.0106723
++
+1
+3
+1
+3 −1
+1
+3 −2
+1
+3 −3
+4!
+0.0003548  
+= 0.7651977 + 1
+3
+−0.1451117 + 1
+3 −2
+3
+1
+2
+−0.0195721
++ 1
+3 −2
+3
+−5
+3
+1
+6
+0.0106723
++ 1
+3 −2
+3
+−5
+3
+−8
+3
+1
+24
+0.0003548  
+= 0.719646
+
+--- PAGE BREAK ---
+Newton Backward-Difference Formula
+v Suppose the interpolating nodes are reordered from last to first as 
+𝑥!, 𝑥!"#, … , 𝑥$. 
+ü The we can write the interpolating polynomial as
+𝑃! 𝑥= 𝑓𝑥! + 𝑓𝑥!, 𝑥!"#
+𝑥−𝑥! + 𝑓𝑥!, 𝑥!"#, 𝑥!"&
+𝑥−𝑥!
+𝑥−𝑥!"#
++ ⋯+ 𝑓[𝑥!, 𝑥!"#, … , 𝑥$](𝑥−𝑥!)(𝑥−𝑥!) ··· (𝑥−𝑥$)
+v If in addition, the nodes are equally spaced with 𝑥= 𝑥! + 𝑠ℎ 
+ü    It follows that
+𝑥= 𝑥! + 𝑠ℎ
+ 
+𝑥−𝑥!"# = 𝑥! + 𝑠ℎ−(𝑥! −ℎ)
+𝑥! −ℎ= 𝑥!"#
+𝑥−𝑥!"# = 𝑠ℎ+ ℎ
+𝑥= 𝑥!"# + 𝑠+ 1 ℎ
+
+--- PAGE BREAK ---
+Newton Backward-Difference Formula
+𝑥= 𝑥!"# + 𝑠+ 1 ℎ
+𝑥−𝑥!"& = 𝑥!"# + 𝑠+ 1 ℎ−𝑥!"&
+𝑥−𝑥!"& = 𝑥!"# + 𝑠+ 1 ℎ−(𝑥!"# −ℎ)
+𝑥−𝑥!"& = 𝑠+ 1 ℎ+ ℎ
+𝑥= 𝑥!"& + 𝑠+ 1 ℎ+ ℎ
+𝑥= 𝑥!"& + 𝑠+ 2 ℎ
+ü In general, we have
+𝑥 = 𝑥) + (𝑠+ 𝑛−𝑖)ℎ
+
+--- PAGE BREAK ---
+Newton Backward-Difference Formula
+v Consequently, with 𝑥 −𝑥) = (𝑠+ 𝑛−𝑖)ℎ, we can rewrite
+𝑃! 𝑥= 𝑓𝑥! + 𝑓𝑥!, 𝑥!"#
+𝑥−𝑥! + 𝑓𝑥!, 𝑥!"#, 𝑥!"&
+𝑥−𝑥!
+𝑥−𝑥!"#
++ ⋯+ 𝑓[𝑥!, 𝑥!"#, … , 𝑥$](𝑥−𝑥!)(𝑥−𝑥!) ··· (𝑥−𝑥$)
+as
+𝑃! 𝑥= 𝑓𝑥! + 𝑠ℎ𝑓𝑥!, 𝑥!"# + 𝑠𝑠+ 1 ℎ&𝑓𝑥!, 𝑥!"#, 𝑥!"&
++ ⋯+ 𝑠𝑠+ 1 ··· 𝑠+ 𝑛−1 ℎ!𝑓[𝑥!, 𝑥!"#, … , 𝑥$]
+
+--- PAGE BREAK ---
+Newton Backward-Difference Formula
+Definition: For a given sequence 𝑝! !+$
+9
+, the backward difference ∇𝑝! 
+(read “nabla 𝑝!”) is defined by 
+∇𝑝!= 𝑝! −𝑝!"#, for 𝑛≥1
+Higher powers of the operator ∇ are defined recursively by ∇(𝑝! =
+∇∇("#𝑝! , for 𝑘≥2
+
+--- PAGE BREAK ---
+Newton Backward-Difference Formula
+Definition: For a given sequence 𝑝! !+$
+9
+, the backward difference ∇𝑝! 
+(read “nabla 𝑝!”) is defined by 
+∇𝑝!= 𝑝! −𝑝!"#, for 𝑛≥1
+Higher powers of the operator ∇ are defined recursively by ∇(𝑝! =
+∇∇("#𝑝! , for 𝑘≥2
+ü The definition implies that 
+𝑓𝑥!, 𝑥!"#, … , 𝑥!"( =
+1
+𝑘! ℎ( ∇(𝑓(𝑥!)
+Wednesday 3-4PM April 27
+
+--- PAGE BREAK ---
+Newton Backward-Difference Formula
+v Using the backward difference notation ∇𝑝!= 𝑝! −𝑝!"#, observe:
+𝑓𝑥!, 𝑥!"# = 𝑓𝑥! −𝑓(𝑥!"#)
+𝑥! −𝑥!"#
+= 1
+ℎ(𝑓𝑥! −𝑓(𝑥!"#))= 1
+ℎ∇𝑓(𝑥!)
+𝑓𝑥!, 𝑥!"#, 𝑥!"& =
+𝑓𝑥! −𝑓𝑥!"#
+𝑥! −𝑥!"#
+−𝑓𝑥!"# −𝑓𝑥!"&
+𝑥!"# −𝑥!"&
+𝑥! −𝑥!"&
+= 1
+2ℎ
+∇𝑓𝑥!
+ℎ
+−∇𝑓𝑥!"#
+ℎ
+= 1
+2ℎ& ∇&𝑓(𝑥!) 
+𝑓𝑥!, 𝑥!"#, … , 𝑥!"( =
+1
+𝑘! ℎ( ∇(𝑓(𝑥!)
+
+--- PAGE BREAK ---
+Newton Backward-Difference Formula
+v Hence, we can rewrite
+𝑃! 𝑥! + 𝑠ℎ= 𝑓𝑥! + 𝑠ℎ𝑓𝑥!, 𝑥!"# + 𝑠𝑠+ 1 ℎ&𝑓𝑥!, 𝑥!"#, 𝑥!"&
++ ⋯+ 𝑠𝑠+ 1 ··· 𝑠+ 𝑛−1 ℎ!𝑓[𝑥!, 𝑥!"#, … , 𝑥$]
+as
+𝑃! 𝑥= 𝑓𝑥! + 𝑠∇𝑓(𝑥!) + 𝑠𝑠+ 1
+2
+∇&𝑓(𝑥!)
+ 
++ ⋯+ 𝑠𝑠+ 1 ··· 𝑠+ 𝑛−1
+𝑛!
+∇!𝑓𝑥!
+
+--- PAGE BREAK ---
+Newton Backward-Difference Formula
+v If we use
+−𝑠
+𝑘
+= −𝑠−𝑠−1 ··· −𝑠−𝑘+ 1
+𝑘!
+= −1 ( 𝑠𝑠+ 1 ··· 𝑠+ 𝑘−1
+𝑘!
+Then we have
+𝑃! 𝑥! + 𝑠ℎ= 𝑓𝑥! + −1 # −𝑠
+1
+∇𝑓𝑥! + −1 & −𝑠
+2
+∇&𝑓𝑥!
++ ⋯+ −1 ! −𝑠
+𝑛
+∇!𝑓𝑥!  
+
+--- PAGE BREAK ---
+Newton Backward-Difference Formula
+v We now have the Newton backward-difference formula 
+wherein
+−𝑠
+𝑘
+= −1 ( 𝑠𝑠+ 1 ··· 𝑠+ 𝑘−1
+𝑘!
+𝑃! 𝑥! + 𝑠ℎ= 𝑓𝑥! + F
+(+#
+!
+−1 ( −𝑠
+𝑘
+∇(𝑓(𝑥!)
+
+--- PAGE BREAK ---
+Newton Backward-Difference Formula
+Example:  Consider the following divided difference table we previously 
+obtained.
+We will interpolate  f at 𝑥= 2 using the given five points.
+
+--- PAGE BREAK ---
+Solution:
+Given: 
+𝑥= 2 = 2.2 −0.2 
+ℎ= 1.3 −1.0 = 0.3 
+so 𝑠= −
+&
+% , that is
+𝑥= 2 = 2.2 + −
+&
+% (0.3) 
+Using Newton’s Divided difference formula:
+𝑃! 𝑥= 𝑓𝑥! + 𝑠ℎ𝑓𝑥!, 𝑥!"# + 𝑠𝑠+ 1 ℎ&𝑓𝑥!, 𝑥!"#, 𝑥!"&
++ ⋯+ 𝑠𝑠+ 1 ··· 𝑠+ 𝑛−1 ℎ!𝑓[𝑥!, 𝑥!"#, … , 𝑥$]
+Using Newton’s Divided difference formula:
+𝑃0 2.2 + −2
+3 (0.3) =  0.2238754
+
+--- PAGE BREAK ---
+Using Newton’s Divided difference formula:
+𝑃0 𝑥
+= 𝑓𝑥0 + 𝑠ℎ𝑓𝑥0, 𝑥% + 𝑠𝑠+ 1 ℎ&𝑓𝑥0, 𝑥%, 𝑥&
++ 𝑠𝑠+ 1
+𝑠+ 2 ℎ%𝑓𝑥0, 𝑥%, 𝑥&, 𝑥#
++𝑠𝑠+ 1
+𝑠+ 2
+𝑠+ 3 ℎ0𝑓[𝑥0, 𝑥%, 𝑥&, 𝑥#, 𝑥$]
+𝑓𝑥7 = 0.1103623
+𝑓𝑥7, 𝑥8 = −0.5715210
+𝑓𝑥7, 𝑥8, 𝑥$ =  0.0118183
+𝑓𝑥7, 𝑥8, 𝑥$, 𝑥! = 0.0680685
+𝑓𝑥7, 𝑥8, 𝑥$, 𝑥!, 𝑥# = 0.0018251
+
+--- PAGE BREAK ---
+Using Newton’s Divided difference formula:
+𝑃0 𝑥= 𝑓𝑥0 + 𝑠ℎ𝑓𝑥0, 𝑥% + 𝑠𝑠+ 1 ℎ&𝑓𝑥0, 𝑥%, 𝑥&
+ +𝑠𝑠+ 1
+𝑠+ 2 ℎ%𝑓𝑥0, 𝑥%, 𝑥&, 𝑥#  
+ 
++𝑠𝑠+ 1
+𝑠+ 2
+𝑠+ 3 ℎ0𝑓[𝑥0, 𝑥%, 𝑥&, 𝑥#, 𝑥$]
+𝑓𝑥7 = 0.1103623
+𝑓𝑥7, 𝑥8 = −0.5715210
+𝑓𝑥7, 𝑥8, 𝑥$ =  0.0118183
+𝑓𝑥7, 𝑥8, 𝑥$, 𝑥! = 0.0680685
+𝑓𝑥7, 𝑥8, 𝑥$, 𝑥!, 𝑥# = 0.0018251
+= 0.1103623 + −2
+3 (0.3)(−0.5715210)
++ −2
+3
+−2
+3 + 1
+0.3 &(0.0118183)
+𝑠= −2
+3 , ℎ= 0.3
++ −2
+3
+−2
+3 + 1
+−2
+3 + 2
+0.3 %(0.0680685) 
+ + −2
+3
+−2
+3 + 1
+−2
+3 + 2
+−2
+3 + 3
+0.3 0(0.0018251)
+=  0.2238754
+
+--- PAGE BREAK ---
+Solution:
+Given: 
+𝑥= 2 = 2.2 −0.2 
+ℎ= 1.3 −1.0 = 0.3 
+so 𝑠=
+&
+%, that is
+𝑥= 2 = 2.2 + −
+&
+% (0.3) 
+Using Newton Backward difference formula:
+𝑃! 𝑥= 𝑓𝑥! + F
+(+#
+!
+−1 ( −𝑠
+𝑘
+∇(𝑓(𝑥!)
+𝑃! 𝑥= 𝑓𝑥! + −1 # −𝑠
+1
+∇𝑓𝑥! + −1 & −𝑠
+2
+∇&𝑓𝑥! +
+−1 % −𝑠
+3
+∇%𝑓𝑥! + −1 0 −𝑠
+4
+∇0𝑓𝑥!
+
+--- PAGE BREAK ---
+∇𝑝!= 𝑝! −𝑝!"#
+∇𝑓𝑥! = 𝑓𝑥! −𝑓𝑥!"#
+∇&𝑓𝑥! = ∇𝑓𝑥! −∇𝑓𝑥!"#
+= 𝑓𝑥! −𝑓𝑥!"# −𝑓𝑥!"# −𝑓𝑥!"&
+= 𝑓𝑥! −2𝑓𝑥!"# + 𝑓𝑥!"&
+∇%𝑓𝑥! = ∇𝑓𝑥! −2∇𝑓𝑥!"# + ∇𝑓𝑥!"&
+= 𝑓𝑥! −𝑓𝑥!"# −2 𝑓𝑥!"# −𝑓𝑥!"&
++ 𝑓𝑥!"& −𝑓𝑥!"%
+= 𝑓𝑥! −3𝑓𝑥!"# + 3𝑓𝑥!"& −𝑓𝑥!"%
+∇0𝑓𝑥! = ∇𝑓𝑥! −3∇𝑓𝑥!"# + 3∇𝑓𝑥!"& −∇𝑓𝑥!"%
+= 𝑓𝑥! −4𝑓𝑥!"# + 6𝑓𝑥!"& −4𝑓𝑥!"% + 𝑓𝑥!"%
+
+--- PAGE BREAK ---
+∇𝑓𝑥0 = 𝑓𝑥0 −𝑓𝑥%
+∇&𝑓𝑥0 = 𝑓𝑥0 −2𝑓𝑥% + 𝑓𝑥&
+= 0.1103623 −2(0.2818186) + 0.4554022
+∇%𝑓𝑥0 = 𝑓𝑥0 −3𝑓𝑥% + 3𝑓𝑥& −𝑓𝑥#
+= 0.1103623 −3(0.2818186) + 3(0.4554022) −0.6200860
+∇0𝑓𝑥0 = 𝑓𝑥0 −4𝑓𝑥% + 6𝑓𝑥& −4𝑓𝑥# + 𝑓𝑥$
+= 0.1103623 −4(0.2818186) + 6(0.4554022) −4(0.6200860)
++ 0.7651977
+= 0.1103623 −0.2818186
+𝑓𝑥$ = 0.7651977
+𝑓𝑥# = 0.6200860
+𝑓𝑥& = 0.4554022
+𝑓𝑥% = 0.2818186
+𝑓𝑥0 = 0.1103623
+= −0.1714563
+= 0.0021273
+= 0.0110271
+= 0.0003548
+
+--- PAGE BREAK ---
+𝑃! 𝑥= 𝑓𝑥! + −1 # −𝑠
+1
+∇𝑓𝑥! + −1 & −𝑠
+2
+∇&𝑓𝑥! +
+−1 % −𝑠
+3
+∇%𝑓𝑥! + −1 0 −𝑠
+4
+∇0𝑓𝑥!
+= 0.1103623
++ −1 # 2/3
+1
+(−0.1714563)
++ −1 & 2/3
+2
+(0.0021273)
++ −1 % 2/3
+3
+(0.0110271)
++ −1 0 2/3
+4
+(0.0003548)
+∇𝑓𝑥0 = −0.1714563
+∇&𝑓𝑥0 = 0.0021273
+∇%𝑓𝑥0  = 0.0110271
+∇0𝑓𝑥0 = 0.0003548
+𝑠= −2
+3 , ℎ= 0.3
+𝑓𝑥7 = 0.1103623
+
+--- PAGE BREAK ---
+𝑃! 𝑥= 𝑓𝑥! + −1 # −𝑠
+1
+∇𝑓𝑥! + −1 & −𝑠
+2
+∇&𝑓𝑥! +
+−1 % −𝑠
+2
+∇%𝑓𝑥! + −1 0 −𝑠
+2
+∇0𝑓𝑥!
+= 0.1103623 + −1 # 2/3
+1
+(−0.1714563) + −1 & 2/3
+2
+(0.0021273)
++ −1 % 2/3
+3
+(0.0110271) + −1 0 2/3
+4
+(0.0003548)
+= 0.1103623 −2/3
+1
+(−0.1714563) + 2/3
+2
+(0.0021273)
+−2/3
+3
+(0.0110271) + 2/3
+4
+(0.0003548)
+= 0.1103623 −2
+3
+−0.1714563 + 2
+3
+2
+3 −1
+1
+2  (0.0021273)
+−2
+3
+2
+3 −1
+2
+3 −2
+1
+6
+0.0110271
++ 2
+3
+2
+3 −1
+2
+3 −2
+2
+3 −3
+1
+24 (0.0003548)
+𝑃! 𝑥= 𝑓𝑥! + 𝑠∇𝑓(𝑥!) +
+2
+∇&𝑓(𝑥!)
+ 
++ ⋯+ 𝑠𝑠+ 1 ··· 𝑠+ 𝑛−1
+𝑛!
+∇!𝑓𝑥!
+= 0.2238754
+
+--- PAGE BREAK ---
+Centered-Difference Formula
+v The Newton forward- and backward-difference formulas are not appropriate 
+for approximating 𝑓(𝑥) when 𝑥 lies near the center of the table because 
+neither will permit the highest-order difference to have 𝑥$ close to 𝑥.
+ü The formulas rely on factors 𝑥−𝑥$ , 𝑥−𝑥# , 𝑥−𝑥& , …
+ü If 𝑥is far from 𝑥$ (forward) or far from 𝑥! (backward), these 
+terms get large.
+ü This makes higher-order differences less stable
+and more prone to numerical error
+v We have centered-difference formulas which is advantageous for cases 
+when 𝑥 lies near the center of the table 
+
+--- PAGE BREAK ---
+Centered-Difference Formula
+v We will only consider one centered-difference formula: Stirling’s Method 
+ü We choose 𝑥$ near the point being approximated and label the 
+nodes directly below 𝑥$ as 𝑥1, 𝑥2, ... and those directly above 
+as 𝑥"#, 𝑥&, ... .
+
+--- PAGE BREAK ---
+Centered-Difference Formula
+Stirling’s Formula
+𝑃! 𝑥= 𝑃&5*# 𝑥= 𝑓𝑥$ + 𝑠ℎ
+2
+𝑓𝑥"#, 𝑥$ + 𝑓𝑥$, 𝑥#
++ 𝑠&ℎ&
+2
+𝑓𝑥"#, 𝑥$, 𝑥#
++ 𝑠𝑠& −1 ℎ%
+2
+𝑓𝑥"&, 𝑥"#, 𝑥$, 𝑥# + 𝑓𝑥"#, 𝑥$𝑥#, 𝑥&
++𝑠& 𝑠& −1 ℎ0𝑓𝑥"&, 𝑥"#, 𝑥$𝑥#, 𝑥&
+…
++𝑠& 𝑠& −1
+𝑠& −4 … (𝑠& −𝑚−1 &)ℎ&5𝑓𝑥"5, 𝑥"(5"#), … , 𝑥5
++ 𝑠𝑠& −1
+𝑠& −4 … 𝑠& −𝑚& ℎ&5*#
+2
+𝑓𝑥"5"#, … 𝑥5 + 𝑓𝑥"5, … , 𝑥5*# 
+
+--- PAGE BREAK ---
+Centered-Difference Formula
+Stirling’s Formula
+𝑃! 𝑥= 𝑃&5*# 𝑥= 𝑓𝑥$ + 𝑠ℎ
+2
+𝑓𝑥"#, 𝑥$ + 𝑓𝑥$, 𝑥#
++ 𝑠&ℎ&
+2
+𝑓𝑥"#, 𝑥$𝑥#
++ 𝑠𝑠& −1 ℎ%
+2
+𝑓𝑥"&, 𝑥"#, 𝑥$𝑥# + 𝑓𝑥"#, 𝑥$𝑥#, 𝑥&
++𝑠& 𝑠& −1 ℎ0𝑓𝑥"&, 𝑥"#, 𝑥
++ 𝑠𝑠& −1
+𝑠& −4 ℎ.
+2
+𝑓𝑥"%, 𝑥"&, 𝑥"#, 𝑥$𝑥#, 𝑥& + 𝑓𝑥"&, 𝑥"#, 𝑥$𝑥#, 𝑥&, 𝑥%
++𝑠& 𝑠& −1
+𝑠& −4 ℎ2𝑓𝑥"%, 𝑥"&, 𝑥"#, 𝑥$𝑥#, 𝑥&, 𝑥%
+…
++𝑠$ 𝑠$ −1
+𝑠$ −4 … (𝑠$ −𝑚−1 $)ℎ$9𝑓𝑥:9, 𝑥:(9:!), … , 𝑥9
++ 𝑠𝑠! −1
+𝑠! −4 … 𝑠! −𝑚! ℎ!"#$
+2
+𝑓𝑥%"%$, … 𝑥" + 𝑓𝑥%", … , 𝑥"#$ 
+
+--- PAGE BREAK ---
+Centered-Difference Formula
+Example:  Consider the following divided difference table we previously 
+obtained.
+We use Stirling’s formula to approximate 𝑓(1.5) with 𝑥$ =  1.6.
+
+--- PAGE BREAK ---
+Centered-Difference Formula
+Solution:  To apply Stirling’s formula we use the underlined entries on 
+the previous table.
+
+--- PAGE BREAK ---
+Osculating Polynomial
+Definition:  Let 𝑥$, 𝑥#, 𝑥&, … , 𝑥! be 𝑛+ 1 distinct numbers in 𝑎, 𝑏 for 
+𝑖= 0,1, … , 𝑛, let 𝑚) be a nonnegative integer. Suppose 𝑓∈𝐶5[𝑎, 𝑏] 
+where 𝑚= max
+$E)E! 𝑚).
+The osculating polynomial approximating 𝑓 is the polynomial 𝑃(𝑥) of 
+least degree(degree of 𝑃𝑥≤𝑛+ ∑)+$
+!
+𝑚)) that has the same values 
+as the function 𝑓 and all its derivatives of order less than or equal to 
+𝑚) at each 𝑥), i.e., 
+𝑑(𝑃𝑥)
+𝑑𝑥(
+= 𝑑(𝑓𝑥)
+𝑑𝑥(
+for each 𝑖= 0, 1, … , 𝑛 and 𝑘= 0, 1, 2, … , 𝑚). 
+ü When 𝑛= 0, the osculating polynomial approximating 𝑓 is the 𝑚$th 
+Taylor polynomial for 𝑓 at 𝑥$. 
+
+--- PAGE BREAK ---
+Osculating Polynomial(Taylor Polynomial)
+Theorem: [Taylor’s Theorem]
+Suppose 𝑓∈𝐶5[𝑎, 𝑏], that 𝑓(!*#) exists on [𝑎, 𝑏], and 𝑥$ ∈[𝑎, 𝑏]. For every 
+𝑥∈[𝑎, 𝑏], there exist a number 𝜉(𝑥) between 𝑥$ and 𝑥 with 
+𝑓𝑥= 𝑃! 𝑥+ 𝑅!(𝑥)
+where
+𝑃! 𝑥= 𝑓𝑥" + 𝑓# 𝑥"
+𝑥−𝑥" + 𝑓## 𝑥"
+2!
+𝑥−𝑥" $ + ⋯+ 𝑓! 𝑥"
+𝑛!
+𝑥−𝑥" !
+= +
+%&"
+! 𝑓% 𝑥"
+𝑘!
+𝑥−𝑥" % 
+𝑅! 𝑥= 𝑓!'(
+𝜉𝑥
+𝑛+ 1 !
+𝑥−𝑥" !'(
+
+--- PAGE BREAK ---
+Osculating Polynomial(Taylor Polynomial)
+Example: Let 𝑓(𝑥) = cos 𝑥 and 𝑥$ = 0. Determine
+a.) the second Taylor polynomial for 𝑓 about 𝑥$; and
+b.) the third Taylor polynomial for 𝑓 about 𝑥$
+
+--- PAGE BREAK ---
+Osculating Polynomial(Taylor Polynomial)
+v The infinite series obtained by taking the limit of 𝑃!(𝑥) as 𝑛→∞ is 
+called the Taylor series for 𝑓 about 𝑥$. 
+v In the case 𝑥$ = 0, the Taylor polynomial is often called a 
+ 
+Maclaurin polynomial. In this case, the Taylor series is called a 
+Maclaurin series.
+Example: Determine the Taylor series for 𝑓(𝑥) = 𝑠𝑖𝑛𝑥 with  𝑥$ = 0.(Or Taylor 
+series centered at 𝑥= 0) 
+Answer: 
+sin 𝑥= F
+!+$
+9
+−1 !
+𝑥!*#
+2𝑛+ 1 !
+
+--- PAGE BREAK ---
+Osculating Polynomial
+Definition:  Let 𝑥$, 𝑥#, 𝑥&, … , 𝑥! be 𝑛+ 1 distinct numbers in 𝑎, 𝑏 for 
+𝑖= 0,1, … , 𝑛, let 𝑚) be a nonnegative integer. Suppose 𝑓∈𝐶5[𝑎, 𝑏] 
+where 𝑚= max
+$E)E! 𝑚).
+The osculating polynomial approximating 𝑓 is the polynomial 𝑃(𝑥) of 
+least degree(degree of 𝑃𝑥≤𝑛+ ∑)+$
+!
+𝑚#) that has the same values 
+as the function 𝑓 and all its derivatives of order less than or equal to 
+𝑚) at each 𝑥), i.e., 
+𝑑(𝑃𝑥)
+𝑑𝑥(
+= 𝑑(𝑓𝑥)
+𝑑𝑥(
+for each 𝑖= 0, 1, … , 𝑛 and 𝑘= 0, 1, 2, … , 𝑚). 
+ü When 𝑚) = 0 for each 𝑖, the osculating polynomial is the 𝑛th 
+Lagrange polynomial interpolating  𝑓 on 𝑥$, 𝑥#, 𝑥&, … , 𝑥!. 
+
+--- PAGE BREAK ---
+Osculating Polynomial
+Definition:  Let 𝑥$, 𝑥#, 𝑥&, … , 𝑥! be 𝑛+ 1 distinct numbers in 𝑎, 𝑏 for 
+𝑖= 0,1, … , 𝑛, let 𝑚) be a nonnegative integer. Suppose 𝑓∈𝐶5[𝑎, 𝑏] 
+where 𝑚= max
+$E)E! 𝑚).
+The osculating polynomial approximating 𝑓 is the polynomial 𝑃(𝑥) of 
+least degree(degree of 𝑃𝑥≤𝑛+ ∑)+$
+!
+𝑚#) that has the same values 
+as the function 𝑓 and all its derivatives of order less than or equal to 
+𝑚) at each 𝑥), i.e., 
+𝑑(𝑃𝑥)
+𝑑𝑥(
+= 𝑑(𝑓𝑥)
+𝑑𝑥(
+for each 𝑖= 0, 1, … , 𝑛 and 𝑘= 0, 1, 2, … , 𝑚). 
+ü When 𝑚) = 1 for each 𝑖= 0, 1, … , 𝑛, the osculating polynomial is the 
+Hermite polynomial interpolating  𝑓 on 𝑥$, 𝑥#, 𝑥&, … , 𝑥!. 
+
+--- PAGE BREAK ---
+Hermite Interpolation 
+v  The case when 𝑚) = 1, for each 𝑖= 0,1, … , 𝑛, gives the Hermite 
+polynomials.
+v For a given function 𝑓, these polynomials agree with 𝑓 at 
+𝑥$, 𝑥#, … , 𝑥!. 
+v Since their first derivatives agree with those of 𝑓, they have the same 
+“shape” as the function at (𝑥), 𝑓(𝑥)))in the sense that the tangent 
+lines to the polynomial and the function agree.
+
+--- PAGE BREAK ---
+Hermite Interpolation 
+Theorem: If 𝑓∈𝐶#[𝑎, 𝑏] and 𝑥$, 𝑥#, 𝑥&, … , 𝑥! ∈[𝑎, 𝑏] are distinct, the unique 
+polynomial of least degree agreeing with 𝑓 and 𝑓′ at 𝑥$, 𝑥#, 𝑥&, … , 𝑥! is the 
+Hermite polynomial of degree at most 2𝑛+ 1 given by
+𝐻&!*# 𝑥= F
+7+$
+!
+𝑓𝑥7 𝐻!,7(𝑥) + F
+7+$
+!
+𝑓F 𝑥7 n𝐻!,7(𝑥)
+where, for 𝐿!,7(𝑥) denoting the jth Lagrange coefficient polynomial of degree 
+𝑛, we have  
+𝐻!,7 𝑥= 1 −2 𝑥−𝑥7 𝐿!,7
+F
+𝑥7
+𝐿!,7
+&
+𝑥
+n𝐻!,7 𝑥= 𝑥−𝑥7 𝐿!,7
+&
+𝑥.
+Moreover, if 𝑓∈𝐶&!*&[𝑎, 𝑏], then
+𝑓𝑥= 𝐻&!*# 𝑥+ 𝑥−𝑥$ & … 𝑥−𝑥! &
+2𝑛+ 1 !
+𝑓&!*& (𝜉𝑥)
+for some (generally unknown) ξ(x) in the interval (a, b).
+
+--- PAGE BREAK ---
+Hermite Interpolation 
+Example: Use the Hermite polynomial 
+that agrees with the data listed on the 
+right to find an approximation of 
+𝑓(1.5).
+Solution: Given 3 points, we have
+ 𝑛= 2. We need 𝐿&,7 𝑥 where 𝑗= 0,1,2.
+𝐿&,$ 𝑥= (𝑥−𝑥#)(𝑥−𝑥&)
+(𝑥$ −𝑥#)(𝑥$ −𝑥&)
+𝐿&,# 𝑥= (𝑥−𝑥$)(𝑥−𝑥&)
+(𝑥# −𝑥$)(𝑥# −𝑥&)
+𝐿&,& 𝑥= (𝑥−𝑥$)(𝑥−𝑥#)
+(𝑥& −𝑥$)(𝑥& −𝑥#)
+= 50
+9 𝑥& −175
+9 𝑥+ 152
+9
+= −100
+9 𝑥& + 320
+9 𝑥−247
+9
+= 50
+9 𝑥& −145
+9 𝑥+ 104
+9
+
+--- PAGE BREAK ---
+Hermite Interpolation 
+𝐿&,$ 𝑥= 50
+9 𝑥& −175
+9 𝑥+ 152
+9
+𝐿&,# 𝑥= −100
+9 𝑥& + 320
+9 𝑥−247
+9
+𝐿&,& 𝑥= 50
+9 𝑥& −145
+9 𝑥+ 104
+9
+𝐿&,$
+F
+𝑥= 100
+9 𝑥−175
+9
+𝐿′&,# 𝑥= −200
+9 𝑥+ 320
+9
+𝐿′&,& 𝑥= 100
+9 𝑥−145
+9
+We need 𝐻&,7 𝑥= 1 −2 𝑥−𝑥7 𝐿&,7
+F
+𝑥7
+𝐿&,7
+&
+𝑥
+n𝐻&,7 𝑥= 𝑥−𝑥7 𝐿&,7
+&
+𝑥 where 𝑗= 0,1,2.
+ 𝑥$ = 1.3, 𝑥# = 1.6 and 𝑥& = 1.9
+
+--- PAGE BREAK ---
+Hermite Interpolation 
+𝐻&,$ 𝑥= 1 −2 𝑥−𝑥$ 𝐿&,$
+F
+𝑥$
+𝐿&,$
+&
+𝑥 
+= 1 −2 𝑥−1.3 𝐿&,$
+F
+1.3 𝐿&,$
+&
+𝑥 
+𝑥# = 1.3
+𝐿!,'
+(
+𝑥= 100
+9 𝑥−175
+9
+𝐿!,'
+!
+𝑥= 50
+9 𝑥! −175
+9 𝑥+ 152
+9
+!
+𝐿!,'
+(
+1.3 = 100
+9 (1.3) −175
+9
+= 1 −2 𝑥−1.3
+−5
+50
+9 𝑥& −175
+9 𝑥+ 152
+9
+&
+= (10𝑥−12) 50
+9 𝑥& −175
+9 𝑥+ 152
+9
+&
+n𝐻&,$ 𝑥= 𝑥−𝑥$ 𝐿&,$
+&
+𝑥 
+ 
+= 𝑥−1.3
+50
+9 𝑥& −175
+9 𝑥+ 152
+9
+&
+ 
+
+--- PAGE BREAK ---
+Hermite Interpolation 
+𝐻&,$ 𝑥= 1 −2 𝑥−𝑥$ 𝐿&,$
+F
+𝑥$
+𝐿&,$
+&
+𝑥 
+n𝐻&,$ 𝑥= 𝑥−𝑥$ 𝐿&,$
+&
+𝑥
+𝐻&,# 𝑥= 1 −2 𝑥−𝑥# 𝐿&,#
+F
+𝑥#
+𝐿&,#
+&
+𝑥 
+n𝐻&,# 𝑥= 𝑥−𝑥# 𝐿&,#
+&
+𝑥
+𝐻&,& 𝑥= 1 −2 𝑥−𝑥& 𝐿&,&
+F
+𝑥&
+𝐿&,&
+&
+𝑥 
+n𝐻&,& 𝑥= 𝑥−𝑥& 𝐿&,&
+&
+𝑥
+
+--- PAGE BREAK ---
+Hermite Interpolation 
+
+--- PAGE BREAK ---
+Hermite Polynomial Using Divided Difference 
+v Suppose that the distinct numbers 𝑥$, 𝑥#, … , 𝑥! are given together with 
+the values of 𝑓 and 𝑓′ at these numbers.
+v Define a new sequence 𝑧$, 𝑧#, … , 𝑧&!*# by
+𝑧&) = 𝑧&)*# = 𝑥)
+for each 𝑖= 0, 1, … , 𝑛, and construct the divided difference table the uses 
+𝑧$, 𝑧#, … , 𝑧&!*#.
+v Since 𝑧&) = 𝑧&)*# = 𝑥) for each 𝑖, we cannot define 𝑓 [𝑧&), 𝑧&)*#] by the 
+divided difference formula.
+We use the entries 𝑓′(𝑥$),  𝑓′(𝑥#), … , 𝑓′(𝑥!) for 
+ 
+𝑓𝑧$, 𝑧# ,  𝑓𝑧&, 𝑧% , … , 𝑓𝑧&!, 𝑧&!*#  
+𝑓𝑧&), 𝑧&)*# = 𝑓′ 𝑧&) = 𝑓′(𝑥))
+
+--- PAGE BREAK ---
+Hermite Polynomial Using Divided Difference 
+
+--- PAGE BREAK ---
+Hermite Polynomial Using Divided Difference 
+Recall: 
+𝑃! 𝑥= 𝑓𝑥$ + F
+(+#
+!
+𝑓𝑥$, 𝑥#, 𝑥&, … , 𝑥(
+𝑥−𝑥$
+𝑥−𝑥# … (𝑥−𝑥("#)
+The Hermite polynomial 
+𝑃&!*# 𝑥= 𝑓𝑧$ + F
+(+#
+&!*#
+𝑓𝑧$, 𝑧#, 𝑧&, … , 𝑧(
+𝑥−𝑧$
+𝑥−𝑧# … (𝑥−𝑧("#)
+
+--- PAGE BREAK ---
+Hermite Polynomial Using Divided Difference 
+Example: Use the data given on the 
+right and the divided difference 
+method to determine the Hermite 
+polynomial approximation at 𝑥 =  1.5
+The underlined entries in the 
+first three columns are the 
+given data. 
+The remaining entries are 
+generated by the standard 
+divided difference formula.
+
+--- PAGE BREAK ---
+Hermite Polynomial Using Divided Difference 
+𝑃! 𝑥= 𝑓𝑥$ + F
+(+#
+!
+𝑓𝑥$, 𝑥#, 𝑥&, … , 𝑥(
+𝑥−𝑥$
+𝑥−𝑥# … (𝑥−𝑥("#)
+
+--- PAGE BREAK ---
+Cubic Spline Interpolation
+v The previous methods of interpolation concerned the approximation of 
+arbitrary functions on closed intervals using a single polynomial. 
+v However, high-degree polynomials can oscillate erratically, that is, a 
+minor fluctuation over a small portion of the interval can induce large 
+fluctuations over the entire range.
+
+--- PAGE BREAK ---
+Cubic Spline Interpolation
+v An alternative approach to avoid large number of fluctuations arising 
+from the behavior of higher degree polynomials and minor fluctuation 
+of original data is what we refer to as piecewise-polynomial 
+approximation.
+ü An alternative approach divides the approximation interval into a 
+collection of subintervals and construct a (generally) different 
+approximating polynomial on each subinterval
+
+--- PAGE BREAK ---
+Cubic Spline Interpolation
+v The simplest piecewise-polynomial approximation is piecewise-linear 
+interpolation, which consists of joining a set of data points 
+{(𝑥$, 𝑓(𝑥$)), (𝑥#, 𝑓(𝑥#)), … , (𝑥!, 𝑓(𝑥!))}
+
+--- PAGE BREAK ---
+Cubic Spline Interpolation
+v The simplest piecewise-polynomial approximation is piecewise-linear 
+interpolation, which consists of joining a set of data points 
+{(𝑥$, 𝑓(𝑥$)), (𝑥#, 𝑓(𝑥#)), … , (𝑥!, 𝑓(𝑥!))}
+v A disadvantage of linear function approximation is that there is likely no 
+differentiability at the endpoints of the subintervals.
+ü Sharp turns or  wedge-like graph is nor differentiable at the 
+turning point
+ü We want the approximating function to be continuously 
+differentiable
+v An alternative procedure is to use a piecewise polynomial of Hermite 
+type.
+
+--- PAGE BREAK ---
+Cubic Spline Interpolation
+v To determine the appropriate Hermite cubic polynomial on a given 
+interval is simply a matter of computing 𝐻%(𝑥) for that interval. 
+ü The Lagrange interpolating polynomials needed to determine 𝐻% are of 
+first degree, so this can be accomplished without great difficulty. 
+ü However, we need to know the derivative of the function being 
+approximated, and this is frequently unavailable.
+v We want an approximation using piecewise polynomials that require no 
+specific derivative information, except perhaps at the endpoints of the 
+interval on which the function is being approximated.
+
+--- PAGE BREAK ---
+Cubic Spline Interpolation
+v The most common piecewise-polynomial approximation uses cubic 
+polynomials between each successive pair of nodes and is called cubic 
+spline interpolation. 
+v A general cubic polynomial 
+involves four constants, so 
+there is sufficient flexibility in 
+the cubic spline procedure to 
+ensure that the interpolant is 
+not only continuously 
+differentiable on the interval, 
+but also has a continuous 
+second derivative. 
+
+--- PAGE BREAK ---
+Cubic Spline Interpolation
+
+--- PAGE BREAK ---
+Cubic Spline Interpolation
+v Although cubic splines are defined with other boundary conditions, the 
+conditions given in (f) are sufficient for our purposes. 
+v Although cubic splines are defined with other boundary conditions, the 
+conditions given in (f) are sufficient for our purposes. 
+v When the free boundary conditions occur, the spline is called a natural spline, 
+and its graph approximates the shape that a long flexible rod would assume if 
+forced to go through the data points 
+𝑥$, 𝑓𝑥$
+, 𝑥#, 𝑓𝑥#
+, … , 𝑥!, 𝑓𝑥!
+v Although cubic splines are defined with other boundary conditions, the 
+conditions given in (f) are sufficient for our purposes. 
+v When the free boundary conditions occur, the spline is called a natural spline, 
+and its graph approximates the shape that a long flexible rod would assume if 
+forced to go through the data points 
+𝑥$, 𝑓𝑥$
+, 𝑥#, 𝑓𝑥#
+, … , 𝑥!, 𝑓𝑥!
+v In general, clamped boundary conditions lead to more accurate approximations 
+because they include more information about the function. 
+v Although cubic splines are defined with other boundary conditions, the 
+conditions given in (f) are sufficient for our purposes. 
+v When the free boundary conditions occur, the spline is called a natural spline, 
+and its graph approximates the shape that a long flexible rod would assume if 
+forced to go through the data points 
+𝑥$, 𝑓𝑥$
+, 𝑥#, 𝑓𝑥#
+, … , 𝑥!, 𝑓𝑥!
+v In general, clamped boundary conditions lead to more accurate approximations 
+because they include more information about the function. 
+ü For this type of boundary condition to hold, it is necessary to have either the 
+values of the derivative at the endpoints or an accurate approximation to 
+those values.
+
+--- PAGE BREAK ---
+Cubic Spline Interpolation
+
+--- PAGE BREAK ---
+Cubic Spline Interpolation
+Example: Construct a natural cubic spline that passes through the points 
+(1, 2), (2, 3), and (3, 5).

@@ -6,11 +6,12 @@ import { EvaluationTable } from "./results/EvaluationTable"
 import { MethodDetails } from "./results/MethodDetails"
 import { NodesTable } from "./results/NodesTable"
 import { EducationalNotes } from "./results/EducationalNotes"
+import { GuidedExplanation } from "./results/GuidedExplanation"
 import { WarningsDisplay } from "./WarningsDisplay"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { DisplayDigitsControl } from "@/components/DisplayDigitsControl"
-import { AlertTriangle, BookOpen, LineChart, Table2, FunctionSquare, FlaskConical } from "lucide-react"
+import { AlertTriangle, BookOpen, LineChart, Table2, FunctionSquare, FlaskConical, Presentation } from "lucide-react"
 
 /**
  * GraphCard pulls in recharts, the largest dependency on the page (~80 kB
@@ -35,10 +36,11 @@ interface ResultsPanelProps {
   data: InterpolateResponse
 }
 
-type ResultTab = "overview" | "polynomial" | "evaluations" | "graph" | "methods" | "notes"
+type ResultTab = "overview" | "guide" | "polynomial" | "evaluations" | "graph" | "methods" | "notes"
 
 const TAB_CONFIG: { id: ResultTab; label: string; icon: React.ReactNode }[] = [
   { id: "overview", label: "Overview", icon: <FlaskConical className="h-3.5 w-3.5" aria-hidden="true" /> },
+  { id: "guide", label: "Guide", icon: <Presentation className="h-3.5 w-3.5" aria-hidden="true" /> },
   { id: "polynomial", label: "Polynomial", icon: <FunctionSquare className="h-3.5 w-3.5" aria-hidden="true" /> },
   { id: "evaluations", label: "Evaluations", icon: <Table2 className="h-3.5 w-3.5" aria-hidden="true" /> },
   { id: "graph", label: "Graph", icon: <LineChart className="h-3.5 w-3.5" aria-hidden="true" /> },
@@ -126,6 +128,10 @@ export function ResultsPanel({ data }: ResultsPanelProps) {
             <SummaryCard data={data} />
             <NodesTable nodes={data.nodes} />
           </div>
+        </TabsPrimitive.Panel>
+
+        <TabsPrimitive.Panel value="guide" className="outline-none">
+          <GuidedExplanation data={data} />
         </TabsPrimitive.Panel>
 
         <TabsPrimitive.Panel value="polynomial" className="outline-none">

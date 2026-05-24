@@ -1,16 +1,78 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
-V1+ lecture-aligned frontend example library. Scope was frontend-only: examples prefill existing inputs and method selections; no backend files, API endpoints, request shapes, response shapes, or interpolation math changed.
+V1+ Guided Explanation / Defense Mode. Scope is frontend-only: the results area now explains existing backend-computed interpolation output using local lecture-aligned classroom language. No backend files, API endpoints, request shapes, response shapes, or interpolation math changed.
 
 ## Current Status
-- Overall status: V1+ lecture example library implemented and verified.
+- Overall status: V1+ guided explanation layer implemented and verified.
 - Branch: `codex/interpolation-backend-v1`
 - Backend status: Unchanged in this session.
 - Frontend status: `npm run build`, `npm run lint`, and `npm test` all pass.
-- Integration status: **PASS** for form-prefill behavior covered by frontend tests. No live browser run was required for this data-loading-only change.
+- Integration status: **PASS** for rendering existing fixture responses into defense notes. Local browser smoke confirmed the Guide tab with the Linear Lagrange backend result.
 
 ## What Changed (This Session)
+
+### V1+ Guided Explanation / Defense Mode
+
+Added a result-area guide that helps users present backend output without moving interpolation logic into React.
+
+Source files inspected before writing implementation copy:
+
+| Source | Use |
+|---|---|
+| `Lecture/Lecture.txt` | Primary lecture text for Lagrange, Neville, Newton divided differences, and future topics. |
+| `Lecture/pasted.txt` | Secondary text export confirming the same interpolation lecture content. |
+| `Lecture/On Numerical Analysis Interpolation and Polynomial Approximation.pdf` | Local source PDF found in lecture folder. |
+| `Lecture/On Numerical Analysis Interpolation and Polynomial Approximation(1).pdf` | Second local source PDF found in lecture folder. |
+| `PRODUCT.md`, `DESIGN.md`, `docs/API_CONTRACT.md`, `docs/FRONTEND_HANDOFF.md` | Frontend/API/design boundaries and backend source-of-truth rules. |
+| `frontend/src/test/interpolate-response.fixtures.ts`, `frontend/src/components/results/results.smoke.test.tsx` | Existing fixture shapes and result rendering coverage. |
+
+Lecture-grounded method emphasis:
+
+| Method | Guided explanation behavior |
+|---|---|
+| Lagrange | Explains basis polynomials and interpolation through all supplied nodes. |
+| Newton | Explains the divided-difference table and Newton form returned by the backend. |
+| Neville | Explains the recursive target-specific table for evaluating at a requested x. |
+| Barycentric | Described only as stable numerical evaluation and graph support because it was not found in the lecture text. |
+
+Lecture-covered but out-of-scope topics remain documentation-only for this goal: Newton forward/backward differences, Stirling / centered differences, osculating and Taylor polynomials, Hermite interpolation, and cubic splines.
+
+### Files Changed
+
+| File | What changed |
+|---|---|
+| `frontend/src/components/results/GuidedExplanation.tsx` | New frontend-only guide component. It reads `InterpolateResponse` fields and renders input type, node count, degree, methods, polynomial, evaluations, warnings, method notes, and presentation notes. |
+| `frontend/src/components/ResultsPanel.tsx` | Added a `Guide` tab in the existing result tabs and renders `GuidedExplanation`. |
+| `frontend/src/components/results/GuidedExplanation.test.tsx` | Added fixture-backed tests for linear Lagrange, `f(x)=1/x`, and backend warning rendering. |
+| `docs/HANDOFF.md` | Updated current session status, source grounding, files changed, and verification notes. |
+| `docs/FRONTEND_HANDOFF.md` | Updated result tab architecture and guided explanation mapping. |
+| `docs/PLAN.md` | Added the completed V1+ guided explanation milestone. |
+
+### Verification Commands Run
+
+All frontend commands were run from `C:\Users\Emmy Lou\Documents\New project 3\frontend`.
+
+| Command | Result |
+|---|---|
+| `npm test -- GuidedExplanation.test.tsx` before implementation | FAIL - expected red state: `GuidedExplanation` component did not exist. |
+| `npm test -- GuidedExplanation.test.tsx` after implementation | PASS - 1 test file, 3 tests passed. |
+| `npm run build` | PASS - TypeScript build and Vite production build completed. |
+| `npm run lint` | PASS - 0 errors. |
+| `npm test` | PASS - 3 test files, 13 tests passed. |
+| Browser smoke with Vite + local backend | PASS - Guide tab rendered for Linear Lagrange with `points mode`, 2 nodes, degree 1, `6 - x`, and `P(3) = 3`. |
+| `git diff --name-only -- backend/` | PASS - empty output; no backend diffs. |
+| `git diff --cached --name-only` | PASS - empty output; no generated folders staged. |
+
+### Backend/API Boundary Confirmation
+
+- No backend files were edited.
+- `GuidedExplanation` does not call `/api/interpolate`.
+- `GuidedExplanation` does not call `/api/validate-function`.
+- `GuidedExplanation` does not recompute polynomial values, basis polynomials, divided differences, Neville tables, barycentric weights, graph samples, or errors.
+- It displays existing response fields only.
+
+## Previous Session: V1+ Lecture-Aligned Example Library
 
 ### V1+ Lecture-Aligned Example Library
 

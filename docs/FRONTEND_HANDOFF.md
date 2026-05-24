@@ -71,6 +71,7 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 - Render backend-returned graph_data arrays via Recharts (with brush zoom)
 - Display all warnings/errors from backend response
 - Show method-specific details (basis polys, DD tables, weights, Neville tables)
+- Show Guided Explanation / Defense Notes from existing backend response fields
 - Provide input convenience (dynamic point lists, sliders, toggles)
 - Route errors to appropriate UI locations
 - Provide preset lecture examples that populate the form
@@ -94,8 +95,9 @@ App
 ├── ActionBar (shadcn Button)
 ├── QuickReferenceCard (desktop sidebar + mobile collapsible)
 ├── ResultsPanel (tabbed)
-│   ├── Tab Navigation (Overview | Polynomial | Evaluations | Graph | Methods | Notes)
+│   ├── Tab Navigation (Overview | Guide | Polynomial | Evaluations | Graph | Methods | Notes)
 │   ├── Overview: SummaryCard + WarningsDisplay + NodesTable
+│   ├── Guide: GuidedExplanation
 │   ├── Polynomial: PolynomialCard (Tabs + KaTeX + copyable)
 │   ├── Evaluations: EvaluationTable (shadcn Table)
 │   ├── Graph: GraphCard (Recharts + Brush + custom tooltip)
@@ -111,11 +113,39 @@ The results area uses top-level tabs for progressive disclosure:
 | Tab | Content | Default |
 |---|---|---|
 | Overview | Summary metrics, warnings, nodes table | Selected by default |
+| Guide | Guided Explanation / Defense Notes for presenting backend output | — |
 | Polynomial | Expanded/Factored/Lagrange/Newton forms with KaTeX | — |
 | Evaluations | Cross-method comparison table | Disabled if no evaluation_x |
 | Graph | f(x), P(x), nodes, error chart with brush zoom | Disabled if graph_data is null |
 | Methods | Per-method details (nested tabs: Lagrange/Newton/Barycentric/Neville) | — |
 | Notes | Educational notes + all warnings (badge shows count) | — |
+
+## Guided Explanation / Defense Notes
+
+`frontend/src/components/results/GuidedExplanation.tsx` renders a classroom-friendly guide from the existing `InterpolateResponse` only. It does not call the API and does not recompute interpolation values.
+
+| Explanation item | Backend response fields used |
+|---|---|
+| Input type | `input_summary.mode` |
+| Number of nodes | `input_summary.node_count` |
+| Expected polynomial degree | `input_summary.degree` |
+| Selected methods | `input_summary.methods_requested` |
+| Polynomial result | `polynomial.expanded`, then `polynomial.expanded_omitted_reason` fallback |
+| Evaluation result | `evaluations[].x`, `evaluations[].best_P_x`, `evaluations[].f_x`, `evaluations[].absolute_error` |
+| Warnings | `warnings[].code`, `warnings[].message` |
+| Lagrange guide | Presence of `methods.lagrange` and `basis_polynomials.length` |
+| Newton guide | Presence of `methods.newton` and `divided_difference_table.length` |
+| Neville guide | Presence of `methods.neville` and `target_results[].x` |
+| Barycentric guide | Presence of `methods.barycentric` and `graph_data.source_method` |
+
+Lecture/source grounding from `Lecture/Lecture.txt` and `Lecture/pasted.txt`:
+
+- Lagrange is described as the classroom construction method using basis polynomials through supplied nodes.
+- Newton is described through divided differences and Newton form.
+- Neville is described as a recursive target-specific table.
+- Barycentric was not found in the lecture text, so the Guide tab describes it only as stable numerical evaluation and graph support.
+
+Lecture-covered but out-of-scope topics for this V1+ frontend goal: Newton forward/backward differences, Stirling / centered differences, osculating and Taylor polynomials, Hermite interpolation, and cubic splines.
 
 ## Examples Panel
 
@@ -202,9 +232,11 @@ Expected: `npm run build`, `npm run lint`, and `npm test` exit 0. Current lint e
 ## Latest Verification Results (2026-05-24)
 | Command | Result |
 |---|---|
+| `npm test -- GuidedExplanation.test.tsx` | PASS — 1 test file, 3 tests passed |
 | `npm run build` | PASS — TypeScript build and Vite production build completed |
 | `npm run lint` | PASS — 0 errors, 0 warnings |
-| `npm test` | PASS — 2 test files, 10 tests passed |
+| `npm test` | PASS — 3 test files, 13 tests passed |
+| Browser smoke with Vite + local backend | PASS — Guide tab rendered for Linear Lagrange with `points mode`, 2 nodes, degree 1, `6 - x`, and `P(3) = 3` |
 | `git status --short backend/` | PASS — empty output; no backend files changed |
 
 ### Latest Example-Library Test Coverage

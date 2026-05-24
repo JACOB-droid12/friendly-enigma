@@ -4,7 +4,7 @@
 Build the backend and numerical engine for the interpolation program.
 
 ## Current Status
-v1 backend implementation is complete in `backend/` with FastAPI endpoints, shared parser/normalization/precision layers, pure interpolation method modules, orchestration, graph-data generation, tests, and verification script. V1+ frontend lecture example loading is complete without backend/API contract changes.
+v1 backend implementation is complete in `backend/` with FastAPI endpoints, shared parser/normalization/precision layers, pure interpolation method modules, orchestration, graph-data generation, tests, and verification script. V1+ frontend lecture example loading and guided explanation/defense notes are complete without backend/API contract changes.
 
 ## Milestones
 | Milestone | Status | Acceptance Criteria |
@@ -26,6 +26,7 @@ v1 backend implementation is complete in `backend/` with FastAPI endpoints, shar
 | API/frontend handoff documentation | Completed | `docs/API_CONTRACT.md` and `docs/FRONTEND_HANDOFF.md` describe implemented v1 behavior. |
 | V1 contract stabilization | Completed 2026-05-23 | Frontend Lagrange basis rendering now consumes the backend `basis` field; smoke coverage guards linear, 1/x, Newton, Neville, barycentric, and backend graph-data rendering cases. |
 | V1+ lecture example library | Completed 2026-05-24 | Frontend Examples panel loads the four lecture-aligned examples into existing form inputs and method selections; no backend files, endpoint paths, request shapes, response shapes, or React interpolation math changed. |
+| V1+ guided explanation / defense notes | Completed 2026-05-24 | Results area includes a Guide tab that explains existing backend output using lecture-grounded Lagrange, Newton, and Neville emphasis; Barycentric is support-only stable evaluation / graph support; no backend files, endpoint paths, request shapes, response shapes, or React interpolation math changed. |
 
 ## Validation Commands
 Run these from `backend/`:
@@ -59,6 +60,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ## Remaining Work
 - No required backend v1 implementation work remains.
 - No required V1+ lecture example-library work remains.
+- No required V1+ guided explanation / defense notes work remains.
 - Recommended backend next step: rerun the full backend verification under Python 3.11+ to satisfy `backend/pyproject.toml` rather than the current Python 3.10.11 runtime.
 - Recommended frontend next step: Claude Opus should review and commit the untracked frontend/design assets that are intended to become the V1 frontend baseline.
 - Optional backend hardening: run the same verification commands under Python 3.11+ or 3.13. The current `python` on this machine is Python 3.10.11, while `backend/pyproject.toml` declares the intended Python 3.11+ target.
