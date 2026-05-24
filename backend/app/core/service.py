@@ -7,6 +7,7 @@ from app.core.errors import InterpolationError
 from app.core.explanations import educational_notes
 from app.core.graph_data import build_graph_data
 from app.core.methods.barycentric import build_barycentric
+from app.core.methods.cubic_spline import build_cubic_spline
 from app.core.methods.hermite import build_hermite, build_hermite_divided_difference
 from app.core.methods.lagrange import build_lagrange
 from app.core.methods.neville import build_neville
@@ -53,7 +54,7 @@ def interpolate(request: InterpolateRequest) -> dict[str, object]:
         "polynomial": _polynomial_block(raw_results, polynomial_source),
         "methods": method_results,
         "evaluations": _top_level_evaluations(problem, method_results),
-        "graph_data": build_graph_data(problem),
+        "graph_data": build_graph_data(problem, raw_results=raw_results),
         "warnings": warnings,
         "educational_notes": educational_notes(),
     }
@@ -72,6 +73,7 @@ def _run_methods(problem) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str
         "hermite_divided_difference": build_hermite_divided_difference,
         "hermite": build_hermite,
         "taylor": build_taylor,
+        "cubic_spline": build_cubic_spline,
     }
     derivative_methods = {"hermite_divided_difference", "hermite"}
     function_methods = {"taylor"}
@@ -93,6 +95,8 @@ def _run_methods(problem) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str
                 kwargs["derivatives"] = problem.derivatives
             if method in function_methods:
                 kwargs["function_expression"] = problem.original_function
+                kwargs["method_options"] = problem.method_options.get(method, {})
+            if method == "cubic_spline":
                 kwargs["method_options"] = problem.method_options.get(method, {})
             payload = builder(problem.nodes, **kwargs)
             raw_results[method] = payload
@@ -119,6 +123,8 @@ def _unavailable_method(method: str) -> dict[str, Any]:
 def _method_success(payload: dict[str, Any]) -> dict[str, Any]:
     api_payload = deepcopy(payload)
     api_payload.pop("polynomial", None)
+    api_payload.pop("segment_polynomials", None)
+    api_payload.pop("segment_intervals", None)
     warnings = api_payload.pop("warnings", [])
     return {"status": "ok", **_json_ready(api_payload), "warnings": warnings, "error": None}
 
@@ -170,7 +176,12 @@ def _polynomial_block(
         "latex_hermite": raw_results.get("hermite", {}).get("latex_hermite")
         or raw_results.get("hermite_divided_difference", {}).get("latex_hermite"),
         "latex_taylor": raw_results.get("taylor", {}).get("latex_taylor"),
-        "expanded_omitted_reason": None,
+        "expanded_omitted_reason": (
+            "piecewise_method_no_global_polynomial"
+            if polynomial_source is None
+            and raw_results.get("cubic_spline", {}).get("segment_polynomials")
+            else None
+        ),
     }
 
 
@@ -206,6 +217,7 @@ def _best_method(method_values: dict[str, str | None]) -> str | None:
         "hermite",
         "hermite_divided_difference",
         "taylor",
+        "cubic_spline",
         "barycentric",
         "newton",
         "lagrange",

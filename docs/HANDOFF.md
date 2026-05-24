@@ -1,17 +1,61 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
-Phase 2 P2.3 Taylor Family. Scope in this change group is backend-owned Taylor/Maclaurin polynomial generation for `taylor`, with API documentation and frontend handoff guidance only. No frontend implementation and no public endpoint changes.
+Phase 2 P2.4 Piecewise Family. Scope in this change group is backend-owned natural cubic spline generation for `cubic_spline`, with API documentation and frontend handoff guidance only. No frontend implementation and no public endpoint changes.
 
 ## Current Status
-- Overall status: P2.3 complete and backend-verified under the current local Python runtime.
+- Overall status: P2.4 complete and backend-verified under the current local Python runtime.
 - Branch: `codex/interpolation-backend-v1`
-- Backend status: Phase 2 contract prep, equal-spacing methods, first-derivative Hermite methods, and Taylor polynomials are implemented with method-level eligibility errors and lecture regression tests.
-- Frontend status: no frontend code changed in P2.3. `docs/FRONTEND_HANDOFF.md` documents how Claude Opus should render backend-owned Taylor payloads.
+- Backend status: Phase 2 contract prep, equal-spacing methods, first-derivative Hermite methods, Taylor polynomials, and natural cubic spline segments are implemented with method-level eligibility errors and lecture regression tests.
+- Frontend status: no frontend code changed in P2.4. `docs/FRONTEND_HANDOFF.md` documents how Claude Opus should render backend-owned spline payloads.
 - Integration status: backend tests and lint pass. Browser QA not run because no frontend behavior changed.
 - Known caveat: Python 3.11+ verification remains skipped by user choice and is still required before production/release-complete status.
 
 ## What Changed (This Session)
+
+### Phase 2 P2.4 Piecewise Family
+
+Implemented the natural cubic spline milestone without adding endpoints and without moving math into React.
+
+| File | What changed |
+|---|---|
+| `backend/app/core/methods/piecewise.py` | Added shared backend-only piecewise segment selection and evaluation helper. |
+| `backend/app/core/methods/cubic_spline.py` | Added natural cubic spline builder with node ordering, natural boundary second derivatives, segment coefficients, interval metadata, continuity checks, evaluations, warnings, and raw segment polynomials for backend graph sampling. |
+| `backend/app/core/graph_data.py` | Uses backend-owned spline segment evaluation for `graph_data.P_x` when `cubic_spline` succeeds; otherwise preserves barycentric graph behavior. |
+| `backend/app/core/service.py` | Routed `cubic_spline` through the existing `POST /api/interpolate` orchestration, passed method options, stripped raw segment polynomials from API method payloads, added spline best-method selection, and set `piecewise_method_no_global_polynomial` for spline-only polynomial blocks. |
+| `backend/app/tests/test_cubic_spline.py` | Added natural spline tests for segment coefficients, natural second derivatives, continuity checks, evaluation, and unsupported boundary conditions. |
+| `backend/app/tests/test_api.py` | Added API contract coverage for requesting `cubic_spline` through the stable interpolate endpoint with spline-backed graph data. |
+| `docs/API_CONTRACT.md` | Documented P2.4 request rules, spline payload fields, graph-data source behavior, piecewise no-global-polynomial behavior, and frontend no-math boundary. |
+| `docs/FRONTEND_HANDOFF.md` | Documented frontend rendering rules for natural boundary selection, segment rows, continuity checks, and spline-backed graph arrays. |
+| `docs/HANDOFF.md` | Recorded P2.4 status and verification. |
+| `docs/PLAN.md` | Marked P2.4 complete and P2.5 release-candidate audit as the next milestone. |
+
+### P2.4 Commands Run
+
+| Command | Result |
+|---|---|
+| `python -m pytest app/tests/test_cubic_spline.py -v` before implementation | Expected red state: import error because `app.core.methods.cubic_spline` did not exist. |
+| `python -m pytest app/tests/test_api.py::test_interpolate_cubic_spline_method_contract -v` before implementation | Expected red state: `cubic_spline` returned method-level `method_not_implemented`, so top-level status was `partial`. |
+| `python -m pytest app/tests/test_cubic_spline.py -v` | PASS - 2 passed. |
+| `python -m pytest app/tests/test_api.py::test_interpolate_cubic_spline_method_contract -v` | PASS - 1 passed. |
+| `python -m ruff check app/core/methods/piecewise.py app/core/methods/cubic_spline.py app/core/graph_data.py app/core/service.py app/tests/test_cubic_spline.py app/tests/test_api.py` before final lint fix | FAIL - long lines in `cubic_spline.py` and `test_cubic_spline.py`. |
+| `python -m ruff check app/core/methods/piecewise.py app/core/methods/cubic_spline.py app/core/graph_data.py app/core/service.py app/tests/test_cubic_spline.py app/tests/test_api.py` after lint fix | PASS - `All checks passed!`. |
+| `python -m pytest` | PASS - 73 passed. |
+| `python -m ruff check .` | PASS - `All checks passed!`. |
+
+### P2.4 Verification Notes
+
+- Backend tests were run from `C:\Users\Emmy Lou\Documents\New project 3\backend`.
+- Runtime observed by pytest: Python 3.10.11.
+- `backend/pyproject.toml` still declares Python 3.11+ as the intended runtime.
+- Python 3.11+ verification remains NOT RUN by user choice and must remain a release-certification caveat.
+- Frontend build/lint/test were NOT RUN because no frontend source code changed in P2.4.
+- Browser QA was NOT RUN because no frontend behavior changed in P2.4.
+
+### P2.4 Next Step
+
+Start P2.5 release-candidate audit only after preserving the P2.4 boundary: verify lecture coverage, implemented/deferred method status, backend tests/lint, frontend status, final docs, and write `docs/PHASE_2_FINAL_AUDIT.md`. Do not add new numerical methods in P2.5 unless an audit defect requires a scoped fix.
+---
 
 ### Phase 2 P2.3 Taylor Family
 

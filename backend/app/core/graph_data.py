@@ -2,6 +2,7 @@ import sympy as sp
 
 from app.core.domain import InterpolationProblem
 from app.core.methods.barycentric import evaluate_barycentric
+from app.core.methods.cubic_spline import evaluate_cubic_spline_result
 from app.core.parser import X
 from app.core.precision import format_decimal
 
@@ -12,7 +13,10 @@ def _sample_bounds(problem: InterpolationProblem) -> tuple[float, float]:
 
 
 def build_graph_data(
-    problem: InterpolationProblem, *, sample_count: int = 101
+    problem: InterpolationProblem,
+    *,
+    raw_results: dict[str, dict[str, object]] | None = None,
+    sample_count: int = 101,
 ) -> dict[str, object] | None:
     if not problem.graph:
         return None
@@ -23,11 +27,16 @@ def build_graph_data(
     f_values: list[str | None] = []
     p_values: list[str | None] = []
     errors: list[str | None] = []
+    spline_result = (raw_results or {}).get("cubic_spline")
+    use_spline = bool(spline_result and spline_result.get("segment_polynomials"))
     for index in range(sample_count):
         x_expr = sp.Float(str(left + step * index), problem.precision)
         x_values.append(format_decimal(x_expr, precision=problem.precision) or "0")
         try:
-            p_expr = evaluate_barycentric(problem.nodes, x_expr)
+            if use_spline:
+                p_expr = evaluate_cubic_spline_result(spline_result, x_expr)
+            else:
+                p_expr = evaluate_barycentric(problem.nodes, x_expr)
             p_text = format_decimal(p_expr, precision=problem.precision)
         except Exception:
             p_expr = None
@@ -55,6 +64,6 @@ def build_graph_data(
         "f_x": f_values,
         "P_x": p_values,
         "error": errors,
-        "source_method": "barycentric",
+        "source_method": "cubic_spline" if use_spline else "barycentric",
         "method_graphs": None,
     }

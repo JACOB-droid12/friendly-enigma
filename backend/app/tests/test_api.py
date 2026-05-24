@@ -205,3 +205,35 @@ def test_interpolate_taylor_method_contract() -> None:
     assert body["methods"]["taylor"]["terms"]
     assert body["evaluations"][0]["best_method"] == "taylor"
     assert body["polynomial"]["taylor_form"]
+
+
+def test_interpolate_cubic_spline_method_contract() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "points",
+            "points": [["1", "2"], ["2", "3"], ["3", "5"]],
+            "methods": ["cubic_spline"],
+            "method_options": {"cubic_spline": {"boundary_condition": "natural"}},
+            "evaluation_x": ["5/2"],
+            "precision": 50,
+            "exact": True,
+            "graph": True,
+        },
+    )
+
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["status"] == "ok"
+    assert body["methods"]["cubic_spline"]["status"] == "ok"
+    assert body["methods"]["cubic_spline"]["segments"]
+    assert body["methods"]["cubic_spline"]["continuity_checks"][0]["value_continuous"] is True
+    assert body["evaluations"][0]["best_method"] == "cubic_spline"
+    assert body["evaluations"][0]["best_P_x"] == "125/32"
+    assert body["polynomial"]["expanded"] is None
+    assert body["polynomial"]["expanded_omitted_reason"] == "piecewise_method_no_global_polynomial"
+    assert body["graph_data"]["source_method"] == "cubic_spline"
+    assert body["graph_data"]["P_x"]

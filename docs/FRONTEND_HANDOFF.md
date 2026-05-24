@@ -60,7 +60,7 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 ## Phase 2 Backend Expansion
 
-P2.0 backend contract prep accepts Phase 2 method names under the stable `POST /api/interpolate` endpoint. P2.1 implements equal-spacing methods. P2.2 implements first-derivative Hermite methods. P2.3 implements Taylor polynomials. If Claude Opus exposes a Phase 2 method before its backend milestone is complete, the frontend must render the method-level error returned under `methods.<method>.error` and must not simulate the method client-side.
+P2.0 backend contract prep accepts Phase 2 method names under the stable `POST /api/interpolate` endpoint. P2.1 implements equal-spacing methods. P2.2 implements first-derivative Hermite methods. P2.3 implements Taylor polynomials. P2.4 implements natural cubic spline segments. If Claude Opus exposes a Phase 2 method before its backend milestone is complete, the frontend must render the method-level error returned under `methods.<method>.error` and must not simulate the method client-side.
 
 Accepted Phase 2 method names:
 
@@ -166,6 +166,32 @@ Recommended Phase 2 UI additions for Claude Opus:
 - Taylor term table/renderer.
 - Lecture example preset for `f(x)=cos(x)`, center `0`, order `3`, evaluation `x=1/2`.
 - Maclaurin label when `series_name` is returned as `Maclaurin`.
+### P2.4 Cubic Spline Payloads
+
+Backend P2.4 implements:
+
+- `cubic_spline`
+
+Request rules:
+
+- Use `method_options.cubic_spline.boundary_condition = "natural"`.
+- Other boundary conditions return method-level error code `unsupported_boundary_condition`.
+- Existing point/function modes still provide the nodes; the spline method owns ordering and segment generation.
+
+Frontend rendering rules:
+
+- Render `methods.cubic_spline.ordered_nodes`, `second_derivatives`, `segments`, `continuity_checks`, `evaluations`, `steps`, `warnings`, and `error` exactly as returned.
+- Render `segments` as piecewise interval rows with local coefficients `a`, `b`, `c`, `d`, `local_form`, expanded segment, and LaTeX.
+- If the top-level `polynomial.expanded_omitted_reason` is `piecewise_method_no_global_polynomial`, show that the spline has piecewise segments instead of a single global polynomial.
+- If `graph_data.source_method === "cubic_spline"`, render graph arrays exactly as returned. Do not resample the spline in React.
+- Do not calculate spline coefficients, segment values, continuity checks, graph samples, or errors in React.
+
+Recommended Phase 2 UI additions for Claude Opus:
+
+- Natural spline boundary selector, with only `natural` enabled unless a later backend milestone adds more.
+- Piecewise segment table.
+- Continuity-check panel for interior knots.
+- Segment-boundary display on the graph or method panel using backend interval metadata.
 ## Frontend Does Not
 - Recompute interpolation
 - Parse or evaluate functions as source of truth
