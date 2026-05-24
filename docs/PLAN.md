@@ -4,7 +4,7 @@
 Build the backend and numerical engine for the interpolation program.
 
 ## Current Status
-v1 backend implementation is complete in `backend/` with FastAPI endpoints, shared parser/normalization/precision layers, pure interpolation method modules, orchestration, graph-data generation, tests, and verification script. V1+ frontend lecture example loading, guided explanation/defense notes, and result quality / warnings guide are complete without backend/API contract changes. Phase 2 P2.0 contract and architecture prep, P2.1 equal-spacing implementation, P2.2 first-derivative Hermite implementation, P2.3 Taylor implementation, P2.4 natural cubic spline implementation, and P2.5 final audit are complete with release caveats. Backend Phase 2 is complete under local Python 3.10.11 verification; full product release still requires Python 3.11+ verification in a usable interpreter and Claude Opus Phase 2 frontend/browser QA. A 2026-05-25 `py -3.13` attempt failed before test execution because Windows could not create the WindowsApps Python 3.13 process.
+v1 backend implementation is complete in `backend/` with FastAPI endpoints, shared parser/normalization/precision layers, pure interpolation method modules, orchestration, graph-data generation, tests, and verification script. V1+ frontend lecture example loading, guided explanation/defense notes, and result quality / warnings guide are complete without backend/API contract changes. Phase 2 P2.0 contract and architecture prep, P2.1 equal-spacing implementation, P2.2 first-derivative Hermite implementation, P2.3 Taylor implementation, P2.4 natural cubic spline implementation, and P2.5 final audit are complete with release caveats. Backend Phase 2 is now verified under Python 3.12.13 using `backend/.venv`; full product release still requires Claude Opus Phase 2 frontend/browser QA. A 2026-05-25 `py -3.13` attempt failed before test execution because Windows could not create the WindowsApps Python 3.13 process, but the Python 3.11+ gate is closed by the passing Python 3.12.13 verification.
 
 ## Milestones
 | Milestone | Status | Acceptance Criteria |
@@ -36,7 +36,7 @@ v1 backend implementation is complete in `backend/` with FastAPI endpoints, shar
 | P2.2 derivative-data family | Completed 2026-05-24 | Implemented `hermite_divided_difference` and `hermite` with first-derivative repeated-node tables, Hermite polynomial output, low-degree basis output, lecture regression tests, API docs, frontend handoff guidance, and backend verification. `osculating` is explicitly deferred because generalized derivative-order repeated-node support is not yet implemented or tested. Backend verification passed with `python -m pytest` -> 65 passed and `python -m ruff check .` -> `All checks passed!`. |
 | P2.3 Taylor family | Completed 2026-05-24 | Implemented `taylor` with safe parsed functions, center/order options, derivative term list, Taylor/Maclaurin polynomial output, LaTeX, evaluations, remainder note, lecture regression tests, API docs, frontend handoff guidance, and backend verification. Backend verification passed with `python -m pytest` -> 70 passed and `python -m ruff check .` -> `All checks passed!`. |
 | P2.4 piecewise family | Completed 2026-05-24 | Implemented natural `cubic_spline` with segment coefficients, interval metadata, continuity checks, spline-backed graph samples, piecewise no-global-polynomial response behavior, API docs, frontend handoff guidance, and backend verification. Backend verification passed with `python -m pytest` -> 73 passed and `python -m ruff check .` -> `All checks passed!`. |
-| P2.5 release candidate | Completed with release caveats 2026-05-24 | Final audit written to `docs/PHASE_2_FINAL_AUDIT.md`. Backend verification passed with `python -m pytest` -> 73 passed and `python -m ruff check .` -> `All checks passed!`. Frontend verification passed with `npm run build`, `npm run lint`, and `npm test` -> 4 files / 17 tests passed. Full Phase 2 product release remains gated by Python 3.11+ verification and Claude Opus frontend/browser QA. |
+| P2.5 release candidate | Completed with release caveats 2026-05-24 | Final audit written to `docs/PHASE_2_FINAL_AUDIT.md`. Backend verification passed with `python -m pytest` -> 73 passed and `python -m ruff check .` -> `All checks passed!`; Python 3.11+ verification later passed with `.\.venv\Scripts\python.exe -m pytest` -> 73 passed and `.\.venv\Scripts\python.exe -m ruff check .` -> `All checks passed!` under Python 3.12.13. Frontend verification passed with `npm run build`, `npm run lint`, and `npm test` -> 4 files / 17 tests passed. Full Phase 2 product release remains gated by Claude Opus frontend/browser QA. |
 
 ## Validation Commands
 Run these from `backend/`:
@@ -52,6 +52,14 @@ Optional wrapper:
 
 ```powershell
 .\scripts\verify-backend.ps1
+```
+
+Python 3.11+ verification environment used on 2026-05-25:
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m pytest
+.\.venv\Scripts\python.exe -m ruff check .
 ```
 
 Optional local server smoke check:
@@ -73,11 +81,11 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 - No required V1+ guided explanation / defense notes work remains.
 - No required V1+ result quality / warnings guide work remains.
 - Backend Phase 2 P2.5 final audit is complete in `docs/PHASE_2_FINAL_AUDIT.md`.
-- Full product release-candidate status is not complete until Python 3.11+ verification in a usable interpreter and Claude Opus Phase 2 frontend/browser QA are complete.
+- Python 3.11+ verification is complete under Python 3.12.13 in `backend/.venv`.
+- Full product release-candidate status is not complete until Claude Opus Phase 2 frontend/browser QA is complete.
 - `osculating` remains explicitly deferred because generalized derivative-order repeated-node support is not implemented or tested.
 - Do not implement all Phase 2 methods in one pass.
 - Do not add public per-method endpoints.
 - Do not move interpolation, finite-difference, Hermite, Taylor, spline, graph-sampling, or error computation into React.
-- Recommended backend next step: rerun the full backend verification under Python 3.11+ to satisfy `backend/pyproject.toml` rather than the current Python 3.10.11 runtime.
 - Recommended frontend next step: Claude Opus should review and commit the untracked frontend/design assets that are intended to become the V1 frontend baseline.
-- Optional backend hardening: run the same verification commands under Python 3.11+ or 3.13. The current `python` on this machine is Python 3.10.11, while `backend/pyproject.toml` declares the intended Python 3.11+ target.
+- Optional backend hardening: keep using `backend/.venv\Scripts\python.exe` for release verification unless the broken WindowsApps `py -3.13` launcher target is repaired.

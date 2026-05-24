@@ -60,13 +60,14 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 ## Phase 2 Backend Expansion
 
-P2.0 backend contract prep accepts Phase 2 method names under the stable `POST /api/interpolate` endpoint. P2.1 implements equal-spacing methods. P2.2 implements first-derivative Hermite methods. P2.3 implements Taylor polynomials. P2.4 implements natural cubic spline segments. P2.5 audit is complete with release caveats documented in `docs/PHASE_2_FINAL_AUDIT.md`. If Claude Opus exposes a deferred or ineligible Phase 2 method, the frontend must render the method-level error returned under `methods.<method>.error` and must not simulate the method client-side.
+P2.0 backend contract prep accepts Phase 2 method names under the stable `POST /api/interpolate` endpoint. P2.1 implements equal-spacing methods. P2.2 implements first-derivative Hermite methods. P2.3 implements Taylor polynomials. P2.4 implements natural cubic spline segments. P2.5 audit is complete with release caveats documented in `docs/PHASE_2_FINAL_AUDIT.md`. Backend tests and Ruff now pass under Python 3.12.13, satisfying the Python 3.11+ backend runtime gate. If Claude Opus exposes a deferred or ineligible Phase 2 method, the frontend must render the method-level error returned under `methods.<method>.error` and must not simulate the method client-side.
 
 P2.5 frontend integration status:
 
 - Backend payloads for `newton_forward`, `newton_backward`, `stirling`, `hermite_divided_difference`, `hermite`, `taylor`, and natural `cubic_spline` are ready for Claude Opus rendering work.
 - `osculating` remains accepted by schema but deferred; render its `method_not_implemented` method-level error until the backend implements generalized derivative-order repeated nodes.
 - Codex did not implement Phase 2 React controls/renderers during P2.5.
+- Backend verification passed under Python 3.12.13 with `.\.venv\Scripts\python.exe -m pytest` and `.\.venv\Scripts\python.exe -m ruff check .`.
 - `npm run build`, `npm run lint`, and `npm test` passed during P2.5 verification.
 - Browser QA for actual Phase 2 method flows is still pending because those frontend flows are not implemented yet.
 

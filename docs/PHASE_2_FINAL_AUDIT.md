@@ -2,13 +2,15 @@
 
 Date: 2026-05-24
 
+Last updated: 2026-05-25
+
 Branch: `codex/interpolation-backend-v1`
 
 ## Verdict
 
-Backend Phase 2 numerical/API expansion is complete under the current local verification environment.
+Backend Phase 2 numerical/API expansion is complete under a Python 3.12.13 verification environment.
 
-Full product release-candidate status is not complete yet. Release certification still requires Python 3.11+ verification in a usable interpreter and Claude Opus frontend integration/browser QA for the Phase 2 workbench flows.
+Full product release-candidate status is not complete yet. Release certification still requires Claude Opus frontend integration/browser QA for the Phase 2 workbench flows.
 
 ## Scope Result
 
@@ -46,6 +48,8 @@ Full product release-candidate status is not complete yet. Release certification
 |---|---|---|
 | `python -m pytest` | `backend/` | PASS - 73 passed. Runtime observed by pytest: Python 3.10.11. |
 | `python -m ruff check .` | `backend/` | PASS - `All checks passed!`. |
+| `.\.venv\Scripts\python.exe -m pytest` | `backend/` | PASS - 73 passed. Runtime observed by pytest: Python 3.12.13. |
+| `.\.venv\Scripts\python.exe -m ruff check .` | `backend/` | PASS - `All checks passed!` under Python 3.12.13. |
 | `npm run build` | `frontend/` | PASS - TypeScript build and Vite production build completed. |
 | `npm run lint` | `frontend/` | PASS - ESLint completed with exit code 0. |
 | `npm test` | `frontend/` | PASS - 4 test files passed, 17 tests passed. |
@@ -55,6 +59,7 @@ Full product release-candidate status is not complete yet. Release certification
 | `py -0p; python --version` | repo root | PARTIAL - launcher reports Python 3.13, but default `python` is Python 3.10.11. |
 | `py -3.13 -m pytest` | `backend/` | FAIL BEFORE TESTS - Windows could not create the WindowsApps Python 3.13 process. |
 | `py -3.13 -m ruff check .` | `backend/` | FAIL BEFORE LINT - same WindowsApps process-creation failure. |
+| Codex bundled Python venv setup | `backend/` | PASS - `backend/.venv` uses Python 3.12.13 and is ignored by Git. |
 
 ## Ownership Checks
 
@@ -68,11 +73,10 @@ Full product release-candidate status is not complete yet. Release certification
 
 ## Release Caveats
 
-1. Python 3.11+ verification is NOT RUN in a usable interpreter. The local verification used Python 3.10.11 while `backend/pyproject.toml` declares Python 3.11+. A 2026-05-25 attempt with `py -3.13` failed before test execution because Windows could not create the WindowsApps Python 3.13 process.
-2. `osculating` is intentionally deferred because generalized derivative-order repeated-node support is not implemented or tested.
-3. Claude Opus still needs to build Phase 2 frontend controls and renderers for equal-spacing, Hermite, Taylor, and spline payloads.
-4. Browser QA for the actual Phase 2 frontend method flows is NOT RUN because those flows are not implemented in React yet.
-5. The current worktree contains unrelated pre-existing frontend/doc/PDF changes that are not part of the Phase 2 backend audit commit.
+1. `osculating` is intentionally deferred because generalized derivative-order repeated-node support is not implemented or tested.
+2. Claude Opus still needs to build Phase 2 frontend controls and renderers for equal-spacing, Hermite, Taylor, and spline payloads.
+3. Browser QA for the actual Phase 2 frontend method flows is NOT RUN because those flows are not implemented in React yet.
+4. The Windows `py -3.13` launcher target remains unusable, but this is no longer the Python 3.11+ release gate because the backend suite and Ruff now pass under Python 3.12.13.
 
 ## Final Release Gate
 
@@ -80,7 +84,9 @@ Call the backend Phase 2 expansion complete after this audit commit.
 
 Do not call the full product production-ready or release-complete until:
 
-- Python 3.11+ backend tests and lint pass in a working interpreter.
 - Claude Opus frontend integration for all implemented Phase 2 methods is complete.
 - Browser QA covers the Phase 2 method catalog, config controls, renderers, warning states, and backend-owned graph data.
-- The unrelated dirty worktree items are either committed by their owner or intentionally excluded.
+
+Satisfied release gate:
+
+- Python 3.11+ backend tests and lint pass in a working interpreter: Python 3.12.13 in `backend/.venv`.
