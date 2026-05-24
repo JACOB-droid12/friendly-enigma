@@ -58,9 +58,9 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 | `POST /api/validate-function` | Debounced inline validation (800ms after typing in function modes) |
 | `POST /api/interpolate` | Main compute button and keyboard shortcut only |
 
-## Phase 2 Contract Prep
+## Phase 2 Backend Expansion
 
-P2.0 backend contract prep accepts Phase 2 method names without implementing the numerical methods yet. If Claude Opus exposes a Phase 2 method before its backend milestone is complete, the frontend must render the method-level error returned under `methods.<method>.error` and must not simulate the method client-side.
+P2.0 backend contract prep accepts Phase 2 method names under the stable `POST /api/interpolate` endpoint. P2.1 implements equal-spacing methods. P2.2 implements first-derivative Hermite methods. If Claude Opus exposes a Phase 2 method before its backend milestone is complete, the frontend must render the method-level error returned under `methods.<method>.error` and must not simulate the method client-side.
 
 Accepted Phase 2 method names:
 
@@ -104,6 +104,41 @@ Frontend rendering rules:
 - For method-level errors such as `unequal_spacing` or `stirling_requires_centered_nodes`, show the returned error message and code.
 - Do not calculate finite differences in React.
 
+### P2.2 Derivative-Data Payloads
+
+Backend P2.2 implements:
+
+- `hermite_divided_difference`
+- `hermite`
+
+Backend P2.2 explicitly defers:
+
+- `osculating` - still accepted by schema, but returns `method_not_implemented` because the backend helper currently supports first-derivative Hermite only, not generalized derivative orders.
+
+Request rules:
+
+- Send derivative data through the existing `derivatives` array with string-valued `x` and `value`, and integer `order`.
+- For P2.2 Hermite, use `order: 1` only.
+- Provide one first derivative for every interpolation node.
+- If derivative data is missing or unsupported, render the method-level error returned by the backend. Do not fill or estimate derivatives in React.
+
+Frontend rendering rules:
+
+- Render `methods.hermite_divided_difference.repeated_nodes` as backend-owned repeated-node metadata.
+- Render `methods.hermite_divided_difference.divided_difference_table` as a triangular repeated-node divided-difference table.
+- Render `methods.hermite_divided_difference.coefficients`, `nested_form`, `expanded`, `latex_expanded`, `latex_hermite`, `evaluations`, `steps`, `warnings`, and `error` exactly as returned.
+- Render `methods.hermite` the same way, plus `methods.hermite.basis_form` when `basis_form.status === "included"`.
+- If `basis_form.status === "omitted"`, show the backend reason/warning rather than reconstructing the basis.
+- The top-level `polynomial.hermite_form` and `polynomial.latex_hermite` may be present when Hermite is the selected polynomial source.
+- Do not calculate repeated nodes, divided differences, Hermite basis terms, derivative matches, evaluations, graph samples, or errors in React.
+
+Recommended Phase 2 UI additions for Claude Opus:
+
+- Derivative input table keyed to the point/node rows.
+- Method cards for `hermite_divided_difference` and `hermite` under the derivative-data family.
+- Repeated-node table renderer.
+- Hermite basis renderer with included/omitted states.
+- Lecture example preset for the Bessel-style nodes `1.3`, `1.6`, `1.9`, first derivatives, and evaluation `x = 1.5`.
 ## Frontend Does Not
 - Recompute interpolation
 - Parse or evaluate functions as source of truth

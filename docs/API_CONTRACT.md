@@ -1,7 +1,7 @@
 # API Contract — Interpolating Polynomial Program Backend
 
 ## Status
-Implemented v1 backend contract. The backend owns parsing, validation, numerical precision, interpolation, evaluations, warnings, and graph-ready arrays.
+Implemented v1 backend contract plus Phase 2 P2.1/P2.2 backend method expansion. The backend owns parsing, validation, numerical precision, interpolation, evaluations, warnings, derivative-data handling, and graph-ready arrays.
 
 ## Base URL
 Development default:
@@ -121,7 +121,7 @@ Accepted Phase 2 method names:
 - `taylor`
 - `cubic_spline`
 
-P2.0 accepts the Phase 2 method names to stabilize the contract. Until a method's implementation milestone is complete, selecting that method returns a method-level error with code `method_not_implemented` and the top-level response status is `partial` when normalization succeeds.
+P2.0 accepts the Phase 2 method names to stabilize the contract. P2.1 implements `newton_forward`, `newton_backward`, and `stirling`. P2.2 implements `hermite_divided_difference` and `hermite`. Until a method's implementation milestone is complete, selecting that method returns a method-level error with code `method_not_implemented` and the top-level response status is `partial` when normalization succeeds.
 
 ### Phase 2 Optional Method Blocks
 
@@ -154,7 +154,8 @@ Rules:
 {
   "derivatives": [
     {"x": "1.3", "order": 1, "value": "-0.5220232"},
-    {"x": "1.6", "order": 1, "value": "-0.5698959"}
+    {"x": "1.6", "order": 1, "value": "-0.5698959"},
+    {"x": "1.9", "order": 1, "value": "-0.5811571"}
   ]
 }
 ```
@@ -164,7 +165,11 @@ Rules:
 - `x` and `value` are strings at the API boundary.
 - `order` is an integer from 1 through 10.
 - Derivative values are normalized through the same precision path as point values.
-- Missing or ineligible derivative data returns method-level errors for derivative-data methods once those methods are implemented.
+- `hermite_divided_difference` and `hermite` currently support first-derivative data only (`order = 1`).
+- Hermite methods require first-derivative data at every interpolation node.
+- Missing derivative data returns method-level error code `missing_derivative_data`.
+- Higher derivative orders currently return method-level error code `invalid_derivative_order` for Hermite methods.
+- `osculating` remains accepted but not implemented in P2.2 because generalized repeated-node derivative orders are not yet supported by the tested helper.
 
 ## P2.1 Equal-Spacing Methods
 
@@ -237,6 +242,95 @@ These methods require equally spaced x-values. If selected with ineligible spaci
 ```
 
 Target guidance is advisory only. The backend does not silently replace the selected method.
+
+## P2.2 Derivative-Data Methods
+
+Implemented P2.2 method names:
+
+- `hermite_divided_difference`
+- `hermite`
+
+Deferred P2.2 method name:
+
+- `osculating` returns method-level error code `method_not_implemented` until generalized derivative-order repeated-node support is implemented and tested.
+
+Hermite methods use the existing `POST /api/interpolate` endpoint. No per-method endpoint is introduced.
+
+Request example:
+
+```json
+{
+  "mode": "points",
+  "points": [
+    ["1.3", "0.6200860"],
+    ["1.6", "0.4554022"],
+    ["1.9", "0.2818186"]
+  ],
+  "derivatives": [
+    {"x": "1.3", "order": 1, "value": "-0.52202324741466"},
+    {"x": "1.6", "order": 1, "value": "-0.56989593526168"},
+    {"x": "1.9", "order": 1, "value": "-0.581157072713434"}
+  ],
+  "methods": ["hermite_divided_difference", "hermite"],
+  "evaluation_x": ["1.5"],
+  "precision": 50,
+  "exact": true
+}
+```
+
+`hermite_divided_difference` method result fields:
+
+```json
+{
+  "status": "ok",
+  "repeated_nodes": [
+    {
+      "index": 0,
+      "source_node_index": 0,
+      "x": "13/10",
+      "y": "310043/500000",
+      "first_derivative": "-26101162370733/50000000000000"
+    }
+  ],
+  "divided_difference_table": [],
+  "coefficients": [],
+  "nested_form": "...",
+  "expanded": "...",
+  "latex_expanded": "...",
+  "latex_hermite": "...",
+  "evaluations": [{"x": "1.5", "value": "..."}],
+  "steps": [],
+  "warnings": [],
+  "error": null
+}
+```
+
+`hermite` returns the same repeated-node divided-difference fields and adds `basis_form` when the symbolic basis is small enough for display:
+
+```json
+{
+  "basis_form": {
+    "status": "included",
+    "formula": "H_i(x)=(1-2(x-x_i)L_i'(x_i))L_i(x)^2, K_i(x)=(x-x_i)L_i(x)^2",
+    "terms": [
+      {
+        "node_index": 0,
+        "x": "0",
+        "f_x": "1",
+        "f_prime_x": "2",
+        "lagrange_basis": "1 - x",
+        "value_basis": "(1 - x)**2*(2*x + 1)",
+        "derivative_basis": "x*(1 - x)**2"
+      }
+    ],
+    "expanded": "x**2 + 2*x + 1",
+    "latex": "...",
+    "matches_divided_difference": true
+  }
+}
+```
+
+If the basis form is omitted for size, `basis_form.status` is `omitted` and the method includes warning code `expanded_polynomial_omitted` with `details.artifact = "hermite_basis_form"`.
 
 ### Points Mode
 
@@ -339,9 +433,11 @@ Validation:
     "factored": "6 - x",
     "lagrange_form": "20/3 - 4*x/3 + x/3 - 2/3",
     "newton_form": "6 - x",
+    "hermite_form": null,
     "latex_expanded": "6 - x",
     "latex_lagrange": "6 - x",
     "latex_newton": "6 - x",
+    "latex_hermite": null,
     "expanded_omitted_reason": null
   },
   "methods": {
@@ -507,6 +603,8 @@ Implemented warning codes:
 - Show method sections independently.
 - Render Lagrange basis polynomials from `methods.lagrange.basis_polynomials[].basis` as a list or table. `basis` is the backend wire field; do not expect or invent an `expression` alias.
 - Render Newton divided differences as a triangular table.
+- Render Hermite repeated-node divided differences as a triangular table.
+- Render Hermite basis output from `methods.hermite.basis_form` only when returned by the backend.
 - Render Neville data as one triangular table per target x-value.
 - Show barycentric weights in a table with one row per node.
 - Show warnings prominently.

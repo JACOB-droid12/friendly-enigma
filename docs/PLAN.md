@@ -4,7 +4,7 @@
 Build the backend and numerical engine for the interpolation program.
 
 ## Current Status
-v1 backend implementation is complete in `backend/` with FastAPI endpoints, shared parser/normalization/precision layers, pure interpolation method modules, orchestration, graph-data generation, tests, and verification script. V1+ frontend lecture example loading and guided explanation/defense notes are complete without backend/API contract changes. Phase 2 P2.0 contract and architecture prep and P2.1 equal-spacing implementation are complete; P2.2 derivative-data implementation is next.
+v1 backend implementation is complete in `backend/` with FastAPI endpoints, shared parser/normalization/precision layers, pure interpolation method modules, orchestration, graph-data generation, tests, and verification script. V1+ frontend lecture example loading and guided explanation/defense notes are complete without backend/API contract changes. Phase 2 P2.0 contract and architecture prep, P2.1 equal-spacing implementation, and P2.2 first-derivative Hermite implementation are complete; P2.3 Taylor implementation is next.
 
 ## Milestones
 | Milestone | Status | Acceptance Criteria |
@@ -32,7 +32,7 @@ v1 backend implementation is complete in `backend/` with FastAPI endpoints, shar
 | Phase 2 implementation plan | Completed 2026-05-24 | `docs/superpowers/plans/2026-05-24-phase-2-lecture-method-workbench.md` defines P2.0 through P2.5, with P2.0/P2.1 ready for staged execution. |
 | P2.0 contract and architecture prep | Completed 2026-05-24 | Phase 2 method literals, optional `method_options`, string-valued derivative data, method metadata, new warning/error codes, method-not-implemented routing, API docs, frontend handoff docs, and compatibility tests are in place. Backend verification passed with `python -m pytest` -> 48 passed and `python -m ruff check .` -> `All checks passed!`. |
 | P2.1 equal-spacing family | Completed 2026-05-24 | Implemented `newton_forward`, `newton_backward`, and `stirling` with finite-difference tables, target guidance, lecture regression tests, API docs, frontend handoff guidance, and backend verification. Backend verification passed with `python -m pytest` -> 58 passed and `python -m ruff check .` -> `All checks passed!`. |
-| P2.2 derivative-data family | Next | Implement Hermite divided differences, Hermite basis output when safe, and osculating only after Hermite is stable or explicitly defer with reasons. |
+| P2.2 derivative-data family | Completed 2026-05-24 | Implemented `hermite_divided_difference` and `hermite` with first-derivative repeated-node tables, Hermite polynomial output, low-degree basis output, lecture regression tests, API docs, frontend handoff guidance, and backend verification. `osculating` is explicitly deferred because generalized derivative-order repeated-node support is not yet implemented or tested. Backend verification passed with `python -m pytest` -> 65 passed and `python -m ruff check .` -> `All checks passed!`. |
 | P2.3 Taylor family | Pending | Implement Taylor polynomial generation from safe parsed functions with derivative terms, LaTeX, evaluations, lecture examples, docs, verification, and separate commit. |
 | P2.4 piecewise family | Pending | Implement natural cubic spline with segment coefficients, continuity checks, backend graph samples, docs, verification, and separate commit. |
 | P2.5 release candidate | Pending | Complete lecture examples, warning guide, method comparison, full verification, browser QA if frontend changed, final audit, docs, and release caveat handling. |
@@ -70,7 +70,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 - No required backend v1 implementation work remains.
 - No required V1+ lecture example-library work remains.
 - No required V1+ guided explanation / defense notes work remains.
-- Phase 2 P2.1 equal-spacing implementation is complete. Next required milestone is P2.2 derivative-data only.
+- Phase 2 P2.2 first-derivative Hermite implementation is complete. Next required milestone is P2.3 Taylor only.
 - Do not implement all Phase 2 methods in one pass.
 - Do not add public per-method endpoints.
 - Do not move interpolation, finite-difference, Hermite, Taylor, spline, graph-sampling, or error computation into React.

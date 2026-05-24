@@ -69,15 +69,15 @@ def test_unimplemented_phase2_method_returns_method_error_not_400() -> None:
     request = InterpolateRequest(
         mode="points",
         points=[["1.0", "0.7651977"], ["1.3", "0.6200860"], ["1.6", "0.4554022"]],
-        methods=["hermite"],
+        methods=["osculating"],
         evaluation_x=["1.5"],
     )
 
     response = interpolate(request)
 
     assert response["status"] == "partial"
-    assert response["methods"]["hermite"]["status"] == "error"
-    assert response["methods"]["hermite"]["error"]["code"] == "method_not_implemented"
+    assert response["methods"]["osculating"]["status"] == "error"
+    assert response["methods"]["osculating"]["error"]["code"] == "method_not_implemented"
 
 
 def test_phase2_method_metadata_marks_barycentric_as_support_method() -> None:

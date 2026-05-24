@@ -116,3 +116,63 @@ def test_interpolate_equal_spacing_methods_contract() -> None:
     assert body["methods"]["newton_forward"]["forward_difference_table"]
     assert body["methods"]["newton_backward"]["backward_difference_table"]
     assert body["methods"]["stirling"]["centered_difference_table"]
+
+
+def test_interpolate_hermite_methods_contract() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "points",
+            "points": [
+                ["1.3", "0.6200860"],
+                ["1.6", "0.4554022"],
+                ["1.9", "0.2818186"],
+            ],
+            "derivatives": [
+                {"x": "1.3", "order": 1, "value": "-0.52202324741466"},
+                {"x": "1.6", "order": 1, "value": "-0.56989593526168"},
+                {"x": "1.9", "order": 1, "value": "-0.581157072713434"},
+            ],
+            "methods": ["hermite_divided_difference", "hermite"],
+            "evaluation_x": ["1.5"],
+            "precision": 50,
+            "exact": True,
+        },
+    )
+
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["status"] == "ok"
+    assert body["methods"]["hermite_divided_difference"]["status"] == "ok"
+    assert body["methods"]["hermite"]["status"] == "ok"
+    assert body["methods"]["hermite_divided_difference"]["repeated_nodes"]
+    assert body["methods"]["hermite_divided_difference"]["divided_difference_table"]
+    assert body["methods"]["hermite"]["basis_form"]["status"] == "included"
+    assert body["evaluations"][0]["best_method"] == "hermite"
+    assert body["polynomial"]["hermite_form"]
+
+
+def test_interpolate_hermite_missing_derivative_returns_method_error() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "points",
+            "points": [["0", "1"], ["1", "4"]],
+            "methods": ["hermite"],
+            "evaluation_x": ["1/2"],
+            "precision": 50,
+            "exact": True,
+        },
+    )
+
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["status"] == "partial"
+    assert body["methods"]["hermite"]["status"] == "error"
+    assert body["methods"]["hermite"]["error"]["code"] == "missing_derivative_data"

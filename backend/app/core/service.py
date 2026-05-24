@@ -7,6 +7,7 @@ from app.core.errors import InterpolationError
 from app.core.explanations import educational_notes
 from app.core.graph_data import build_graph_data
 from app.core.methods.barycentric import build_barycentric
+from app.core.methods.hermite import build_hermite, build_hermite_divided_difference
 from app.core.methods.lagrange import build_lagrange
 from app.core.methods.neville import build_neville
 from app.core.methods.newton import build_newton
@@ -67,7 +68,10 @@ def _run_methods(problem) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str
         "newton_forward": build_newton_forward,
         "newton_backward": build_newton_backward,
         "stirling": build_stirling,
+        "hermite_divided_difference": build_hermite_divided_difference,
+        "hermite": build_hermite,
     }
+    derivative_methods = {"hermite_divided_difference", "hermite"}
     raw_results: dict[str, dict[str, Any]] = {}
     api_results: dict[str, dict[str, Any]] = {}
     for method in problem.methods:
@@ -78,11 +82,13 @@ def _run_methods(problem) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str
             api_results[method] = failure
             continue
         try:
-            payload = builder(
-                problem.nodes,
-                precision=problem.precision,
-                evaluation_x=problem.evaluation_x,
-            )
+            kwargs = {
+                "precision": problem.precision,
+                "evaluation_x": problem.evaluation_x,
+            }
+            if method in derivative_methods:
+                kwargs["derivatives"] = problem.derivatives
+            payload = builder(problem.nodes, **kwargs)
             raw_results[method] = payload
             api_results[method] = _method_success(payload)
         except Exception as exc:
@@ -132,7 +138,7 @@ def _json_ready(value: Any) -> Any:
 
 
 def _polynomial_source(raw_results: dict[str, dict[str, Any]]) -> dict[str, Any] | None:
-    for method in ("lagrange", "newton"):
+    for method in ("hermite", "hermite_divided_difference", "lagrange", "newton"):
         result = raw_results.get(method)
         if result and result.get("polynomial") is not None:
             return result
@@ -149,9 +155,13 @@ def _polynomial_block(
         "factored": str(sp.factor(polynomial)) if polynomial is not None else None,
         "lagrange_form": raw_results.get("lagrange", {}).get("summation_form"),
         "newton_form": raw_results.get("newton", {}).get("nested_form"),
+        "hermite_form": raw_results.get("hermite", {}).get("basis_form")
+        or raw_results.get("hermite_divided_difference", {}).get("nested_form"),
         "latex_expanded": polynomial_source.get("latex_expanded") if polynomial_source else None,
         "latex_lagrange": raw_results.get("lagrange", {}).get("latex_lagrange"),
         "latex_newton": raw_results.get("newton", {}).get("latex_newton"),
+        "latex_hermite": raw_results.get("hermite", {}).get("latex_hermite")
+        or raw_results.get("hermite_divided_difference", {}).get("latex_hermite"),
         "expanded_omitted_reason": None,
     }
 
@@ -185,6 +195,8 @@ def _top_level_evaluations(problem, methods: dict[str, dict[str, Any]]) -> list[
 
 def _best_method(method_values: dict[str, str | None]) -> str | None:
     for method in (
+        "hermite",
+        "hermite_divided_difference",
         "barycentric",
         "newton",
         "lagrange",

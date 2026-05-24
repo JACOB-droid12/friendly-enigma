@@ -1,17 +1,66 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
-Phase 2 P2.1 Equal-Spacing Family. Scope in this change group is backend-owned finite-difference interpolation for `newton_forward`, `newton_backward`, and `stirling`, with API documentation and frontend handoff guidance only. No frontend implementation and no public endpoint changes.
+Phase 2 P2.2 Derivative-Data Family. Scope in this change group is backend-owned first-derivative Hermite interpolation for `hermite_divided_difference` and `hermite`, with API documentation and frontend handoff guidance only. `osculating` remains deferred. No frontend implementation and no public endpoint changes.
 
 ## Current Status
-- Overall status: P2.1 complete and backend-verified under the current local Python runtime.
+- Overall status: P2.2 complete and backend-verified under the current local Python runtime.
 - Branch: `codex/interpolation-backend-v1`
-- Backend status: Phase 2 contract prep is complete; equal-spacing helpers and `newton_forward`, `newton_backward`, and `stirling` are implemented with method-level eligibility errors and lecture regression tests.
-- Frontend status: no frontend code changed in P2.1. `docs/FRONTEND_HANDOFF.md` documents how Claude Opus should render backend-owned finite-difference payloads.
+- Backend status: Phase 2 contract prep, equal-spacing methods, and first-derivative Hermite methods are implemented with method-level eligibility errors and lecture regression tests.
+- Frontend status: no frontend code changed in P2.2. `docs/FRONTEND_HANDOFF.md` documents how Claude Opus should render backend-owned Hermite payloads.
 - Integration status: backend tests and lint pass. Browser QA not run because no frontend behavior changed.
 - Known caveat: Python 3.11+ verification remains skipped by user choice and is still required before production/release-complete status.
 
 ## What Changed (This Session)
+
+### Phase 2 P2.2 Derivative-Data Family
+
+Implemented the first derivative-data milestone without adding endpoints and without moving math into React.
+
+| File | What changed |
+|---|---|
+| `backend/app/core/methods/repeated_nodes.py` | Added first-derivative Hermite repeated-node expansion, repeated-node divided-difference table construction, derivative coverage validation, and rendered table helpers. |
+| `backend/app/core/methods/hermite.py` | Added `hermite_divided_difference` and `hermite` builders with repeated nodes, divided-difference tables, coefficients, nested/expanded forms, LaTeX, evaluations, lecture steps, and low-degree Hermite basis output. |
+| `backend/app/core/service.py` | Routed `hermite_divided_difference` and `hermite` through the existing `POST /api/interpolate` orchestration, passing derivative data only to derivative-data methods and adding Hermite polynomial fields to the top-level polynomial block. |
+| `backend/app/tests/test_repeated_nodes.py` | Added repeated-node helper tests for node duplication, derivative table entries, missing derivative errors, and unsupported higher derivative orders. |
+| `backend/app/tests/test_hermite.py` | Added lecture-regression coverage for the Bessel-style Hermite example at `x = 1.5` and low-degree Hermite basis output. |
+| `backend/app/tests/test_api.py` | Added stable-endpoint API coverage for Hermite success and missing-derivative method errors. |
+| `backend/app/tests/test_phase2_contract.py` | Moved the deferred-method scaffold test from `hermite` to `osculating` now that Hermite is implemented. |
+| `docs/API_CONTRACT.md` | Documented P2.2 request rules, Hermite payload fields, basis-form behavior, top-level Hermite polynomial fields, and `osculating` deferral. |
+| `docs/FRONTEND_HANDOFF.md` | Documented frontend rendering rules for derivative input, Hermite repeated-node tables, basis output, and no-frontend-math boundaries. |
+| `docs/HANDOFF.md` | Recorded P2.2 status and verification. |
+| `docs/PLAN.md` | Marked P2.2 complete and P2.3 Taylor as the next milestone. |
+
+### P2.2 Commands Run
+
+| Command | Result |
+|---|---|
+| `python -m pytest app/tests/test_repeated_nodes.py -v` before implementation | Expected red state: import error because `app.core.methods.repeated_nodes` did not exist. |
+| `python -m pytest app/tests/test_hermite.py -v` before implementation | Expected red state: import error because `app.core.methods.hermite` did not exist. |
+| `python -m pytest app/tests/test_repeated_nodes.py -v` | PASS - 3 passed. |
+| `python -m pytest app/tests/test_hermite.py -v` | PASS - 2 passed. One prior parallel attempt hit a local sandbox setup error before test execution and was rerun separately. |
+| `python -m pytest app/tests/test_repeated_nodes.py app/tests/test_hermite.py -v` | PASS - 5 passed. |
+| `python -m pytest app/tests/test_api.py::test_interpolate_hermite_methods_contract app/tests/test_phase2_contract.py::test_unimplemented_phase2_method_returns_method_error_not_400 -v` | PASS - 2 passed. |
+| `python -m pytest app/tests/test_api.py::test_interpolate_hermite_missing_derivative_returns_method_error -v` | PASS - 1 passed. |
+| `python -m ruff check app/core/methods/repeated_nodes.py app/core/methods/hermite.py app/core/service.py app/tests/test_repeated_nodes.py app/tests/test_hermite.py app/tests/test_api.py app/tests/test_phase2_contract.py` before final lint fix | FAIL - import ordering and long-line issues in the new Hermite helper files. |
+| `python -m ruff check app/core/methods/repeated_nodes.py app/core/methods/hermite.py app/core/service.py app/tests/test_repeated_nodes.py app/tests/test_hermite.py app/tests/test_api.py app/tests/test_phase2_contract.py` after lint fix | PASS - `All checks passed!`. |
+| `python -m pytest` | PASS - 65 passed. |
+| `python -m ruff check .` | PASS - `All checks passed!`. |
+
+### P2.2 Verification Notes
+
+- Backend tests were run from `C:\Users\Emmy Lou\Documents\New project 3\backend`.
+- Runtime observed by pytest: Python 3.10.11.
+- `backend/pyproject.toml` still declares Python 3.11+ as the intended runtime.
+- Python 3.11+ verification remains NOT RUN by user choice and must remain a release-certification caveat.
+- Frontend build/lint/test were NOT RUN because no frontend source code changed in P2.2.
+- Browser QA was NOT RUN because no frontend behavior changed in P2.2.
+- `osculating` is deferred because P2.2 now has tested first-derivative Hermite repeated nodes only. Generalized derivative-order repeated nodes need their own tests before the backend can implement osculating safely.
+
+### P2.2 Next Step
+
+Start P2.3 Taylor only after preserving the P2.2 boundary: implement Taylor polynomial generation from safe parsed functions, derivative term output, LaTeX, evaluations, docs, and tests. Do not implement spline methods in the P2.3 pass.
+---
 
 ### Phase 2 P2.1 Equal-Spacing Family
 
