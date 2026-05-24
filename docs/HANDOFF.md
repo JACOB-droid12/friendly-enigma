@@ -1,17 +1,56 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
-Phase 2 P2.4 Piecewise Family. Scope in this change group is backend-owned natural cubic spline generation for `cubic_spline`, with API documentation and frontend handoff guidance only. No frontend implementation and no public endpoint changes.
+Phase 2 P2.5 Final Audit. Scope in this change group is verification, final audit documentation, and coordination-file updates only. No new numerical method implementation, no frontend implementation, and no public endpoint changes.
 
 ## Current Status
-- Overall status: P2.4 complete and backend-verified under the current local Python runtime.
+- Overall status: Backend Phase 2 numerical/API expansion is complete under the current local Python runtime; full product release-candidate status remains gated by Python 3.11+ verification and Claude Opus Phase 2 frontend/browser QA.
 - Branch: `codex/interpolation-backend-v1`
-- Backend status: Phase 2 contract prep, equal-spacing methods, first-derivative Hermite methods, Taylor polynomials, and natural cubic spline segments are implemented with method-level eligibility errors and lecture regression tests.
-- Frontend status: no frontend code changed in P2.4. `docs/FRONTEND_HANDOFF.md` documents how Claude Opus should render backend-owned spline payloads.
-- Integration status: backend tests and lint pass. Browser QA not run because no frontend behavior changed.
+- Backend status: Phase 2 contract prep, equal-spacing methods, first-derivative Hermite methods, Taylor polynomials, and natural cubic spline segments are implemented with method-level eligibility errors and lecture regression tests. `osculating` is explicitly deferred.
+- Frontend status: no frontend code changed in P2.5. `docs/FRONTEND_HANDOFF.md` documents how Claude Opus should render backend-owned Phase 2 payloads without computing math in React.
+- Integration status: backend tests/lint and frontend build/lint/test pass. Browser QA is limited to a static frontend load smoke; full Phase 2 browser flows are not verified because the frontend Phase 2 workbench is not implemented yet.
 - Known caveat: Python 3.11+ verification remains skipped by user choice and is still required before production/release-complete status.
 
 ## What Changed (This Session)
+
+### Phase 2 P2.5 Final Audit
+
+Completed the Phase 2 backend final audit without adding endpoints, implementing new methods, or moving math into React.
+
+| File | What changed |
+|---|---|
+| `docs/PHASE_2_FINAL_AUDIT.md` | Added the final Phase 2 audit verdict, method status table, verification evidence, ownership checks, release caveats, and final release gates. |
+| `docs/FRONTEND_HANDOFF.md` | Added P2.5 guidance that backend Phase 2 payloads are ready for Claude Opus frontend integration, with `osculating` deferred and no frontend math allowed. |
+| `docs/HANDOFF.md` | Recorded P2.5 status, commands, browser-QA caveats, and final audit outcome. |
+| `docs/PLAN.md` | Marked P2.5 as completed with release caveats and updated remaining work. |
+| `docs/API_CONTRACT.md` | Clarified final Phase 2 backend status and `osculating` deferral. |
+
+### P2.5 Commands Run
+
+| Command | Result |
+|---|---|
+| `git status --short; git branch --show-current` | PASS - reported branch `codex/interpolation-backend-v1` and the pre-existing dirty docs/frontend/PDF paths. |
+| `python -m pytest` from `backend/` | PASS - 73 passed. Runtime observed by pytest: Python 3.10.11. |
+| `python -m ruff check .` from `backend/` | PASS - `All checks passed!`. |
+| `npm run build` from `frontend/` | PASS - TypeScript build and Vite production build completed. |
+| `npm run lint` from `frontend/` | PASS - ESLint completed with exit code 0. |
+| `npm test` from `frontend/` | PASS - 4 test files passed, 17 tests passed. |
+| `npm run dev -- --host 127.0.0.1 --port 5173` from `frontend/` | Vite reported ready, then the command timed out because the shell tool has no persistent session for this foreground dev server. |
+| Browser Use navigation to `http://127.0.0.1:4173/` and `http://localhost:4173/` | BLOCKED - Browser reported `net::ERR_BLOCKED_BY_CLIENT` for both localhost aliases. |
+| DevTools static frontend smoke at `http://127.0.0.1:4174/` | LIMITED PASS - page loaded as `Interpolating Polynomial Calculator`; screenshot saved to `C:\tmp\phase2-frontend-smoke.png`. |
+| Full browser compute flow | NOT VERIFIED - backend child processes started with health 200 but did not persist for the frontend health-poll/compute flow. |
+
+### P2.5 Verification Notes
+
+- Backend verification passed under the local `python` runtime, which pytest reports as Python 3.10.11.
+- `backend/pyproject.toml` still declares Python 3.11+ as the intended runtime.
+- Python 3.11+ verification remains NOT RUN by user choice and must remain a release-certification caveat.
+- Frontend build/lint/test were run even though Codex did not implement frontend Phase 2 code in this milestone.
+- Browser QA is not a full Phase 2 pass. It only confirms that the built frontend can load in a browser fallback surface; the Phase 2 method controls/renderers still belong to Claude Opus.
+
+### P2.5 Release Judgment
+
+Backend Phase 2 is complete and audited. Full product release is not complete until Python 3.11+ verification and Claude Opus Phase 2 frontend integration/browser QA are complete.
 
 ### Phase 2 P2.4 Piecewise Family
 

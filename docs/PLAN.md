@@ -4,7 +4,7 @@
 Build the backend and numerical engine for the interpolation program.
 
 ## Current Status
-v1 backend implementation is complete in `backend/` with FastAPI endpoints, shared parser/normalization/precision layers, pure interpolation method modules, orchestration, graph-data generation, tests, and verification script. V1+ frontend lecture example loading and guided explanation/defense notes are complete without backend/API contract changes. Phase 2 P2.0 contract and architecture prep, P2.1 equal-spacing implementation, P2.2 first-derivative Hermite implementation, P2.3 Taylor implementation, and P2.4 natural cubic spline implementation are complete; P2.5 release-candidate audit is next.
+v1 backend implementation is complete in `backend/` with FastAPI endpoints, shared parser/normalization/precision layers, pure interpolation method modules, orchestration, graph-data generation, tests, and verification script. V1+ frontend lecture example loading and guided explanation/defense notes are complete without backend/API contract changes. Phase 2 P2.0 contract and architecture prep, P2.1 equal-spacing implementation, P2.2 first-derivative Hermite implementation, P2.3 Taylor implementation, P2.4 natural cubic spline implementation, and P2.5 final audit are complete with release caveats. Backend Phase 2 is complete under local Python 3.10.11 verification; full product release still requires Python 3.11+ verification and Claude Opus Phase 2 frontend/browser QA.
 
 ## Milestones
 | Milestone | Status | Acceptance Criteria |
@@ -35,7 +35,7 @@ v1 backend implementation is complete in `backend/` with FastAPI endpoints, shar
 | P2.2 derivative-data family | Completed 2026-05-24 | Implemented `hermite_divided_difference` and `hermite` with first-derivative repeated-node tables, Hermite polynomial output, low-degree basis output, lecture regression tests, API docs, frontend handoff guidance, and backend verification. `osculating` is explicitly deferred because generalized derivative-order repeated-node support is not yet implemented or tested. Backend verification passed with `python -m pytest` -> 65 passed and `python -m ruff check .` -> `All checks passed!`. |
 | P2.3 Taylor family | Completed 2026-05-24 | Implemented `taylor` with safe parsed functions, center/order options, derivative term list, Taylor/Maclaurin polynomial output, LaTeX, evaluations, remainder note, lecture regression tests, API docs, frontend handoff guidance, and backend verification. Backend verification passed with `python -m pytest` -> 70 passed and `python -m ruff check .` -> `All checks passed!`. |
 | P2.4 piecewise family | Completed 2026-05-24 | Implemented natural `cubic_spline` with segment coefficients, interval metadata, continuity checks, spline-backed graph samples, piecewise no-global-polynomial response behavior, API docs, frontend handoff guidance, and backend verification. Backend verification passed with `python -m pytest` -> 73 passed and `python -m ruff check .` -> `All checks passed!`. |
-| P2.5 release candidate | Pending | Complete lecture examples, warning guide, method comparison, full verification, browser QA if frontend changed, final audit, docs, and release caveat handling. |
+| P2.5 release candidate | Completed with release caveats 2026-05-24 | Final audit written to `docs/PHASE_2_FINAL_AUDIT.md`. Backend verification passed with `python -m pytest` -> 73 passed and `python -m ruff check .` -> `All checks passed!`. Frontend verification passed with `npm run build`, `npm run lint`, and `npm test` -> 4 files / 17 tests passed. Full Phase 2 product release remains gated by Python 3.11+ verification and Claude Opus frontend/browser QA. |
 
 ## Validation Commands
 Run these from `backend/`:
@@ -70,7 +70,9 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 - No required backend v1 implementation work remains.
 - No required V1+ lecture example-library work remains.
 - No required V1+ guided explanation / defense notes work remains.
-- Phase 2 P2.4 natural cubic spline implementation is complete. Next required milestone is P2.5 release-candidate audit only.
+- Backend Phase 2 P2.5 final audit is complete in `docs/PHASE_2_FINAL_AUDIT.md`.
+- Full product release-candidate status is not complete until Python 3.11+ verification and Claude Opus Phase 2 frontend/browser QA are complete.
+- `osculating` remains explicitly deferred because generalized derivative-order repeated-node support is not implemented or tested.
 - Do not implement all Phase 2 methods in one pass.
 - Do not add public per-method endpoints.
 - Do not move interpolation, finite-difference, Hermite, Taylor, spline, graph-sampling, or error computation into React.

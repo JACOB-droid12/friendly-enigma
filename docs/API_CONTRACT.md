@@ -1,7 +1,7 @@
 # API Contract — Interpolating Polynomial Program Backend
 
 ## Status
-Implemented v1 backend contract plus Phase 2 P2.1/P2.2/P2.3/P2.4 backend method expansion. The backend owns parsing, validation, numerical precision, interpolation, Taylor approximation, natural cubic spline generation, evaluations, warnings, derivative-data handling, and graph-ready arrays.
+Implemented v1 backend contract plus Phase 2 P2.1/P2.2/P2.3/P2.4 backend method expansion, with P2.5 final audit complete. The backend owns parsing, validation, numerical precision, interpolation, Taylor approximation, natural cubic spline generation, evaluations, warnings, derivative-data handling, and graph-ready arrays. `osculating` remains accepted but intentionally deferred.
 
 ## Base URL
 Development default:
@@ -121,7 +121,7 @@ Accepted Phase 2 method names:
 - `taylor`
 - `cubic_spline`
 
-P2.0 accepts the Phase 2 method names to stabilize the contract. P2.1 implements `newton_forward`, `newton_backward`, and `stirling`. P2.2 implements `hermite_divided_difference` and `hermite`. P2.3 implements `taylor`. P2.4 implements natural `cubic_spline`. Until a method's implementation milestone is complete, selecting that method returns a method-level error with code `method_not_implemented` and the top-level response status is `partial` when normalization succeeds.
+P2.0 accepts the Phase 2 method names to stabilize the contract. P2.1 implements `newton_forward`, `newton_backward`, and `stirling`. P2.2 implements `hermite_divided_difference` and `hermite`. P2.3 implements `taylor`. P2.4 implements natural `cubic_spline`. P2.5 audits the implemented backend expansion. `osculating` is the only accepted Phase 2 method still intentionally deferred; selecting it returns a method-level error with code `method_not_implemented` and the top-level response status is `partial` when normalization succeeds.
 
 ### Phase 2 Optional Method Blocks
 

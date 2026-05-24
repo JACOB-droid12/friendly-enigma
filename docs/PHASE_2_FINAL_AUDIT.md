@@ -1,0 +1,83 @@
+# Phase 2 Final Audit
+
+Date: 2026-05-24
+
+Branch: `codex/interpolation-backend-v1`
+
+## Verdict
+
+Backend Phase 2 numerical/API expansion is complete under the current local verification environment.
+
+Full product release-candidate status is not complete yet. Release certification still requires Python 3.11+ verification and Claude Opus frontend integration/browser QA for the Phase 2 workbench flows.
+
+## Scope Result
+
+| Area | Status | Notes |
+|---|---|---|
+| Stable endpoints | PASS | `GET /health`, `POST /api/interpolate`, and `POST /api/validate-function` remain the only public endpoints. |
+| V1 methods | PASS | `lagrange`, `newton`, `barycentric`, and `neville` remain implemented and covered by the full backend suite. |
+| P2.0 contract prep | PASS | Phase 2 method literals, `method_options`, derivative data, metadata, and method-level unsupported behavior are in place. |
+| P2.1 equal-spacing | PASS | `newton_forward`, `newton_backward`, and `stirling` are implemented with finite-difference tables and eligibility errors. |
+| P2.2 derivative data | PARTIAL BY DESIGN | `hermite_divided_difference` and `hermite` are implemented for first derivatives. `osculating` is deferred. |
+| P2.3 Taylor | PASS | `taylor` is implemented with safe parsed functions, center/order options, derivative terms, and a remainder note. |
+| P2.4 piecewise | PASS | Natural `cubic_spline` is implemented with segment coefficients, continuity checks, and spline-backed graph samples. |
+| P2.5 polish/audit | PASS WITH CAVEATS | Backend and frontend command verification passed; full Phase 2 browser flows are pending frontend integration. |
+
+## Implemented Methods
+
+| Method | Status | Regression coverage |
+|---|---|---|
+| `lagrange` | Implemented | Existing V1 suite and API tests. |
+| `newton` | Implemented | Existing V1 divided-difference suite and API tests. |
+| `barycentric` | Implemented | Existing stable-evaluator and graph support tests. |
+| `neville` | Implemented | Existing target-table tests. |
+| `newton_forward` | Implemented | `app/tests/test_finite_differences.py`, `app/tests/test_newton_finite.py`, API coverage. |
+| `newton_backward` | Implemented | `app/tests/test_finite_differences.py`, `app/tests/test_newton_finite.py`, API coverage. |
+| `stirling` | Implemented | `app/tests/test_newton_finite.py`, centered-node eligibility coverage, API coverage. |
+| `hermite_divided_difference` | Implemented | `app/tests/test_repeated_nodes.py`, `app/tests/test_hermite.py`, API coverage. |
+| `hermite` | Implemented | `app/tests/test_hermite.py`, basis included/omitted behavior, API coverage. |
+| `osculating` | Deferred | General derivative-order repeated-node helper is not implemented or tested yet. The schema accepts the method and returns `method_not_implemented`. |
+| `taylor` | Implemented | `app/tests/test_taylor.py`, API coverage. |
+| `cubic_spline` | Implemented | `app/tests/test_cubic_spline.py`, API and graph-data coverage. |
+
+## Verification
+
+| Command | Working directory | Result |
+|---|---|---|
+| `python -m pytest` | `backend/` | PASS - 73 passed. Runtime observed by pytest: Python 3.10.11. |
+| `python -m ruff check .` | `backend/` | PASS - `All checks passed!`. |
+| `npm run build` | `frontend/` | PASS - TypeScript build and Vite production build completed. |
+| `npm run lint` | `frontend/` | PASS - ESLint completed with exit code 0. |
+| `npm test` | `frontend/` | PASS - 4 test files passed, 17 tests passed. |
+| Browser Use on `http://127.0.0.1:4173/` and `http://localhost:4173/` | Browser plugin | BLOCKED - Browser reported `net::ERR_BLOCKED_BY_CLIENT` for both localhost aliases. |
+| DevTools static frontend load at `http://127.0.0.1:4174/` | Chrome DevTools | LIMITED PASS - page loaded as `Interpolating Polynomial Calculator`; screenshot saved to `C:\tmp\phase2-frontend-smoke.png`. |
+| Full browser compute flow | Chrome DevTools | NOT VERIFIED - the static smoke target could not keep a backend proxy connected long enough for the app's health poll and compute flow. |
+
+## Ownership Checks
+
+- No per-method endpoint was added.
+- Existing endpoint paths and request/response consumers remain backward-compatible.
+- Numeric request values remain string-valued at the API boundary.
+- Unsafe function evaluation is still routed through the SymPy whitelist parser; no `eval` was introduced.
+- Interpolation, finite-difference, Hermite, Taylor, spline, graph-sampling, and error computation remain backend-owned.
+- React did not receive Phase 2 math implementation from Codex.
+- Barycentric remains documented as stable evaluation/graph support, not the primary classroom construction method.
+
+## Release Caveats
+
+1. Python 3.11+ verification is NOT RUN by user choice. The local verification used Python 3.10.11 while `backend/pyproject.toml` declares Python 3.11+.
+2. `osculating` is intentionally deferred because generalized derivative-order repeated-node support is not implemented or tested.
+3. Claude Opus still needs to build Phase 2 frontend controls and renderers for equal-spacing, Hermite, Taylor, and spline payloads.
+4. Browser QA for the actual Phase 2 frontend method flows is NOT RUN because those flows are not implemented in React yet.
+5. The current worktree contains unrelated pre-existing frontend/doc/PDF changes that are not part of the Phase 2 backend audit commit.
+
+## Final Release Gate
+
+Call the backend Phase 2 expansion complete after this audit commit.
+
+Do not call the full product production-ready or release-complete until:
+
+- Python 3.11+ backend tests and lint pass.
+- Claude Opus frontend integration for all implemented Phase 2 methods is complete.
+- Browser QA covers the Phase 2 method catalog, config controls, renderers, warning states, and backend-owned graph data.
+- The unrelated dirty worktree items are either committed by their owner or intentionally excluded.
