@@ -10,6 +10,11 @@ from app.core.methods.barycentric import build_barycentric
 from app.core.methods.lagrange import build_lagrange
 from app.core.methods.neville import build_neville
 from app.core.methods.newton import build_newton
+from app.core.methods.newton_finite import (
+    build_newton_backward,
+    build_newton_forward,
+    build_stirling,
+)
 from app.core.normalization import normalize_request
 from app.core.parser import X
 from app.core.precision import comparison_tolerances, format_value, to_sympy, values_close
@@ -59,6 +64,9 @@ def _run_methods(problem) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str
         "newton": build_newton,
         "barycentric": build_barycentric,
         "neville": build_neville,
+        "newton_forward": build_newton_forward,
+        "newton_backward": build_newton_backward,
+        "stirling": build_stirling,
     }
     raw_results: dict[str, dict[str, Any]] = {}
     api_results: dict[str, dict[str, Any]] = {}
@@ -176,7 +184,15 @@ def _top_level_evaluations(problem, methods: dict[str, dict[str, Any]]) -> list[
 
 
 def _best_method(method_values: dict[str, str | None]) -> str | None:
-    for method in ("barycentric", "newton", "lagrange", "neville"):
+    for method in (
+        "barycentric",
+        "newton",
+        "lagrange",
+        "neville",
+        "newton_forward",
+        "newton_backward",
+        "stirling",
+    ):
         if method_values.get(method) is not None:
             return method
     return None

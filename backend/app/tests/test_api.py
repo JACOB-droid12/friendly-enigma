@@ -83,3 +83,36 @@ def test_interpolate_lecture_one_over_x_example() -> None:
     assert evaluation["best_P_x"] == "29/88"
     assert evaluation["f_x"] == "1/3"
     assert evaluation["absolute_error"] == "1/264"
+
+
+def test_interpolate_equal_spacing_methods_contract() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "points",
+            "points": [
+                ["1.0", "0.7651977"],
+                ["1.3", "0.6200860"],
+                ["1.6", "0.4554022"],
+                ["1.9", "0.2818186"],
+                ["2.2", "0.1103623"],
+            ],
+            "methods": ["newton_forward", "newton_backward", "stirling"],
+            "evaluation_x": ["1.5", "2"],
+            "precision": 50,
+            "exact": True,
+        },
+    )
+
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["methods"]["newton_forward"]["status"] == "ok"
+    assert body["methods"]["newton_backward"]["status"] == "ok"
+    assert body["methods"]["stirling"]["status"] == "ok"
+    assert body["evaluations"][0]["best_method"] == "newton_forward"
+    assert body["methods"]["newton_forward"]["forward_difference_table"]
+    assert body["methods"]["newton_backward"]["backward_difference_table"]
+    assert body["methods"]["stirling"]["centered_difference_table"]

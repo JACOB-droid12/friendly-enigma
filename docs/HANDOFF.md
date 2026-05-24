@@ -1,16 +1,63 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
-V1+ Guided Explanation / Defense Mode. Scope is frontend-only: the results area now explains existing backend-computed interpolation output using local lecture-aligned classroom language. No backend files, API endpoints, request shapes, response shapes, or interpolation math changed.
+Phase 2 P2.1 Equal-Spacing Family. Scope in this change group is backend-owned finite-difference interpolation for `newton_forward`, `newton_backward`, and `stirling`, with API documentation and frontend handoff guidance only. No frontend implementation and no public endpoint changes.
 
 ## Current Status
-- Overall status: V1+ guided explanation layer implemented and verified.
+- Overall status: P2.1 complete and backend-verified under the current local Python runtime.
 - Branch: `codex/interpolation-backend-v1`
-- Backend status: Unchanged in this session.
-- Frontend status: `npm run build`, `npm run lint`, and `npm test` all pass.
-- Integration status: **PASS** for rendering existing fixture responses into defense notes. Local browser smoke confirmed the Guide tab with the Linear Lagrange backend result.
+- Backend status: Phase 2 contract prep is complete; equal-spacing helpers and `newton_forward`, `newton_backward`, and `stirling` are implemented with method-level eligibility errors and lecture regression tests.
+- Frontend status: no frontend code changed in P2.1. `docs/FRONTEND_HANDOFF.md` documents how Claude Opus should render backend-owned finite-difference payloads.
+- Integration status: backend tests and lint pass. Browser QA not run because no frontend behavior changed.
+- Known caveat: Python 3.11+ verification remains skipped by user choice and is still required before production/release-complete status.
 
 ## What Changed (This Session)
+
+### Phase 2 P2.1 Equal-Spacing Family
+
+Implemented the first Phase 2 numerical milestone without adding endpoints and without moving math into React.
+
+| File | What changed |
+|---|---|
+| `backend/app/core/methods/finite_differences.py` | Added equal-spacing validation, forward/backward difference table helpers, and target-location guidance. |
+| `backend/app/core/methods/newton_finite.py` | Added backend-owned `newton_forward`, `newton_backward`, and `stirling` method builders with tables, spacing metadata, terms, evaluations, LaTeX, steps, warnings, and method-level eligibility errors. |
+| `backend/app/core/service.py` | Routed the three P2.1 methods through the existing `POST /api/interpolate` orchestration and left deferred Phase 2 methods on explicit `method_not_implemented` behavior. |
+| `backend/app/tests/test_finite_differences.py` | Added helper tests for equal spacing, unequal spacing, difference tables, and target guidance. |
+| `backend/app/tests/test_newton_finite.py` | Added lecture-example regression tests for Newton forward/backward, Stirling, unequal spacing, and Stirling centered-node requirements. |
+| `backend/app/tests/test_api.py` | Added API contract coverage for requesting all three equal-spacing methods through the stable interpolate endpoint. |
+| `backend/app/tests/test_phase2_contract.py` | Kept the deferred-method scaffold test pointed at `hermite` now that `newton_forward` is implemented. |
+| `docs/API_CONTRACT.md` | Documented P2.1 method names, equal-spacing errors, and returned finite-difference payload fields. |
+| `docs/FRONTEND_HANDOFF.md` | Documented frontend rendering rules for finite-difference tables and target guidance. |
+| `docs/HANDOFF.md` | Recorded P2.1 status and verification. |
+| `docs/PLAN.md` | Marked P2.1 complete and P2.2 as the next milestone. |
+
+### P2.1 Commands Run
+
+| Command | Result |
+|---|---|
+| `python -m pytest app/tests/test_finite_differences.py -v` before implementation | Expected red state: import error because `app.core.methods.finite_differences` did not exist. |
+| `python -m pytest app/tests/test_newton_finite.py -v` before implementation | Expected red state: import error because `app.core.methods.newton_finite` did not exist. |
+| `python -m pytest app/tests/test_finite_differences.py app/tests/test_newton_finite.py app/tests/test_api.py::test_interpolate_equal_spacing_methods_contract -v` | PASS - 10 passed. |
+| `python -m pytest app/tests/test_api.py::test_interpolate_equal_spacing_methods_contract -v` | PASS - 1 passed. |
+| `python -m pytest` before final test fix | FAIL - 57 passed, 1 failed. Stale P2.0 scaffold test still expected `newton_forward` to be unimplemented. |
+| `python -m ruff check .` before final lint fix | FAIL - one E501 long warning message and one I001 import-order issue. |
+| `python -m pytest` after final fixes | PASS - 58 passed. |
+| `python -m ruff check .` after final fixes | PASS - `All checks passed!`. |
+
+### P2.1 Verification Notes
+
+- Backend tests were run from `C:\Users\Emmy Lou\Documents\New project 3\backend`.
+- Runtime observed by pytest: Python 3.10.11.
+- `backend/pyproject.toml` still declares Python 3.11+ as the intended runtime.
+- Python 3.11+ verification remains NOT RUN by user choice and must remain a release-certification caveat.
+- Frontend build/lint/test were NOT RUN because no frontend source code changed in P2.1.
+- Browser QA was NOT RUN because no frontend behavior changed in P2.1.
+
+### P2.1 Next Step
+
+Start P2.2 derivative-data family only after preserving the P2.1 boundary: implement Hermite divided differences first, then Hermite basis output only if clean, and defer osculating until Hermite is stable. Do not implement Taylor or spline methods in the P2.2 pass.
+
+---
 
 ### V1+ Guided Explanation / Defense Mode
 

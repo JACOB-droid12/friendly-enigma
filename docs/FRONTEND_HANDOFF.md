@@ -58,6 +58,52 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 | `POST /api/validate-function` | Debounced inline validation (800ms after typing in function modes) |
 | `POST /api/interpolate` | Main compute button and keyboard shortcut only |
 
+## Phase 2 Contract Prep
+
+P2.0 backend contract prep accepts Phase 2 method names without implementing the numerical methods yet. If Claude Opus exposes a Phase 2 method before its backend milestone is complete, the frontend must render the method-level error returned under `methods.<method>.error` and must not simulate the method client-side.
+
+Accepted Phase 2 method names:
+
+| Method | Family | Frontend role |
+|---|---|---|
+| `newton_forward` | Equal spacing | Finite-difference construction near the first nodes |
+| `newton_backward` | Equal spacing | Finite-difference construction near the last nodes |
+| `stirling` | Equal spacing | Centered finite-difference construction |
+| `hermite_divided_difference` | Derivative data | Repeated-node divided-difference construction |
+| `hermite` | Derivative data | Hermite basis / derivative-matching construction when backend supports it |
+| `osculating` | Derivative data | Generalized derivative matching after Hermite is stable |
+| `taylor` | Function derivative | Local polynomial approximation from safe symbolic derivatives |
+| `cubic_spline` | Piecewise | Natural cubic spline segments and backend graph samples |
+
+Optional request blocks now documented in `docs/API_CONTRACT.md`:
+
+- `method_options`: method-specific config keyed by method name.
+- `derivatives`: string-valued derivative data objects with `x`, `order`, and `value`.
+
+Frontend ownership rule remains unchanged:
+
+- React may render method cards, config controls, derivative input tables, finite-difference tables, Hermite repeated-node tables, Taylor terms, spline segments, warnings, and backend graph arrays.
+- React must not compute finite differences, Hermite tables, Taylor terms, spline coefficients, graph samples, interpolated values, or errors.
+- Barycentric stays a stable evaluator / graph-support method, not the main classroom construction method.
+
+### P2.1 Equal-Spacing Payloads
+
+Backend P2.1 implements:
+
+- `newton_forward`
+- `newton_backward`
+- `stirling`
+
+Frontend rendering rules:
+
+- Render `methods.newton_forward.forward_difference_table` exactly as a finite-difference table.
+- Render `methods.newton_backward.backward_difference_table` exactly as a finite-difference table.
+- Render `methods.stirling.centered_difference_table` as the centered/Stirling table artifact returned by the backend.
+- Render `spacing_h`, `anchor_index`, `center_index`, `center_x`, `s`, `terms`, and `target_guidance` as backend facts.
+- If `target_guidance.recommended` differs from the selected method, show it as guidance only. Do not auto-switch methods on the frontend.
+- For method-level errors such as `unequal_spacing` or `stirling_requires_centered_nodes`, show the returned error message and code.
+- Do not calculate finite differences in React.
+
 ## Frontend Does Not
 - Recompute interpolation
 - Parse or evaluate functions as source of truth

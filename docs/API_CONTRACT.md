@@ -166,6 +166,78 @@ Rules:
 - Derivative values are normalized through the same precision path as point values.
 - Missing or ineligible derivative data returns method-level errors for derivative-data methods once those methods are implemented.
 
+## P2.1 Equal-Spacing Methods
+
+Implemented P2.1 method names:
+
+- `newton_forward`
+- `newton_backward`
+- `stirling`
+
+These methods require equally spaced x-values. If selected with ineligible spacing, the method returns a method-level error with code `unequal_spacing`. `stirling` currently requires an odd number of equally spaced nodes so there is one center node; even node counts return method-level error code `stirling_requires_centered_nodes`.
+
+`newton_forward` method result fields:
+
+```json
+{
+  "status": "ok",
+  "forward_difference_table": [["7651977/10000000", "-1451117/10000000"]],
+  "spacing_h": "3/10",
+  "anchor_index": 0,
+  "evaluations": [
+    {
+      "x": "1.5",
+      "s": "5/3",
+      "value": "51181999459876543/100000000000000000",
+      "terms": [{"order": 0, "value": "7651977/10000000"}],
+      "target_guidance": {
+        "recommended": "stirling",
+        "target": "3/2",
+        "left": "1",
+        "right": "11/5",
+        "midpoint": "8/5"
+      }
+    }
+  ],
+  "steps": [],
+  "warnings": [],
+  "error": null
+}
+```
+
+`newton_backward` uses the same outer shape with `backward_difference_table` and `anchor_index` set to the last node index.
+
+`stirling` method result fields:
+
+```json
+{
+  "status": "ok",
+  "centered_difference_table": [],
+  "spacing_h": "3/10",
+  "center_index": 2,
+  "center_x": "8/5",
+  "evaluations": [
+    {
+      "x": "1.5",
+      "s": "-1/3",
+      "value": "51181999459876543/100000000000000000",
+      "target_guidance": {
+        "recommended": "stirling",
+        "target": "3/2",
+        "left": "1",
+        "right": "11/5",
+        "midpoint": "8/5"
+      }
+    }
+  ],
+  "steps": [],
+  "warnings": [],
+  "error": null
+}
+```
+
+Target guidance is advisory only. The backend does not silently replace the selected method.
+
 ### Points Mode
 
 ```json
