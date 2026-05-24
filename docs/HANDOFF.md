@@ -1,17 +1,59 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
-Phase 2 P2.2 Derivative-Data Family. Scope in this change group is backend-owned first-derivative Hermite interpolation for `hermite_divided_difference` and `hermite`, with API documentation and frontend handoff guidance only. `osculating` remains deferred. No frontend implementation and no public endpoint changes.
+Phase 2 P2.3 Taylor Family. Scope in this change group is backend-owned Taylor/Maclaurin polynomial generation for `taylor`, with API documentation and frontend handoff guidance only. No frontend implementation and no public endpoint changes.
 
 ## Current Status
-- Overall status: P2.2 complete and backend-verified under the current local Python runtime.
+- Overall status: P2.3 complete and backend-verified under the current local Python runtime.
 - Branch: `codex/interpolation-backend-v1`
-- Backend status: Phase 2 contract prep, equal-spacing methods, and first-derivative Hermite methods are implemented with method-level eligibility errors and lecture regression tests.
-- Frontend status: no frontend code changed in P2.2. `docs/FRONTEND_HANDOFF.md` documents how Claude Opus should render backend-owned Hermite payloads.
+- Backend status: Phase 2 contract prep, equal-spacing methods, first-derivative Hermite methods, and Taylor polynomials are implemented with method-level eligibility errors and lecture regression tests.
+- Frontend status: no frontend code changed in P2.3. `docs/FRONTEND_HANDOFF.md` documents how Claude Opus should render backend-owned Taylor payloads.
 - Integration status: backend tests and lint pass. Browser QA not run because no frontend behavior changed.
 - Known caveat: Python 3.11+ verification remains skipped by user choice and is still required before production/release-complete status.
 
 ## What Changed (This Session)
+
+### Phase 2 P2.3 Taylor Family
+
+Implemented the Taylor milestone without adding endpoints and without moving math into React.
+
+| File | What changed |
+|---|---|
+| `backend/app/core/methods/taylor.py` | Added backend-owned Taylor/Maclaurin builder with safe parsed function input, center/order option validation, derivative term generation, polynomial output, LaTeX, evaluations, steps, and a Taylor theorem remainder note. |
+| `backend/app/core/service.py` | Routed `taylor` through the existing `POST /api/interpolate` orchestration, passing parsed function expression and method options only to function-derivative methods. Added Taylor fields to the top-level polynomial block and best-method selection. |
+| `backend/app/tests/test_taylor.py` | Added tests for `cos(x)` second/third Taylor polynomials, `sin(x)` Maclaurin terms through order 5, unsafe parser rejection, and missing Taylor options. |
+| `backend/app/tests/test_api.py` | Added API contract coverage for requesting `taylor` through the stable interpolate endpoint. |
+| `docs/API_CONTRACT.md` | Documented P2.3 request rules, Taylor payload fields, validation behavior, and frontend no-math boundary. |
+| `docs/FRONTEND_HANDOFF.md` | Documented frontend rendering rules for Taylor config, term rows, polynomial fields, and no-frontend-math boundaries. |
+| `docs/HANDOFF.md` | Recorded P2.3 status and verification. |
+| `docs/PLAN.md` | Marked P2.3 complete and P2.4 natural cubic spline as the next milestone. |
+
+### P2.3 Commands Run
+
+| Command | Result |
+|---|---|
+| `python -m pytest app/tests/test_taylor.py -v` before implementation | Expected red state: import error because `app.core.methods.taylor` did not exist. |
+| `python -m pytest app/tests/test_api.py::test_interpolate_taylor_method_contract -v` before implementation | Expected red state: `taylor` returned method-level `method_not_implemented`, so top-level status was `partial`. |
+| `python -m pytest app/tests/test_taylor.py -v` | PASS - 4 passed. |
+| `python -m pytest app/tests/test_api.py::test_interpolate_taylor_method_contract -v` | PASS - 1 passed. |
+| `python -m ruff check app/core/methods/taylor.py app/core/service.py app/tests/test_taylor.py app/tests/test_api.py` before final lint fix | FAIL - unused `sympy` import in `app/tests/test_taylor.py`. |
+| `python -m ruff check app/core/methods/taylor.py app/core/service.py app/tests/test_taylor.py app/tests/test_api.py` after lint fix | PASS - `All checks passed!`. |
+| `python -m pytest` | PASS - 70 passed. |
+| `python -m ruff check .` | PASS - `All checks passed!`. |
+
+### P2.3 Verification Notes
+
+- Backend tests were run from `C:\Users\Emmy Lou\Documents\New project 3\backend`.
+- Runtime observed by pytest: Python 3.10.11.
+- `backend/pyproject.toml` still declares Python 3.11+ as the intended runtime.
+- Python 3.11+ verification remains NOT RUN by user choice and must remain a release-certification caveat.
+- Frontend build/lint/test were NOT RUN because no frontend source code changed in P2.3.
+- Browser QA was NOT RUN because no frontend behavior changed in P2.3.
+
+### P2.3 Next Step
+
+Start P2.4 piecewise family only after preserving the P2.3 boundary: implement natural cubic spline with segment coefficients, continuity checks, backend graph/evaluation support as needed, docs, and tests. Do not implement release-candidate polish in the P2.4 pass.
+---
 
 ### Phase 2 P2.2 Derivative-Data Family
 

@@ -176,3 +176,32 @@ def test_interpolate_hermite_missing_derivative_returns_method_error() -> None:
     assert body["status"] == "partial"
     assert body["methods"]["hermite"]["status"] == "error"
     assert body["methods"]["hermite"]["error"]["code"] == "missing_derivative_data"
+
+
+def test_interpolate_taylor_method_contract() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "x_values_with_function",
+            "function": "cos(x)",
+            "x_values": ["0", "1"],
+            "methods": ["taylor"],
+            "method_options": {"taylor": {"center": "0", "order": 3}},
+            "evaluation_x": ["1/2"],
+            "precision": 50,
+            "exact": True,
+        },
+    )
+
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["status"] == "ok"
+    assert body["methods"]["taylor"]["status"] == "ok"
+    assert body["methods"]["taylor"]["expanded"] in {"1 - x**2/2", "-x**2/2 + 1"}
+    assert body["methods"]["taylor"]["evaluations"][0]["value"] == "7/8"
+    assert body["methods"]["taylor"]["terms"]
+    assert body["evaluations"][0]["best_method"] == "taylor"
+    assert body["polynomial"]["taylor_form"]

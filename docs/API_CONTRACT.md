@@ -1,7 +1,7 @@
 # API Contract — Interpolating Polynomial Program Backend
 
 ## Status
-Implemented v1 backend contract plus Phase 2 P2.1/P2.2 backend method expansion. The backend owns parsing, validation, numerical precision, interpolation, evaluations, warnings, derivative-data handling, and graph-ready arrays.
+Implemented v1 backend contract plus Phase 2 P2.1/P2.2/P2.3 backend method expansion. The backend owns parsing, validation, numerical precision, interpolation, Taylor approximation, evaluations, warnings, derivative-data handling, and graph-ready arrays.
 
 ## Base URL
 Development default:
@@ -121,7 +121,7 @@ Accepted Phase 2 method names:
 - `taylor`
 - `cubic_spline`
 
-P2.0 accepts the Phase 2 method names to stabilize the contract. P2.1 implements `newton_forward`, `newton_backward`, and `stirling`. P2.2 implements `hermite_divided_difference` and `hermite`. Until a method's implementation milestone is complete, selecting that method returns a method-level error with code `method_not_implemented` and the top-level response status is `partial` when normalization succeeds.
+P2.0 accepts the Phase 2 method names to stabilize the contract. P2.1 implements `newton_forward`, `newton_backward`, and `stirling`. P2.2 implements `hermite_divided_difference` and `hermite`. P2.3 implements `taylor`. Until a method's implementation milestone is complete, selecting that method returns a method-level error with code `method_not_implemented` and the top-level response status is `partial` when normalization succeeds.
 
 ### Phase 2 Optional Method Blocks
 
@@ -143,8 +143,8 @@ P2.0 accepts the Phase 2 method names to stabilize the contract. P2.1 implements
 
 Rules:
 
-- `taylor.center` must be a numeric string.
-- `taylor.order` must be an integer order selected by the frontend.
+- `taylor.center` must be a numeric string and is required when `taylor` is selected.
+- `taylor.order` must be an integer from 0 through 20 and is required when `taylor` is selected.
 - `cubic_spline.boundary_condition` supports only `natural` until a later explicit boundary-condition expansion.
 - Unknown method option keys are accepted at P2.0 schema level but should not be treated as implemented behavior unless documented by a later milestone.
 
@@ -332,6 +332,73 @@ Request example:
 
 If the basis form is omitted for size, `basis_form.status` is `omitted` and the method includes warning code `expanded_polynomial_omitted` with `details.artifact = "hermite_basis_form"`.
 
+## P2.3 Taylor Method
+
+Implemented P2.3 method name:
+
+- `taylor`
+
+Taylor uses the existing `POST /api/interpolate` endpoint and the same safe parser as `/api/validate-function`. No per-method endpoint is introduced.
+
+Request example:
+
+```json
+{
+  "mode": "x_values_with_function",
+  "function": "cos(x)",
+  "x_values": ["0", "1"],
+  "methods": ["taylor"],
+  "method_options": {
+    "taylor": {
+      "center": "0",
+      "order": 3
+    }
+  },
+  "evaluation_x": ["1/2"],
+  "precision": 50,
+  "exact": true
+}
+```
+
+`taylor` method result fields:
+
+```json
+{
+  "status": "ok",
+  "center": "0",
+  "order": 3,
+  "series_name": "Maclaurin",
+  "terms": [
+    {
+      "order": 0,
+      "derivative": "cos(x)",
+      "derivative_at_center": "1",
+      "coefficient": "1",
+      "term": "1",
+      "latex_term": "1"
+    }
+  ],
+  "taylor_form": "1 - x**2/2",
+  "expanded": "1 - x**2/2",
+  "latex_expanded": "1 - \\frac{x^{2}}{2}",
+  "latex_taylor": "1 - \\frac{x^{2}}{2}",
+  "evaluations": [{"x": "1/2", "value": "7/8"}],
+  "remainder_note": "Taylor's theorem writes f(x) = P_n(x) + R_n(x), ...",
+  "steps": [],
+  "warnings": [],
+  "error": null
+}
+```
+
+Validation and safety:
+
+- The function is parsed only through the existing SymPy whitelist parser.
+- `method_options.taylor.center` is parsed through the shared numeric-string precision path.
+- `method_options.taylor.order` must be an integer from 0 through 20.
+- Missing or unsupported Taylor configuration returns method-level error code `unsupported_taylor_function`.
+- Functions or centers that produce non-real, infinite, undefined, or unevaluated derivative terms return method-level error code `unsupported_taylor_function`.
+- The frontend must not compute Taylor derivatives, terms, evaluations, or errors.
+
 ### Points Mode
 
 ```json
@@ -434,10 +501,12 @@ Validation:
     "lagrange_form": "20/3 - 4*x/3 + x/3 - 2/3",
     "newton_form": "6 - x",
     "hermite_form": null,
+    "taylor_form": null,
     "latex_expanded": "6 - x",
     "latex_lagrange": "6 - x",
     "latex_newton": "6 - x",
     "latex_hermite": null,
+    "latex_taylor": null,
     "expanded_omitted_reason": null
   },
   "methods": {
@@ -605,6 +674,7 @@ Implemented warning codes:
 - Render Newton divided differences as a triangular table.
 - Render Hermite repeated-node divided differences as a triangular table.
 - Render Hermite basis output from `methods.hermite.basis_form` only when returned by the backend.
+- Render Taylor terms from `methods.taylor.terms` and Taylor notes from backend text fields.
 - Render Neville data as one triangular table per target x-value.
 - Show barycentric weights in a table with one row per node.
 - Show warnings prominently.

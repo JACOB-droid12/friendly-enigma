@@ -60,7 +60,7 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 ## Phase 2 Backend Expansion
 
-P2.0 backend contract prep accepts Phase 2 method names under the stable `POST /api/interpolate` endpoint. P2.1 implements equal-spacing methods. P2.2 implements first-derivative Hermite methods. If Claude Opus exposes a Phase 2 method before its backend milestone is complete, the frontend must render the method-level error returned under `methods.<method>.error` and must not simulate the method client-side.
+P2.0 backend contract prep accepts Phase 2 method names under the stable `POST /api/interpolate` endpoint. P2.1 implements equal-spacing methods. P2.2 implements first-derivative Hermite methods. P2.3 implements Taylor polynomials. If Claude Opus exposes a Phase 2 method before its backend milestone is complete, the frontend must render the method-level error returned under `methods.<method>.error` and must not simulate the method client-side.
 
 Accepted Phase 2 method names:
 
@@ -139,6 +139,33 @@ Recommended Phase 2 UI additions for Claude Opus:
 - Repeated-node table renderer.
 - Hermite basis renderer with included/omitted states.
 - Lecture example preset for the Bessel-style nodes `1.3`, `1.6`, `1.9`, first derivatives, and evaluation `x = 1.5`.
+### P2.3 Taylor Payloads
+
+Backend P2.3 implements:
+
+- `taylor`
+
+Request rules:
+
+- Use the existing `function` field plus `method_options.taylor.center` and `method_options.taylor.order`.
+- `center` must remain a string at the API boundary.
+- `order` must be an integer from 0 through 20.
+- The current backend still normalizes through an existing request mode, so Taylor examples should use `x_values_with_function` or `function_interval` until a future contract revision says otherwise.
+- Render backend method-level errors such as `unsupported_taylor_function`; do not repair Taylor configuration or derivative terms in React.
+
+Frontend rendering rules:
+
+- Render `methods.taylor.center`, `order`, `series_name`, `terms`, `taylor_form`, `expanded`, `latex_expanded`, `latex_taylor`, `evaluations`, `remainder_note`, `steps`, `warnings`, and `error` exactly as returned.
+- Render `terms` as derivative-term rows: order, derivative, derivative-at-center, coefficient, term, and LaTeX term.
+- The top-level `polynomial.taylor_form` and `polynomial.latex_taylor` may be present when Taylor is the selected polynomial source.
+- Do not calculate symbolic derivatives, Taylor coefficients, Taylor terms, Taylor polynomial values, graph samples, or errors in React.
+
+Recommended Phase 2 UI additions for Claude Opus:
+
+- Taylor config panel for center and order.
+- Taylor term table/renderer.
+- Lecture example preset for `f(x)=cos(x)`, center `0`, order `3`, evaluation `x=1/2`.
+- Maclaurin label when `series_name` is returned as `Maclaurin`.
 ## Frontend Does Not
 - Recompute interpolation
 - Parse or evaluate functions as source of truth
