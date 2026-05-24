@@ -96,3 +96,7 @@ Satisfied release gate:
 Open non-blocking frontend QA issue:
 
 - Chrome DevTools reports one `No label associated with a form field` issue for hidden Base UI display-precision radio inputs. The visible radio roles are labelled, but the hidden native inputs are still flagged. React ownership remains with Claude Opus.
+
+Current Git hygiene note:
+
+- The worktree currently shows deleted tracked files under `Lecture/`. Those deletions were not part of the Codex Phase 2 backend checkpoint and must be restored or intentionally committed separately before treating the repository as clean.

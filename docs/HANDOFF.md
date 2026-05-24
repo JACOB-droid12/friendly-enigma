@@ -1,7 +1,7 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
-Phase 2 continuation checkpoint after P2.5. Scope in this change group is browser QA for the committed V1+ frontend guide changes against the backend, plus documentation of the remaining Claude Opus Phase 2 workbench gate. No backend numerical implementation and no public endpoint changes.
+Phase 2 continuation checkpoint after P2.5. Scope in this change group is completion-gate alignment: the backend Phase 2 expansion is complete, but full product completion remains blocked on Claude Opus-owned Phase 2 frontend controls/renderers and their browser QA. No backend numerical implementation and no public endpoint changes.
 
 ## Current Status
 - Overall status: Backend Phase 2 numerical/API expansion is complete and verified under Python 3.12.13; full product release-candidate status remains gated by Claude Opus Phase 2 frontend/browser QA.
@@ -10,8 +10,21 @@ Phase 2 continuation checkpoint after P2.5. Scope in this change group is browse
 - Frontend status: V1+ Result Quality / Warnings Guide files are committed. The component displays existing backend response fields only and does not compute interpolation, graph samples, warning severity, or errors.
 - Integration status: backend tests/lint, frontend build/lint/test, and current V1+ browser compute flows pass. Full Phase 2 workbench browser flows are not verified because the Phase 2 method controls/renderers are not implemented in React yet.
 - Known caveat: the Windows `py -3.13` launcher target still fails before process creation, but the Python 3.11+ release gate is closed by passing tests/lint under Python 3.12.13 in `backend/.venv`.
+- Current Git hygiene: tracked `Lecture/` files are deleted in the worktree. Codex did not stage or commit those deletions.
 
 ## What Changed (This Session)
+
+### 2026-05-25 Completion-Gate Alignment
+
+Updated the Phase 2 task checklist and plan to preserve the distinction between:
+
+- completed Codex-owned backend/API/docs/verification work, and
+- the still-open Claude Opus-owned frontend workbench gate for equal-spacing, Hermite, Taylor, and spline controls/renderers plus browser QA.
+
+Current worktree note:
+
+- `git status --short` reports deleted tracked files under `Lecture/`: `DOCUMENTATION_CHANGELOG.md`, `Documentation.docx`, `Documentation_Final.pdf`, `GROUP-8-ASL-2024-FINAL-DOCUMENTATION-1.pdf`, and `download.jpg`.
+- These deletions are not part of the Codex-owned Phase 2 checkpoint and should be restored or intentionally committed separately by the owner.
 
 ### 2026-05-25 Browser QA Continuation
 

@@ -91,3 +91,4 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 - Recommended frontend next step: Claude Opus should review and commit the untracked frontend/design assets that are intended to become the V1 frontend baseline.
 - Frontend QA note for Claude Opus: Chrome DevTools reports one `No label associated with a form field` issue for hidden Base UI display-precision radio inputs.
 - Optional backend hardening: keep using `backend/.venv\Scripts\python.exe` for release verification unless the broken WindowsApps `py -3.13` launcher target is repaired.
+- Current Git hygiene note: tracked `Lecture/` files are currently deleted in the worktree. Codex did not stage or commit those deletions; restore or intentionally commit them separately before calling the repository clean.

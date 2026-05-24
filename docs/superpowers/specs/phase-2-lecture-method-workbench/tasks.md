@@ -137,3 +137,4 @@ Phase 2 is complete only when:
 - [x] no backend/frontend ownership rule is violated
 - [x] final audit report is written
 - [x] Python 3.11+ verification is either passed or clearly documented as not release-complete
+- [ ] Claude Opus Phase 2 frontend controls/renderers are implemented and browser-QA verified for equal-spacing, Hermite, Taylor, and spline workflows
