@@ -4,7 +4,7 @@
 Build the backend and numerical engine for the interpolation program.
 
 ## Current Status
-v1 backend implementation is complete in `backend/` with FastAPI endpoints, shared parser/normalization/precision layers, pure interpolation method modules, orchestration, graph-data generation, tests, and verification script. V1+ frontend lecture example loading and guided explanation/defense notes are complete without backend/API contract changes. Phase 2 P2.0 contract and architecture prep, P2.1 equal-spacing implementation, P2.2 first-derivative Hermite implementation, P2.3 Taylor implementation, P2.4 natural cubic spline implementation, and P2.5 final audit are complete with release caveats. Backend Phase 2 is complete under local Python 3.10.11 verification; full product release still requires Python 3.11+ verification and Claude Opus Phase 2 frontend/browser QA.
+v1 backend implementation is complete in `backend/` with FastAPI endpoints, shared parser/normalization/precision layers, pure interpolation method modules, orchestration, graph-data generation, tests, and verification script. V1+ frontend lecture example loading, guided explanation/defense notes, and result quality / warnings guide are complete without backend/API contract changes. Phase 2 P2.0 contract and architecture prep, P2.1 equal-spacing implementation, P2.2 first-derivative Hermite implementation, P2.3 Taylor implementation, P2.4 natural cubic spline implementation, and P2.5 final audit are complete with release caveats. Backend Phase 2 is complete under local Python 3.10.11 verification; full product release still requires Python 3.11+ verification in a usable interpreter and Claude Opus Phase 2 frontend/browser QA. A 2026-05-25 `py -3.13` attempt failed before test execution because Windows could not create the WindowsApps Python 3.13 process.
 
 ## Milestones
 | Milestone | Status | Acceptance Criteria |
@@ -27,6 +27,7 @@ v1 backend implementation is complete in `backend/` with FastAPI endpoints, shar
 | V1 contract stabilization | Completed 2026-05-23 | Frontend Lagrange basis rendering now consumes the backend `basis` field; smoke coverage guards linear, 1/x, Newton, Neville, barycentric, and backend graph-data rendering cases. |
 | V1+ lecture example library | Completed 2026-05-24 | Frontend Examples panel loads the four lecture-aligned examples into existing form inputs and method selections; no backend files, endpoint paths, request shapes, response shapes, or React interpolation math changed. |
 | V1+ guided explanation / defense notes | Completed 2026-05-24 | Results area includes a Guide tab that explains existing backend output using lecture-grounded Lagrange, Newton, and Neville emphasis; Barycentric is support-only stable evaluation / graph support; no backend files, endpoint paths, request shapes, response shapes, or React interpolation math changed. |
+| V1+ result quality / warnings guide | Completed 2026-05-24 | Existing Guide tab includes a frontend-only trust and warnings guide based on `status`, `warnings`, `evaluations`, and `graph_data`; no backend files, endpoint paths, request shapes, response shapes, or React interpolation math changed. |
 | Phase 2 scope confirmation | Completed 2026-05-24 | Brainstorming confirmed Approach B: staged comprehensive lecture-method expansion with backend-owned computation, stable endpoints, and frontend handoff only unless scope changes. |
 | Phase 2 formal spec | Completed 2026-05-24 | `docs/superpowers/specs/phase-2-lecture-method-workbench/requirements.md`, `design.md`, and `tasks.md` define scope, architecture, milestone tasks, and completion checklist. |
 | Phase 2 implementation plan | Completed 2026-05-24 | `docs/superpowers/plans/2026-05-24-phase-2-lecture-method-workbench.md` defines P2.0 through P2.5, with P2.0/P2.1 ready for staged execution. |
@@ -70,8 +71,9 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 - No required backend v1 implementation work remains.
 - No required V1+ lecture example-library work remains.
 - No required V1+ guided explanation / defense notes work remains.
+- No required V1+ result quality / warnings guide work remains.
 - Backend Phase 2 P2.5 final audit is complete in `docs/PHASE_2_FINAL_AUDIT.md`.
-- Full product release-candidate status is not complete until Python 3.11+ verification and Claude Opus Phase 2 frontend/browser QA are complete.
+- Full product release-candidate status is not complete until Python 3.11+ verification in a usable interpreter and Claude Opus Phase 2 frontend/browser QA are complete.
 - `osculating` remains explicitly deferred because generalized derivative-order repeated-node support is not implemented or tested.
 - Do not implement all Phase 2 methods in one pass.
 - Do not add public per-method endpoints.

@@ -8,7 +8,7 @@ Branch: `codex/interpolation-backend-v1`
 
 Backend Phase 2 numerical/API expansion is complete under the current local verification environment.
 
-Full product release-candidate status is not complete yet. Release certification still requires Python 3.11+ verification and Claude Opus frontend integration/browser QA for the Phase 2 workbench flows.
+Full product release-candidate status is not complete yet. Release certification still requires Python 3.11+ verification in a usable interpreter and Claude Opus frontend integration/browser QA for the Phase 2 workbench flows.
 
 ## Scope Result
 
@@ -52,6 +52,9 @@ Full product release-candidate status is not complete yet. Release certification
 | Browser Use on `http://127.0.0.1:4173/` and `http://localhost:4173/` | Browser plugin | BLOCKED - Browser reported `net::ERR_BLOCKED_BY_CLIENT` for both localhost aliases. |
 | DevTools static frontend load at `http://127.0.0.1:4174/` | Chrome DevTools | LIMITED PASS - page loaded as `Interpolating Polynomial Calculator`; screenshot saved to `C:\tmp\phase2-frontend-smoke.png`. |
 | Full browser compute flow | Chrome DevTools | NOT VERIFIED - the static smoke target could not keep a backend proxy connected long enough for the app's health poll and compute flow. |
+| `py -0p; python --version` | repo root | PARTIAL - launcher reports Python 3.13, but default `python` is Python 3.10.11. |
+| `py -3.13 -m pytest` | `backend/` | FAIL BEFORE TESTS - Windows could not create the WindowsApps Python 3.13 process. |
+| `py -3.13 -m ruff check .` | `backend/` | FAIL BEFORE LINT - same WindowsApps process-creation failure. |
 
 ## Ownership Checks
 
@@ -65,7 +68,7 @@ Full product release-candidate status is not complete yet. Release certification
 
 ## Release Caveats
 
-1. Python 3.11+ verification is NOT RUN by user choice. The local verification used Python 3.10.11 while `backend/pyproject.toml` declares Python 3.11+.
+1. Python 3.11+ verification is NOT RUN in a usable interpreter. The local verification used Python 3.10.11 while `backend/pyproject.toml` declares Python 3.11+. A 2026-05-25 attempt with `py -3.13` failed before test execution because Windows could not create the WindowsApps Python 3.13 process.
 2. `osculating` is intentionally deferred because generalized derivative-order repeated-node support is not implemented or tested.
 3. Claude Opus still needs to build Phase 2 frontend controls and renderers for equal-spacing, Hermite, Taylor, and spline payloads.
 4. Browser QA for the actual Phase 2 frontend method flows is NOT RUN because those flows are not implemented in React yet.
@@ -77,7 +80,7 @@ Call the backend Phase 2 expansion complete after this audit commit.
 
 Do not call the full product production-ready or release-complete until:
 
-- Python 3.11+ backend tests and lint pass.
+- Python 3.11+ backend tests and lint pass in a working interpreter.
 - Claude Opus frontend integration for all implemented Phase 2 methods is complete.
 - Browser QA covers the Phase 2 method catalog, config controls, renderers, warning states, and backend-owned graph data.
 - The unrelated dirty worktree items are either committed by their owner or intentionally excluded.

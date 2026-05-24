@@ -33,9 +33,9 @@ describe("GuidedExplanation", () => {
     expect(screen.getByText("x-values with a function")).toBeInTheDocument()
     expect(screen.getByText("3")).toBeInTheDocument()
     expect(screen.getByText("2")).toBeInTheDocument()
-    expect(screen.getByText("P(3) = 29/88")).toBeInTheDocument()
-    expect(screen.getByText("f(3) = 1/3")).toBeInTheDocument()
-    expect(screen.getByText("|error| = 1/264")).toBeInTheDocument()
+    expect(screen.getAllByText("P(3) = 29/88").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("f(3) = 1/3").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("|error| = 1/264").length).toBeGreaterThan(0)
   })
 
   it("renders backend warnings in the defense notes", () => {
@@ -52,8 +52,8 @@ describe("GuidedExplanation", () => {
 
     render(<GuidedExplanation data={warningResponse} />)
 
-    const warnings = screen.getByRole("region", { name: "Backend warnings" })
-    expect(within(warnings).getByText("high_degree")).toBeInTheDocument()
-    expect(within(warnings).getByText("High-degree interpolation can oscillate between nodes.")).toBeInTheDocument()
+    const quality = screen.getByRole("status", { name: "high_degree warning quality note" })
+    expect(within(quality).getAllByText("high_degree").length).toBeGreaterThan(0)
+    expect(within(quality).getByText("High-degree interpolation can oscillate between nodes.")).toBeInTheDocument()
   })
 })

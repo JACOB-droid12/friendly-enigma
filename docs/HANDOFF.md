@@ -1,17 +1,54 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
-Phase 2 P2.5 Final Audit. Scope in this change group is verification, final audit documentation, and coordination-file updates only. No new numerical method implementation, no frontend implementation, and no public endpoint changes.
+Phase 2 continuation checkpoint after P2.5. Scope in this change group is the fully staged remaining worktree: V1+ Result Quality guide frontend artifacts, lecture source assets, final audit caveat updates, verification, and a follow-up commit. No backend numerical implementation and no public endpoint changes.
 
 ## Current Status
 - Overall status: Backend Phase 2 numerical/API expansion is complete under the current local Python runtime; full product release-candidate status remains gated by Python 3.11+ verification and Claude Opus Phase 2 frontend/browser QA.
 - Branch: `codex/interpolation-backend-v1`
 - Backend status: Phase 2 contract prep, equal-spacing methods, first-derivative Hermite methods, Taylor polynomials, and natural cubic spline segments are implemented with method-level eligibility errors and lecture regression tests. `osculating` is explicitly deferred.
-- Frontend status: no frontend code changed in P2.5. `docs/FRONTEND_HANDOFF.md` documents how Claude Opus should render backend-owned Phase 2 payloads without computing math in React.
-- Integration status: backend tests/lint and frontend build/lint/test pass. Browser QA is limited to a static frontend load smoke; full Phase 2 browser flows are not verified because the frontend Phase 2 workbench is not implemented yet.
-- Known caveat: Python 3.11+ verification remains skipped by user choice and is still required before production/release-complete status.
+- Frontend status: V1+ Result Quality / Warnings Guide files are staged. The component displays existing backend response fields only and does not compute interpolation, graph samples, warning severity, or errors.
+- Integration status: backend tests/lint and frontend build/lint/test pass. Browser QA is limited to a prior static frontend load smoke; full Phase 2 browser flows are not verified because the Phase 2 method workbench UI is not implemented yet.
+- Known caveat: Python 3.11+ verification is still not closed. A 2026-05-25 attempt with `py -3.13` failed before test execution because Windows could not create the WindowsApps Python 3.13 process.
 
 ## What Changed (This Session)
+
+### 2026-05-25 Staging and Verification Continuation
+
+The user asked to stage everything. The staged set now includes the remaining frontend Result Quality guide work, lecture source assets, and updated audit/handoff caveats.
+
+| File | What changed |
+|---|---|
+| `frontend/src/components/results/ResultQualityGuide.tsx` | Adds the Guide-tab result quality/warnings component. It reads `status`, `warnings`, `evaluations`, and `graph_data` only. |
+| `frontend/src/components/results/ResultQualityGuide.test.tsx` | Adds coverage for no-warning state, warning interpretation, evaluation comparison, and backend graph-sample note. |
+| `frontend/src/components/results/GuidedExplanation.tsx` | Renders `ResultQualityGuide` inside the existing Guide tab and removes the smaller duplicate warning block. |
+| `frontend/src/components/results/GuidedExplanation.test.tsx` | Updates assertions for the new quality guide warning and evaluation surfaces. |
+| `Lecture/GROUP-8-ASL-2024-FINAL-DOCUMENTATION-1.pdf` | Staged lecture source PDF per the user's "stage everything" instruction. |
+| `Lecture/download.jpg` | Staged lecture source image per the user's "stage everything" instruction. |
+| `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/PHASE_2_FINAL_AUDIT.md`, `docs/FRONTEND_HANDOFF.md` | Record staged frontend guide status, verification, and Python 3.13 gate failure. |
+
+### 2026-05-25 Commands Run
+
+| Command | Result |
+|---|---|
+| `git status --short; git diff --cached --stat; git diff --cached --name-status` | PASS - confirmed the staged set includes 10 files and no generated folders. |
+| `py -0p; python --version` | PARTIAL - Windows launcher reports Python 3.13, but default `python` is Python 3.10.11. |
+| `py -3.13 -m pytest` from `backend/` | FAIL BEFORE TESTS - Windows could not create the WindowsApps Python 3.13 process. |
+| `py -3.13 -m ruff check .` from `backend/` | FAIL BEFORE LINT - same WindowsApps process-creation failure. |
+| `npm test` from `frontend/` | PASS - 4 test files, 17 tests passed. |
+| `npm run build` from `frontend/` during an initial parallel verification batch | FAIL - Vite/Rolldown reported an emitted `index.html` fileName/name path error. |
+| `npm run build` from `frontend/` rerun alone | PASS - TypeScript build and Vite production build completed. |
+| `npm run lint` from `frontend/` | PASS - ESLint completed with exit code 0. |
+| `python -m pytest` from `backend/` | PASS - 73 passed. Runtime observed by pytest: Python 3.10.11. |
+| `python -m ruff check .` from `backend/` | PASS - `All checks passed!`. |
+| `git diff --cached --check` | PASS - no whitespace errors. |
+
+### 2026-05-25 Verification Notes
+
+- The frontend build failure did not reproduce when `npm run build` was rerun alone. The passing rerun is the final build evidence for the staged frontend state.
+- Python 3.11+ verification remains open because the available Python 3.13 launcher target cannot create a process.
+- No backend numerical method files changed in this staged set.
+- The staged frontend guide remains renderer-only; it does not compute finite differences, Hermite tables, Taylor terms, spline segments, graph samples, interpolated values, warning severity, or error magnitudes.
 
 ### Phase 2 P2.5 Final Audit
 
@@ -39,12 +76,15 @@ Completed the Phase 2 backend final audit without adding endpoints, implementing
 | Browser Use navigation to `http://127.0.0.1:4173/` and `http://localhost:4173/` | BLOCKED - Browser reported `net::ERR_BLOCKED_BY_CLIENT` for both localhost aliases. |
 | DevTools static frontend smoke at `http://127.0.0.1:4174/` | LIMITED PASS - page loaded as `Interpolating Polynomial Calculator`; screenshot saved to `C:\tmp\phase2-frontend-smoke.png`. |
 | Full browser compute flow | NOT VERIFIED - backend child processes started with health 200 but did not persist for the frontend health-poll/compute flow. |
+| `py -0p; python --version` from repo root | PARTIAL - Windows launcher reports Python 3.13, but the default `python` is Python 3.10.11. |
+| `py -3.13 -m pytest` from `backend/` | FAIL BEFORE TESTS - `Unable to create process using '"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\python3.13.exe" -m pytest'`. |
+| `py -3.13 -m ruff check .` from `backend/` | FAIL BEFORE LINT - same WindowsApps process-creation failure. |
 
 ### P2.5 Verification Notes
 
 - Backend verification passed under the local `python` runtime, which pytest reports as Python 3.10.11.
 - `backend/pyproject.toml` still declares Python 3.11+ as the intended runtime.
-- Python 3.11+ verification remains NOT RUN by user choice and must remain a release-certification caveat.
+- Python 3.11+ verification remains NOT RUN in a usable interpreter. The available `py -3.13` launcher target fails before pytest or Ruff can start.
 - Frontend build/lint/test were run even though Codex did not implement frontend Phase 2 code in this milestone.
 - Browser QA is not a full Phase 2 pass. It only confirms that the built frontend can load in a browser fallback surface; the Phase 2 method controls/renderers still belong to Claude Opus.
 
@@ -94,7 +134,6 @@ Implemented the natural cubic spline milestone without adding endpoints and with
 ### P2.4 Next Step
 
 Start P2.5 release-candidate audit only after preserving the P2.4 boundary: verify lecture coverage, implemented/deferred method status, backend tests/lint, frontend status, final docs, and write `docs/PHASE_2_FINAL_AUDIT.md`. Do not add new numerical methods in P2.5 unless an audit defect requires a scoped fix.
----
 
 ### Phase 2 P2.3 Taylor Family
 
@@ -136,7 +175,6 @@ Implemented the Taylor milestone without adding endpoints and without moving mat
 ### P2.3 Next Step
 
 Start P2.4 piecewise family only after preserving the P2.3 boundary: implement natural cubic spline with segment coefficients, continuity checks, backend graph/evaluation support as needed, docs, and tests. Do not implement release-candidate polish in the P2.4 pass.
----
 
 ### Phase 2 P2.2 Derivative-Data Family
 
@@ -185,7 +223,6 @@ Implemented the first derivative-data milestone without adding endpoints and wit
 ### P2.2 Next Step
 
 Start P2.3 Taylor only after preserving the P2.2 boundary: implement Taylor polynomial generation from safe parsed functions, derivative term output, LaTeX, evaluations, docs, and tests. Do not implement spline methods in the P2.3 pass.
----
 
 ### Phase 2 P2.1 Equal-Spacing Family
 
@@ -232,6 +269,141 @@ Implemented the first Phase 2 numerical milestone without adding endpoints and w
 Start P2.2 derivative-data family only after preserving the P2.1 boundary: implement Hermite divided differences first, then Hermite basis output only if clean, and defer osculating until Hermite is stable. Do not implement Taylor or spline methods in the P2.2 pass.
 
 ---
+
+### Phase 2 P2.0 Contract and Architecture Prep
+
+Implemented contract scaffolding for Phase 2 without adding new math behavior.
+
+| File | What changed |
+|---|---|
+| `backend/app/schemas.py` | Added accepted Phase 2 method literals, optional `method_options`, and string-valued `derivatives` request data. |
+| `backend/app/core/domain.py` | Added `DerivativeDatum` and normalized problem fields for method options and derivative data. |
+| `backend/app/core/normalization.py` | Normalizes derivative data through the existing precision path and stores optional method options on the internal problem. |
+| `backend/app/core/errors.py` | Added Phase 2 error/warning codes including `method_not_implemented`, `unequal_spacing`, derivative errors, Taylor/spline unsupported errors, and piecewise warnings. |
+| `backend/app/core/service.py` | Returns explicit method-level `method_not_implemented` errors for accepted Phase 2 methods that are not implemented yet, with top-level `partial` status when normalization succeeds. |
+| `backend/app/core/methods/metadata.py` | Added method family/role metadata, keeping Barycentric marked as stable evaluator and not a lecture construction method. |
+| `backend/app/tests/test_phase2_contract.py` | Added P2.0 regression tests for v1 compatibility, Phase 2 method literals, optional blocks, method-not-implemented routing, and metadata. |
+| `docs/API_CONTRACT.md` | Documented Phase 2 method names, optional blocks, derivative shape, method-not-implemented behavior, and new warning/error codes. |
+| `docs/FRONTEND_HANDOFF.md` | Documented Phase 2 method family/role mapping and no-frontend-math rules for the expanded workbench. |
+| `docs/HANDOFF.md` | Recorded P2.0 status and verification. |
+| `docs/PLAN.md` | Marked P2.0 complete and P2.1 as the next milestone. |
+
+### P2.0 Commands Run
+
+| Command | Result |
+|---|---|
+| `python -m pytest app/tests/test_phase2_contract.py -v` before implementation | Expected red state: 4 failed, 1 passed. Phase 2 literals, optional blocks, method routing, and metadata were missing. |
+| `python -m pytest app/tests/test_phase2_contract.py -v` after implementation | PASS - 5 passed. |
+| `python -m pytest app/tests/test_schemas.py app/tests/test_api.py app/tests/test_phase2_contract.py -v` | PASS - 14 passed. |
+| `python -m pytest app/tests/test_phase2_contract.py app/tests/test_api.py -v` | PASS - 10 passed. |
+| `python -m pytest` | PASS - 48 passed. |
+| `python -m ruff check .` | PASS - `All checks passed!`. |
+
+### P2.0 Verification Notes
+
+- Backend tests were run from `C:\Users\Emmy Lou\Documents\New project 3\backend`.
+- Runtime observed by pytest: Python 3.10.11.
+- `backend/pyproject.toml` still declares Python 3.11+ as the intended runtime.
+- Python 3.11+ verification remains NOT RUN by user choice and must remain a release-certification caveat.
+- Frontend build/lint/test were NOT RUN because no frontend source code changed in P2.0.
+- Browser QA was NOT RUN because no frontend behavior changed in P2.0.
+
+### P2.0 Next Step
+
+Start P2.1 only after preserving the P2.0 boundary: implement equal-spacing helpers and `newton_forward`, `newton_backward`, and `stirling` in backend pure method modules with lecture regression tests. Do not implement derivative-data, Taylor, or spline methods in the P2.1 pass.
+
+---
+
+### Phase 2 Lecture Method Workbench Planning
+
+Created the Phase 2 formal spec and implementation plan for staged lecture-method expansion.
+
+| File | What changed |
+|---|---|
+| `docs/superpowers/specs/phase-2-lecture-method-workbench/requirements.md` | Defines confirmed Phase 2 scope, non-scope, method families, API stability requirements, warning/error expectations, ownership split, and verification rules. |
+| `docs/superpowers/specs/phase-2-lecture-method-workbench/design.md` | Defines backend architecture extension, optional request block strategy, method response strategy, helper modules, validation design, frontend contract design, and milestone design. |
+| `docs/superpowers/specs/phase-2-lecture-method-workbench/tasks.md` | Defines milestone checklist for P2.0 through P2.5 and final completion checklist. |
+| `docs/superpowers/plans/2026-05-24-phase-2-lecture-method-workbench.md` | Adds implementation plan using the writing-plans workflow, with P2.0/P2.1 execution detail and staged P2.2-P2.5 tasks. |
+| `docs/HANDOFF.md` | Updated current planning status and recorded commands run. |
+| `docs/PLAN.md` | Added Phase 2 planning and implementation milestones. |
+
+### Commands Run For Planning Pass
+
+| Command | Result |
+|---|---|
+| `git status --short` | PASS - showed pre-existing modified frontend/docs files plus the new Phase 2 spec/plan files. |
+| `git branch --show-current` | PASS - `codex/interpolation-backend-v1`. |
+| `Get-ChildItem -Path 'Lecture' -Recurse -Force` | PASS - confirmed lecture text and PDF sources exist. |
+| `Select-String -Path 'Lecture\Lecture.txt','Lecture\pasted.txt' -Pattern ...` | PASS - confirmed lecture coverage for Newton forward/backward, Stirling, osculating, Taylor, Hermite, Hermite divided differences, and cubic spline. |
+| `rg -n "TBD|TODO|placeholder|..." docs\superpowers\plans\2026-05-24-phase-2-lecture-method-workbench.md docs\superpowers\specs\phase-2-lecture-method-workbench` | PASS - no placeholders found; only intentional references to "no public per-method endpoints" matched. |
+| `git diff --check -- docs\superpowers\specs\phase-2-lecture-method-workbench docs\superpowers\plans\2026-05-24-phase-2-lecture-method-workbench.md` | PASS - no whitespace errors. |
+
+### Verification Not Run
+
+- Backend tests: NOT RUN because this was planning/spec only and no backend code changed.
+- Backend lint: NOT RUN because this was planning/spec only and no backend code changed.
+- Frontend build/lint/test: NOT RUN because no frontend implementation changed in this planning pass.
+- Browser QA: NOT RUN because no frontend behavior changed in this planning pass.
+
+### Next Step
+
+Start P2.0 only after accepting the spec/plan state. P2.0 should finalize API contract additions, method literals, optional request blocks, method metadata, and explicit method-not-implemented behavior before any Phase 2 math method is implemented.
+
+---
+
+## Previous Session: V1+ Result Quality / Warnings Guide
+
+### V1+ Result Quality / Warnings Guide
+
+Added `ResultQualityGuide` inside the existing `Guide` tab. This follows the current Analysis Bench design system: card surfaces, muted section headers, semantic inset notices, existing badges, label voice for severity and metadata, and numeric voice for warning codes, source methods, and numerical values.
+
+The guide intentionally extends the Guide tab instead of adding another major tab, so result navigation stays compact:
+
+| Section | Purpose | Backend fields |
+|---|---|---|
+| Trust this result? | Calm trust summary from backend status and warning count. | `status`, `warnings.length` |
+| Warning quality notes | Shows warning message, technical code, meaning, and what to check next. | `warnings[].code`, `warnings[].message` |
+| Evaluation comparison | Explains available `P(x)`, `f(x)`, and absolute error values. | `evaluations[].x`, `best_P_x`, `f_x`, `absolute_error` |
+| Graph quality note | Explains graph rendering uses backend samples only. | `graph_data.source_method`, `graph_data.x.length` |
+
+The previous small `Backend warnings` block in `GuidedExplanation` was replaced by this guide to avoid duplicate warning surfaces.
+
+### Files Changed
+
+| File | What changed |
+|---|---|
+| `frontend/src/components/results/ResultQualityGuide.tsx` | New frontend-only quality guide component using existing backend fields and existing warning metadata display patterns. |
+| `frontend/src/components/results/ResultQualityGuide.test.tsx` | Added tests for no-warning state, warning interpretation, evaluation/error explanation, and graph-source explanation. |
+| `frontend/src/components/results/GuidedExplanation.tsx` | Renders `ResultQualityGuide` in the existing Guide tab and removes the smaller duplicate warning block. |
+| `frontend/src/components/results/GuidedExplanation.test.tsx` | Updated warning assertion to use the new quality guide warning surface. |
+| `docs/HANDOFF.md` | Updated current session status, files changed, backend-field mapping, and verification notes. |
+| `docs/FRONTEND_HANDOFF.md` | Updated Guide tab architecture and Result Quality mapping. |
+| `docs/PLAN.md` | Added the V1+ result quality / warnings guide milestone. |
+
+### Verification Commands Run
+
+All frontend commands were run from `C:\Users\Emmy Lou\Documents\New project 3\frontend`.
+
+| Command | Result |
+|---|---|
+| `npm test -- ResultQualityGuide.test.tsx` before implementation | FAIL - expected red state: `ResultQualityGuide` component did not exist. |
+| `npm test -- ResultQualityGuide.test.tsx` after implementation | PASS - 1 test file, 4 tests passed. |
+| `npm test -- ResultQualityGuide.test.tsx GuidedExplanation.test.tsx` | PASS - 2 test files, 7 tests passed. |
+| `npm run build` | PASS - TypeScript build and Vite production build completed. |
+| `npm run lint` | PASS - 0 errors. |
+| `npm test` | PASS - 4 test files, 17 tests passed. |
+| Browser smoke with Vite + local backend | PASS - Linear Lagrange Guide tab showed Result Quality with no backend warnings. |
+| Browser 320px overflow check | PASS - `documentElement.scrollWidth` equaled `clientWidth` at 320px; no overflowing elements found. |
+
+### Backend/API Boundary Confirmation
+
+- No backend files were edited.
+- `ResultQualityGuide` does not call `/api/interpolate`.
+- `ResultQualityGuide` does not call `/api/validate-function`.
+- `ResultQualityGuide` does not recompute polynomial values, method outputs, graph samples, warning severity, or error magnitudes.
+- It displays existing response fields only.
+
+## Previous Session: V1+ Guided Explanation / Defense Mode
 
 ### V1+ Guided Explanation / Defense Mode
 

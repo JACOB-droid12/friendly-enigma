@@ -1,6 +1,7 @@
-import { AlertTriangle, BookOpenCheck, ListChecks, Presentation, Route } from "lucide-react"
+import { BookOpenCheck, ListChecks, Presentation, Route } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import type { InterpolateResponse, MethodName } from "@/lib/api-types"
+import { ResultQualityGuide } from "./ResultQualityGuide"
 
 interface GuidedExplanationProps {
   data: InterpolateResponse
@@ -74,7 +75,6 @@ export function GuidedExplanation({ data }: GuidedExplanationProps) {
   const { input_summary: summary } = data
   const methods = summary.methods_requested
   const evaluations = evaluationLines(data)
-  const hasWarnings = data.warnings.length > 0
   const nevilleTargets = data.methods.neville?.target_results.map((result) => result.x).join(", ")
   const graphSource = data.graph_data?.source_method
 
@@ -154,6 +154,8 @@ export function GuidedExplanation({ data }: GuidedExplanationProps) {
           </div>
         </div>
       </section>
+
+      <ResultQualityGuide data={data} />
 
       <section className="rounded-xl border bg-card overflow-hidden">
         <div className="px-5 py-3 border-b bg-muted/30">
@@ -238,22 +240,6 @@ export function GuidedExplanation({ data }: GuidedExplanationProps) {
         </div>
       </section>
 
-      {hasWarnings && (
-        <section className="rounded-xl border bg-card overflow-hidden" aria-label="Backend warnings">
-          <div className="px-5 py-3 border-b bg-warning/5 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-warning" aria-hidden="true" />
-            <h3 className="text-sm font-semibold text-foreground">Backend warnings</h3>
-          </div>
-          <div className="p-5 space-y-2">
-            {data.warnings.map((warning, index) => (
-              <div key={`${warning.code}-${index}`} className="rounded-lg bg-warning/5 px-4 py-3">
-                <p className="font-label text-warning">{warning.code}</p>
-                <p className="mt-1 text-sm leading-relaxed text-warning-foreground">{warning.message}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   )
 }

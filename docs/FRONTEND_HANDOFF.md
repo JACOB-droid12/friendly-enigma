@@ -121,7 +121,7 @@ Backend P2.2 implements:
 
 Backend P2.2 explicitly defers:
 
-- `osculating` - still accepted by schema, but returns `method_not_implemented` because the backend helper currently supports first-derivative Hermite only, not generalized derivative orders.
+- `osculating` — still accepted by schema, but returns `method_not_implemented` because the backend helper currently supports first-derivative Hermite only, not generalized derivative orders.
 
 Request rules:
 
@@ -147,6 +147,7 @@ Recommended Phase 2 UI additions for Claude Opus:
 - Repeated-node table renderer.
 - Hermite basis renderer with included/omitted states.
 - Lecture example preset for the Bessel-style nodes `1.3`, `1.6`, `1.9`, first derivatives, and evaluation `x = 1.5`.
+
 ### P2.3 Taylor Payloads
 
 Backend P2.3 implements:
@@ -174,6 +175,7 @@ Recommended Phase 2 UI additions for Claude Opus:
 - Taylor term table/renderer.
 - Lecture example preset for `f(x)=cos(x)`, center `0`, order `3`, evaluation `x=1/2`.
 - Maclaurin label when `series_name` is returned as `Maclaurin`.
+
 ### P2.4 Cubic Spline Payloads
 
 Backend P2.4 implements:
@@ -200,6 +202,7 @@ Recommended Phase 2 UI additions for Claude Opus:
 - Piecewise segment table.
 - Continuity-check panel for interior knots.
 - Segment-boundary display on the graph or method panel using backend interval metadata.
+
 ## Frontend Does Not
 - Recompute interpolation
 - Parse or evaluate functions as source of truth
@@ -214,6 +217,7 @@ Recommended Phase 2 UI additions for Claude Opus:
 - Display all warnings/errors from backend response
 - Show method-specific details (basis polys, DD tables, weights, Neville tables)
 - Show Guided Explanation / Defense Notes from existing backend response fields
+- Show Result Quality / Warnings Guide from existing backend response fields
 - Provide input convenience (dynamic point lists, sliders, toggles)
 - Route errors to appropriate UI locations
 - Provide preset lecture examples that populate the form
@@ -239,7 +243,7 @@ App
 ├── ResultsPanel (tabbed)
 │   ├── Tab Navigation (Overview | Guide | Polynomial | Evaluations | Graph | Methods | Notes)
 │   ├── Overview: SummaryCard + WarningsDisplay + NodesTable
-│   ├── Guide: GuidedExplanation
+│   ├── Guide: GuidedExplanation + ResultQualityGuide
 │   ├── Polynomial: PolynomialCard (Tabs + KaTeX + copyable)
 │   ├── Evaluations: EvaluationTable (shadcn Table)
 │   ├── Graph: GraphCard (Recharts + Brush + custom tooltip)
@@ -255,7 +259,7 @@ The results area uses top-level tabs for progressive disclosure:
 | Tab | Content | Default |
 |---|---|---|
 | Overview | Summary metrics, warnings, nodes table | Selected by default |
-| Guide | Guided Explanation / Defense Notes for presenting backend output | — |
+| Guide | Guided Explanation / Defense Notes and Result Quality / Warnings Guide | — |
 | Polynomial | Expanded/Factored/Lagrange/Newton forms with KaTeX | — |
 | Evaluations | Cross-method comparison table | Disabled if no evaluation_x |
 | Graph | f(x), P(x), nodes, error chart with brush zoom | Disabled if graph_data is null |
@@ -279,6 +283,25 @@ The results area uses top-level tabs for progressive disclosure:
 | Newton guide | Presence of `methods.newton` and `divided_difference_table.length` |
 | Neville guide | Presence of `methods.neville` and `target_results[].x` |
 | Barycentric guide | Presence of `methods.barycentric` and `graph_data.source_method` |
+
+`frontend/src/components/results/ResultQualityGuide.tsx` is rendered inside the same Guide tab. It extends the defense notes with a concise quality and warning interpretation layer.
+
+| Quality item | Backend response fields used |
+|---|---|
+| Trust summary | `status`, `warnings.length` |
+| No-warning state | `warnings.length` |
+| Warning message | `warnings[].message` |
+| Warning technical code | `warnings[].code` |
+| Warning label/severity display | Existing `getWarningMeta(warnings[].code)` display mapping |
+| Evaluation comparison | `evaluations[].x`, `evaluations[].best_P_x`, `evaluations[].f_x`, `evaluations[].absolute_error` |
+| Graph sample note | `graph_data.source_method`, `graph_data.x.length` |
+
+Design placement:
+
+- Lives in the existing Guide tab, not a new top-level results tab.
+- Uses the same `rounded-xl border bg-card overflow-hidden` surface, `bg-muted/30` headers, `font-label` labels, `font-numeric` technical values, and semantic inset notices as the rest of the workbench.
+- Replaces the previous smaller warning block in `GuidedExplanation` so warning interpretation is not duplicated.
+- Does not calculate warning severity, errors, graph samples, or interpolation values. It displays backend and existing frontend display metadata only.
 
 Lecture/source grounding from `Lecture/Lecture.txt` and `Lecture/pasted.txt`:
 
@@ -374,11 +397,14 @@ Expected: `npm run build`, `npm run lint`, and `npm test` exit 0. Current lint e
 ## Latest Verification Results (2026-05-24)
 | Command | Result |
 |---|---|
+| `npm test -- ResultQualityGuide.test.tsx` | PASS — 1 test file, 4 tests passed |
+| `npm test -- ResultQualityGuide.test.tsx GuidedExplanation.test.tsx` | PASS — 2 test files, 7 tests passed |
 | `npm test -- GuidedExplanation.test.tsx` | PASS — 1 test file, 3 tests passed |
 | `npm run build` | PASS — TypeScript build and Vite production build completed |
 | `npm run lint` | PASS — 0 errors, 0 warnings |
-| `npm test` | PASS — 3 test files, 13 tests passed |
+| `npm test` | PASS — 4 test files, 17 tests passed |
 | Browser smoke with Vite + local backend | PASS — Guide tab rendered for Linear Lagrange with `points mode`, 2 nodes, degree 1, `6 - x`, and `P(3) = 3` |
+| Browser 320px overflow check | PASS — `scrollWidth` matched `clientWidth`; no overflowing elements found |
 | `git status --short backend/` | PASS — empty output; no backend files changed |
 
 ### Latest Example-Library Test Coverage
