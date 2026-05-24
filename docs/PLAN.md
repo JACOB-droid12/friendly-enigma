@@ -82,6 +82,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 - No required V1+ result quality / warnings guide work remains.
 - Current V1+ browser compute smoke passed for linear Lagrange graph output and the `1/x` function-backed lecture example.
 - Backend Phase 2 P2.5 final audit is complete in `docs/PHASE_2_FINAL_AUDIT.md`.
+- Dedicated Claude Opus Phase 2 frontend implementation handoff is available at `docs/OPUS_PHASE_2_FRONTEND_HANDOFF.md`.
 - Python 3.11+ verification is complete under Python 3.12.13 in `backend/.venv`.
 - Full product release-candidate status is not complete until Claude Opus Phase 2 frontend/browser QA is complete.
 - `osculating` remains explicitly deferred because generalized derivative-order repeated-node support is not implemented or tested.

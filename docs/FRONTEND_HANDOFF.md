@@ -1,5 +1,7 @@
 # Frontend Handoff — Interpolating Polynomial Program
 
+For the remaining Claude Opus Phase 2 React workbench implementation checklist, see `docs/OPUS_PHASE_2_FRONTEND_HANDOFF.md`.
+
 ## Status
 Frontend v1.1 with UX improvements. Builds, lints, and type-checks clean. Live-tested against backend.
 

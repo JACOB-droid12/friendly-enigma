@@ -14,6 +14,19 @@ Phase 2 continuation checkpoint after P2.5. Scope in this change group is comple
 
 ## What Changed (This Session)
 
+### 2026-05-25 Claude Opus Phase 2 Frontend Handoff
+
+Created `docs/OPUS_PHASE_2_FRONTEND_HANDOFF.md` as a dedicated implementation handoff for the remaining Claude Opus-owned React workbench work. The handoff summarizes backend Phase 2 status, stable endpoint boundaries, no-frontend-math rules, method catalog additions, request examples, required renderers, browser QA expectations, and acceptance checks.
+
+Updated `docs/FRONTEND_HANDOFF.md` to link to the new focused Opus handoff.
+
+No backend numerical code, API contract shape, or frontend source code changed in this handoff-only update.
+
+Current worktree note:
+
+- `git status --short` still reports deleted tracked files under `Lecture/`: `DOCUMENTATION_CHANGELOG.md`, `Documentation.docx`, `Documentation_Final.pdf`, `GROUP-8-ASL-2024-FINAL-DOCUMENTATION-1.pdf`, and `download.jpg`.
+- These deletions are unrelated to the handoff artifact and were not staged by Codex.
+
 ### 2026-05-25 Completion-Gate Alignment
 
 Updated the Phase 2 task checklist and plan to preserve the distinction between:
