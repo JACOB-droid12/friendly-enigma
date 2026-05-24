@@ -178,40 +178,6 @@ function AppShell() {
     setValidationSuccess(null)
   }, [])
 
-  const handleLoadAndCompute = useCallback(async (partial: Partial<FormState>) => {
-    const newForm = { ...DEFAULT_FORM, ...partial }
-    setForm(newForm)
-    setTopError(null)
-    setFunctionError(null)
-    setValidationSuccess(null)
-    setLoading(true)
-
-    try {
-      const request = buildRequest(newForm)
-      const response = await interpolate(request)
-      setResult(response)
-    } catch (err) {
-      if (err instanceof ApiError) {
-        const code = err.code
-        if (
-          (code === "unsafe_expression" || code === "function_domain_error") &&
-          newForm.mode !== "points"
-        ) {
-          setFunctionError({ code, message: err.message })
-        } else {
-          setTopError({ code: err.code, message: err.message })
-        }
-      } else {
-        setTopError({
-          message: err instanceof Error ? err.message : "An unexpected error occurred",
-        })
-      }
-      setResult(null)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
   // Page-level keyboard shortcuts (see lib/use-shortcuts.ts).
   useShortcuts({
     onCompute: backendOnline ? handleCompute : undefined,
@@ -278,8 +244,6 @@ function AppShell() {
         <div className="mb-8">
           <ExamplesPanel
             onLoadExample={handleLoadExample}
-            onLoadAndCompute={handleLoadAndCompute}
-            backendOnline={backendOnline}
           />
         </div>
 

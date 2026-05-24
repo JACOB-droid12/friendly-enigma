@@ -1,16 +1,62 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
-Layout fix pass: Fixed the root cause of cramped input layouts (Tailwind v4 variant syntax), improved Quick Reference balance, error display, and Method Details polish.
+V1+ lecture-aligned frontend example library. Scope was frontend-only: examples prefill existing inputs and method selections; no backend files, API endpoints, request shapes, response shapes, or interpolation math changed.
 
 ## Current Status
-- Overall status: Frontend layout and polish complete. All verification commands pass.
+- Overall status: V1+ lecture example library implemented and verified.
 - Branch: `codex/interpolation-backend-v1`
-- Backend status: Unchanged, all tests pass.
-- Frontend status: Builds, lints, and type-checks clean. Live-tested against backend.
-- Integration status: **PASS** — all live tests verified.
+- Backend status: Unchanged in this session.
+- Frontend status: `npm run build`, `npm run lint`, and `npm test` all pass.
+- Integration status: **PASS** for form-prefill behavior covered by frontend tests. No live browser run was required for this data-loading-only change.
 
 ## What Changed (This Session)
+
+### V1+ Lecture-Aligned Example Library
+
+Updated the existing frontend `ExamplesPanel` into a lecture-aligned library using the examples from `Lecture/Lecture.txt`:
+
+| Example | Mode | Prefilled data | Methods | Evaluation |
+|---|---|---|---|---|
+| Linear Lagrange | `points` | `(2,4)`, `(5,1)` | `lagrange` | `x=3` |
+| Second-Degree Lagrange | `x_values_with_function` | `f(x)=1/x`, x-values `2`, `2.75`, `4` | `lagrange` | `x=3` |
+| Neville Table | `points` | `(1.0,0.7651977)`, `(1.3,0.6200860)`, `(1.6,0.4554022)`, `(1.9,0.2818186)`, `(2.2,0.1103623)` | `neville`, `lagrange`, `newton` | `x=1.5` |
+| Newton Divided Difference | `points` | Same five-point lecture table | `newton` | `x=1.5` |
+
+The prior Runge demo card and card-level "Compute" action were removed from the Examples panel to keep this feature strictly as a prefill library. The app-level Compute button, keyboard shortcut, backend health behavior, and API client are unchanged.
+
+### Files Changed
+
+| File | What changed |
+|---|---|
+| `frontend/src/components/ExamplesPanel.tsx` | Replaced old presets with four lecture-aligned examples; added source notes; added accessible per-example "Load Example" buttons; removed card-level compute path. |
+| `frontend/src/App.tsx` | Removed now-unused `handleLoadAndCompute` wiring from the Examples panel. |
+| `frontend/src/App.examples.test.tsx` | Added frontend tests for loading Linear Lagrange, Second-Degree Lagrange, and Neville Table examples, including a no-auto-compute assertion. |
+| `docs/HANDOFF.md` | Updated current session status, files changed, commands, and backend-change confirmation. |
+| `docs/FRONTEND_HANDOFF.md` | Updated Examples panel and API integration notes for the prefill-only example library. |
+| `docs/PLAN.md` | Added the completed V1+ frontend example-library milestone. |
+
+### Verification Commands Run
+
+All frontend commands were run from `C:\Users\Emmy Lou\Documents\New project 3\frontend`.
+
+| Command | Result |
+|---|---|
+| `npm test -- App.examples.test.tsx` before implementation | FAIL — expected red state: accessible lecture-specific load buttons did not exist. |
+| `npm test -- App.examples.test.tsx` after implementation | PASS — 1 test file, 3 tests passed. |
+| `npm run build` | PASS — TypeScript build and Vite production build completed. |
+| `npm run lint` | PASS — 0 errors. |
+| `npm test` | PASS — 2 test files, 10 tests passed. |
+| `git status --short backend/` | PASS — empty output; no backend files changed. |
+| `git diff --name-only -- backend/` | PASS — empty output; no backend diffs. |
+
+### Known Caveats
+
+- The example library intentionally does not recompute or display expected answers in React; expected-answer notes are descriptive only.
+- Loading the function example can still trigger the existing debounced `/api/validate-function` behavior because that behavior already existed in the form. It does not call `/api/interpolate`.
+- Pre-existing untracked paths remain outside this task: `Lecture/` and `.kiro/specs/frontend-design-system-overhaul/screenshots/`.
+
+## Previous Session: Layout Fix Pass
 
 ### Root Cause Fix: Tabs Layout Bug
 The `data-horizontal:flex-col` Tailwind variant used in the shadcn/ui Tabs component was not being compiled by Tailwind CSS v4. The shorthand `data-horizontal:` syntax requires explicit registration in v4; the correct syntax is `data-[orientation=horizontal]:`.

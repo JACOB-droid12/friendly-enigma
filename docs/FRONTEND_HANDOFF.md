@@ -54,9 +54,9 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 | Endpoint | Frontend Usage |
 |---|---|
-| `GET /health` | Polled every 30s for header status badge + Examples panel "Compute" visibility |
+| `GET /health` | Polled every 30s for header status badge and app-level Compute availability |
 | `POST /api/validate-function` | Debounced inline validation (800ms after typing in function modes) |
-| `POST /api/interpolate` | Main compute button + Examples "Load and Compute" |
+| `POST /api/interpolate` | Main compute button and keyboard shortcut only |
 
 ## Frontend Does Not
 - Recompute interpolation
@@ -82,7 +82,7 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 App
 ├── Header + HealthIndicator + QuickRef Toggle
-├── ExamplesPanel (3 presets: Linear, 1/x, Runge)
+├── ExamplesPanel (4 lecture-aligned prefill examples)
 ├── InputPanel
 │   ├── InputModeTabs (shadcn Tabs)
 │   ├── PointsInput / XValuesInput / FunctionIntervalInput
@@ -119,17 +119,19 @@ The results area uses top-level tabs for progressive disclosure:
 
 ## Examples Panel
 
-Three preset examples available:
+Four lecture-aligned preset examples are available. Loading an example fills the existing form fields and method selections only; it does not call `POST /api/interpolate`.
 
 | Example | Mode | Data | Evaluation |
 |---|---|---|---|
-| Linear Lagrange | points | (2,4), (5,1) | x=3 → P(3)=3 |
-| f(x) = 1/x | x_values_with_function | x=[2, 2.75, 4] | x=3 → P(3)=29/88 |
-| Runge Phenomenon | function_interval | 1/(1+25x²), [-1,1], 11 nodes | x=0.9, 0.95 |
+| Linear Lagrange | points | (2,4), (5,1) | x=3; lecture note says `P(x)=6-x` |
+| Second-Degree Lagrange | x_values_with_function | `function=1/x`, x=[2, 2.75, 4] | x=3 |
+| Neville Table | points | (1.0,0.7651977), (1.3,0.6200860), (1.6,0.4554022), (1.9,0.2818186), (2.2,0.1103623) | x=1.5 |
+| Newton Divided Difference | points | Same five-point lecture table | x=1.5 |
 
-- "Load" fills the form without submitting
-- "Compute" fills the form and immediately calls POST /api/interpolate
-- "Compute" button only visible when backend health is OK
+- The Linear and Second-Degree Lagrange examples select only `lagrange`.
+- The Neville Table example selects `neville`, `lagrange`, and `newton`.
+- The Newton Divided Difference example selects only `newton`.
+- The function example may still trigger the existing debounced backend function validation after load; this is not interpolation computation.
 
 ## Inline Validation
 
@@ -195,22 +197,23 @@ npm run build       # Production build
 npm run lint        # ESLint
 ```
 
-Expected: 0 errors, 3 warnings (react-refresh from shadcn/ui component files).
+Expected: `npm run build`, `npm run lint`, and `npm test` exit 0. Current lint expectation is 0 errors and 0 warnings.
 
-## Latest Verification Results (2026-05-23)
+## Latest Verification Results (2026-05-24)
 | Command | Result |
 |---|---|
-| `npx tsc -b` | PASS — 0 errors |
-| `npm run build` | PASS — 959 kB JS, 82 kB CSS |
-| `npm run lint` | PASS — 0 errors, 3 warnings |
-| `impeccable detect frontend/src` | PASS — 0 findings |
-| Live test: Linear Lagrange P(3)=3 | PASS ✓ |
-| Live test: 1/x P(3)=29/88 | PASS ✓ |
-| Live test: Runge warnings visible | PASS ✓ |
-| Live test: Graph renders from backend data | PASS ✓ |
-| Live test: Results tabs navigate | PASS ✓ |
-| Live test: Interval mode layout full-width | PASS ✓ |
-| Live test: X+f(x) mode layout full-width | PASS ✓ |
+| `npm run build` | PASS — TypeScript build and Vite production build completed |
+| `npm run lint` | PASS — 0 errors, 0 warnings |
+| `npm test` | PASS — 2 test files, 10 tests passed |
+| `git status --short backend/` | PASS — empty output; no backend files changed |
+
+### Latest Example-Library Test Coverage
+
+`frontend/src/App.examples.test.tsx` verifies:
+
+- Linear Lagrange loads `(2,4)`, `(5,1)`, evaluation `x=3`, selects `lagrange`, and does not call `/api/interpolate`.
+- Second-Degree Lagrange loads `x_values_with_function`, `function=1/x`, x-values `2`, `2.75`, `4`, evaluation `x=3`, and selects only `lagrange`.
+- Neville Table loads all five lecture points, evaluation `x=1.5`, and selects `neville`, `lagrange`, and `newton`.
 
 
 ---
