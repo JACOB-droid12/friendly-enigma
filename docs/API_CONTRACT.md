@@ -96,8 +96,75 @@ Rejected examples:
 | `exact` | boolean or null | No | Defaults to `true` for points and x-values-with-function; defaults to `false` for function-interval. |
 | `evaluation_x` | string array | No | Target x-values for `P(x)` and optional original function error. |
 | `graph` | boolean | No | Whether to return graph-ready arrays. Defaults to `false`. |
+| `method_options` | object | No | Optional Phase 2 method configuration keyed by method name. Defaults to `{}`. |
+| `derivatives` | object array | No | Optional Phase 2 derivative data. Defaults to `[]`. |
 
 All user numeric inputs are strings.
+
+### Method Names
+
+Implemented v1 method names:
+
+- `lagrange`
+- `newton`
+- `barycentric`
+- `neville`
+
+Accepted Phase 2 method names:
+
+- `newton_forward`
+- `newton_backward`
+- `stirling`
+- `hermite_divided_difference`
+- `hermite`
+- `osculating`
+- `taylor`
+- `cubic_spline`
+
+P2.0 accepts the Phase 2 method names to stabilize the contract. Until a method's implementation milestone is complete, selecting that method returns a method-level error with code `method_not_implemented` and the top-level response status is `partial` when normalization succeeds.
+
+### Phase 2 Optional Method Blocks
+
+`method_options` is keyed by method name. Current documented keys are:
+
+```json
+{
+  "method_options": {
+    "taylor": {
+      "center": "0",
+      "order": 3
+    },
+    "cubic_spline": {
+      "boundary_condition": "natural"
+    }
+  }
+}
+```
+
+Rules:
+
+- `taylor.center` must be a numeric string.
+- `taylor.order` must be an integer order selected by the frontend.
+- `cubic_spline.boundary_condition` supports only `natural` until a later explicit boundary-condition expansion.
+- Unknown method option keys are accepted at P2.0 schema level but should not be treated as implemented behavior unless documented by a later milestone.
+
+`derivatives` supplies derivative data for Hermite and osculating methods:
+
+```json
+{
+  "derivatives": [
+    {"x": "1.3", "order": 1, "value": "-0.5220232"},
+    {"x": "1.6", "order": 1, "value": "-0.5698959"}
+  ]
+}
+```
+
+Rules:
+
+- `x` and `value` are strings at the API boundary.
+- `order` is an integer from 1 through 10.
+- Derivative values are normalized through the same precision path as point values.
+- Missing or ineligible derivative data returns method-level errors for derivative-data methods once those methods are implemented.
 
 ### Points Mode
 
@@ -340,6 +407,13 @@ Implemented error codes:
 - `non_real_value`
 - `unsafe_expression`
 - `function_domain_error`
+- `method_not_implemented`
+- `unequal_spacing`
+- `stirling_requires_centered_nodes`
+- `missing_derivative_data`
+- `invalid_derivative_order`
+- `unsupported_taylor_function`
+- `unsupported_boundary_condition`
 
 Implemented warning codes:
 
@@ -353,6 +427,8 @@ Implemented warning codes:
 - `graph_sampling_domain_error`
 - `method_failed`
 - `nodes_reordered`
+- `target_not_recommended_for_method`
+- `piecewise_method_no_global_polynomial`
 
 ## Frontend Display Notes
 - Display polynomial strings and LaTeX exactly as returned.

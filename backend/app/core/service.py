@@ -63,8 +63,14 @@ def _run_methods(problem) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str
     raw_results: dict[str, dict[str, Any]] = {}
     api_results: dict[str, dict[str, Any]] = {}
     for method in problem.methods:
+        builder = builders.get(method)
+        if builder is None:
+            failure = _unavailable_method(method)
+            raw_results[method] = failure
+            api_results[method] = failure
+            continue
         try:
-            payload = builders[method](
+            payload = builder(
                 problem.nodes,
                 precision=problem.precision,
                 evaluation_x=problem.evaluation_x,
@@ -76,6 +82,18 @@ def _run_methods(problem) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str
             raw_results[method] = failure
             api_results[method] = failure
     return raw_results, api_results
+
+
+def _unavailable_method(method: str) -> dict[str, Any]:
+    return {
+        "status": "error",
+        "warnings": [],
+        "error": {
+            "code": "method_not_implemented",
+            "message": f"{method} is planned for Phase 2 but is not implemented in this milestone.",
+            "details": {"method": method},
+        },
+    }
 
 
 def _method_success(payload: dict[str, Any]) -> dict[str, Any]:

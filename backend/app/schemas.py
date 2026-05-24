@@ -3,7 +3,20 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 InputMode = Literal["points", "x_values_with_function", "function_interval"]
-MethodName = Literal["lagrange", "newton", "barycentric", "neville"]
+MethodName = Literal[
+    "lagrange",
+    "newton",
+    "barycentric",
+    "neville",
+    "newton_forward",
+    "newton_backward",
+    "stirling",
+    "hermite_divided_difference",
+    "hermite",
+    "osculating",
+    "taylor",
+    "cubic_spline",
+]
 NodeStrategy = Literal["equally_spaced", "chebyshev_nodes", "custom_nodes"]
 ResponseStatus = Literal["ok", "partial", "error"]
 
@@ -11,6 +24,12 @@ ResponseStatus = Literal["ok", "partial", "error"]
 class StrictModel(BaseModel):
     class Config:
         extra = "forbid"
+
+
+class DerivativeData(StrictModel):
+    x: str
+    order: int = Field(ge=1, le=10)
+    value: str
 
 
 class InterpolateRequest(StrictModel):
@@ -26,6 +45,8 @@ class InterpolateRequest(StrictModel):
     exact: bool | None = None
     evaluation_x: list[str] = Field(default_factory=list)
     graph: bool = False
+    method_options: dict[str, dict[str, Any]] = Field(default_factory=dict)
+    derivatives: list[DerivativeData] = Field(default_factory=list)
 
 
 class FunctionValidationRequest(StrictModel):

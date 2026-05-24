@@ -10,6 +10,13 @@ ERROR_CODES = {
     "non_real_value",
     "unsafe_expression",
     "function_domain_error",
+    "method_not_implemented",
+    "unequal_spacing",
+    "stirling_requires_centered_nodes",
+    "missing_derivative_data",
+    "invalid_derivative_order",
+    "unsupported_taylor_function",
+    "unsupported_boundary_condition",
 }
 
 WARNING_CODES = {
@@ -23,6 +30,8 @@ WARNING_CODES = {
     "graph_sampling_domain_error",
     "method_failed",
     "nodes_reordered",
+    "target_not_recommended_for_method",
+    "piecewise_method_no_global_polynomial",
 }
 
 

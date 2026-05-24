@@ -15,6 +15,15 @@ class Node:
 
 
 @dataclass(slots=True)
+class DerivativeDatum:
+    x: sp.Expr
+    order: int
+    value: sp.Expr
+    x_text: str
+    value_text: str
+
+
+@dataclass(slots=True)
 class ParsedFunction:
     expression: sp.Expr
     symbol: sp.Symbol
@@ -35,6 +44,8 @@ class InterpolationProblem:
     node_strategy: str | None = None
     sorted_nodes: bool = False
     warnings: list[dict[str, Any]] = field(default_factory=list)
+    method_options: dict[str, dict[str, Any]] = field(default_factory=dict)
+    derivatives: list[DerivativeDatum] = field(default_factory=list)
 
 
 @dataclass(slots=True)

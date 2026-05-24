@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sympy as sp
 
-from app.core.domain import InterpolationProblem, Node
+from app.core.domain import DerivativeDatum, InterpolationProblem, Node
 from app.core.errors import InterpolationError
 from app.core.parser import X, parse_function
 from app.core.precision import format_value, to_sympy
@@ -61,6 +61,8 @@ def normalize_request(request: InterpolateRequest) -> InterpolationProblem:
         node_strategy=node_strategy,
         sorted_nodes=False,
         warnings=warnings,
+        method_options=dict(request.method_options),
+        derivatives=_normalize_derivatives(request, exact=exact),
     )
 
 
@@ -74,6 +76,23 @@ def _required_function(function: str | None) -> str:
     if function is None or not function.strip():
         raise InterpolationError("unsafe_expression", "A function expression is required.")
     return function
+
+
+def _normalize_derivatives(request: InterpolateRequest, *, exact: bool) -> list[DerivativeDatum]:
+    derivatives: list[DerivativeDatum] = []
+    for item in request.derivatives:
+        x_value = to_sympy(item.x, exact=exact, precision=request.precision)
+        derivative_value = to_sympy(item.value, exact=exact, precision=request.precision)
+        derivatives.append(
+            DerivativeDatum(
+                x=x_value,
+                order=item.order,
+                value=derivative_value,
+                x_text=item.x,
+                value_text=item.value,
+            )
+        )
+    return derivatives
 
 
 def _nodes_from_points(request: InterpolateRequest, *, exact: bool) -> list[Node]:
