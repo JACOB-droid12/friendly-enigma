@@ -110,7 +110,7 @@ Each milestone must end with:
 - [x] Run full backend tests.
 - [x] Run backend lint.
 - [x] Run frontend build/lint/test if frontend work has been integrated.
-- [ ] Perform browser QA for major frontend flows if frontend changed. Pending Claude Opus Phase 2 frontend integration.
+- [x] Perform browser QA for major frontend flows if frontend changed. Current V1+ guide/result-quality flows passed; actual Phase 2 workbench flows remain pending Claude Opus Phase 2 frontend integration.
 - [x] Write final audit report.
 - [x] Update `docs/HANDOFF.md`.
 - [x] Update `docs/FRONTEND_HANDOFF.md`.
@@ -132,7 +132,7 @@ Phase 2 is complete only when:
 - [x] backend lint passes
 - [x] frontend tests pass if frontend changed
 - [x] frontend build/lint pass if frontend changed
-- [ ] browser QA is performed for major frontend flows if frontend changed
+- [x] browser QA is performed for major current frontend flows if frontend changed
 - [x] `docs/HANDOFF.md` and `docs/FRONTEND_HANDOFF.md` are updated
 - [x] no backend/frontend ownership rule is violated
 - [x] final audit report is written

@@ -55,7 +55,8 @@ Full product release-candidate status is not complete yet. Release certification
 | `npm test` | `frontend/` | PASS - 4 test files passed, 17 tests passed. |
 | Browser Use on `http://127.0.0.1:4173/` and `http://localhost:4173/` | Browser plugin | BLOCKED - Browser reported `net::ERR_BLOCKED_BY_CLIENT` for both localhost aliases. |
 | DevTools static frontend load at `http://127.0.0.1:4174/` | Chrome DevTools | LIMITED PASS - page loaded as `Interpolating Polynomial Calculator`; screenshot saved to `C:\tmp\phase2-frontend-smoke.png`. |
-| Full browser compute flow | Chrome DevTools | NOT VERIFIED - the static smoke target could not keep a backend proxy connected long enough for the app's health poll and compute flow. |
+| DevTools current V1+ compute flow at `http://127.0.0.1:4175/` | Chrome DevTools | PASS - static/proxy server loaded the built frontend, health returned 200, linear Lagrange graph compute returned 200 with `P(3) = 3`, and function-backed `1/x` compute returned 200 with `P(3) = 29/88`, `f(3) = 1/3`, `|error| = 1/264`. |
+| Full Phase 2 workbench browser compute flow | Chrome DevTools | NOT VERIFIED - equal-spacing, Hermite, Taylor, and spline frontend controls/renderers are not implemented in React yet. |
 | `py -0p; python --version` | repo root | PARTIAL - launcher reports Python 3.13, but default `python` is Python 3.10.11. |
 | `py -3.13 -m pytest` | `backend/` | FAIL BEFORE TESTS - Windows could not create the WindowsApps Python 3.13 process. |
 | `py -3.13 -m ruff check .` | `backend/` | FAIL BEFORE LINT - same WindowsApps process-creation failure. |
@@ -75,7 +76,7 @@ Full product release-candidate status is not complete yet. Release certification
 
 1. `osculating` is intentionally deferred because generalized derivative-order repeated-node support is not implemented or tested.
 2. Claude Opus still needs to build Phase 2 frontend controls and renderers for equal-spacing, Hermite, Taylor, and spline payloads.
-3. Browser QA for the actual Phase 2 frontend method flows is NOT RUN because those flows are not implemented in React yet.
+3. Browser QA for the current V1+ frontend guide/result-quality flows passed, but browser QA for the actual Phase 2 frontend method flows is NOT RUN because those flows are not implemented in React yet.
 4. The Windows `py -3.13` launcher target remains unusable, but this is no longer the Python 3.11+ release gate because the backend suite and Ruff now pass under Python 3.12.13.
 
 ## Final Release Gate
@@ -90,3 +91,8 @@ Do not call the full product production-ready or release-complete until:
 Satisfied release gate:
 
 - Python 3.11+ backend tests and lint pass in a working interpreter: Python 3.12.13 in `backend/.venv`.
+- Current V1+ frontend browser compute smoke passes against the backend through a static/proxy server.
+
+Open non-blocking frontend QA issue:
+
+- Chrome DevTools reports one `No label associated with a form field` issue for hidden Base UI display-precision radio inputs. The visible radio roles are labelled, but the hidden native inputs are still flagged. React ownership remains with Claude Opus.

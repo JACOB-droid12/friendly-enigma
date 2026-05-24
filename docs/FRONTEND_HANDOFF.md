@@ -69,7 +69,8 @@ P2.5 frontend integration status:
 - Codex did not implement Phase 2 React controls/renderers during P2.5.
 - Backend verification passed under Python 3.12.13 with `.\.venv\Scripts\python.exe -m pytest` and `.\.venv\Scripts\python.exe -m ruff check .`.
 - `npm run build`, `npm run lint`, and `npm test` passed during P2.5 verification.
-- Browser QA for actual Phase 2 method flows is still pending because those frontend flows are not implemented yet.
+- Browser QA for the current V1+ frontend guide/result-quality flows passed through a built static/proxy server: linear Lagrange graph compute and the `f(x) = 1/x` function-backed lecture example both returned backend 200 responses and rendered Guide output. Browser QA for actual Phase 2 method flows is still pending because those frontend flows are not implemented yet.
+- Chrome DevTools reports one `No label associated with a form field` issue for hidden Base UI display-precision radio inputs. The visible radio roles are labelled, but Claude Opus should review the hidden native input behavior when touching the result display-precision control.
 
 Accepted Phase 2 method names:
 

@@ -1,17 +1,36 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
-Phase 2 continuation checkpoint after P2.5. Scope in this change group is closing the Python 3.11+ backend verification gate with an ignored Python 3.12.13 virtual environment and updating coordination docs. No backend numerical implementation and no public endpoint changes.
+Phase 2 continuation checkpoint after P2.5. Scope in this change group is browser QA for the committed V1+ frontend guide changes against the backend, plus documentation of the remaining Claude Opus Phase 2 workbench gate. No backend numerical implementation and no public endpoint changes.
 
 ## Current Status
 - Overall status: Backend Phase 2 numerical/API expansion is complete and verified under Python 3.12.13; full product release-candidate status remains gated by Claude Opus Phase 2 frontend/browser QA.
 - Branch: `codex/interpolation-backend-v1`
 - Backend status: Phase 2 contract prep, equal-spacing methods, first-derivative Hermite methods, Taylor polynomials, and natural cubic spline segments are implemented with method-level eligibility errors and lecture regression tests. `osculating` is explicitly deferred.
 - Frontend status: V1+ Result Quality / Warnings Guide files are committed. The component displays existing backend response fields only and does not compute interpolation, graph samples, warning severity, or errors.
-- Integration status: backend tests/lint and frontend build/lint/test pass. Browser QA is limited to a prior static frontend load smoke; full Phase 2 browser flows are not verified because the Phase 2 method workbench UI is not implemented yet.
+- Integration status: backend tests/lint, frontend build/lint/test, and current V1+ browser compute flows pass. Full Phase 2 workbench browser flows are not verified because the Phase 2 method controls/renderers are not implemented in React yet.
 - Known caveat: the Windows `py -3.13` launcher target still fails before process creation, but the Python 3.11+ release gate is closed by passing tests/lint under Python 3.12.13 in `backend/.venv`.
 
 ## What Changed (This Session)
+
+### 2026-05-25 Browser QA Continuation
+
+Ran browser QA against the committed frontend build using a local static/proxy server at `http://127.0.0.1:4175/` with the backend available at `http://127.0.0.1:8000`.
+
+| Check | Result |
+|---|---|
+| Static/proxy server setup | PASS - served `frontend/dist` and proxied `/health` and `/api/*` to the backend. |
+| Backend health through QA path | PASS - browser showed `Backend connected`; network request `GET http://127.0.0.1:4175/health` returned 200. |
+| Linear Lagrange lecture example | PASS - loaded points `(2, 4)`, `(5, 1)`, target `3`, enabled graph output, and computed successfully. |
+| Linear Lagrange API request | PASS - exactly one compute request for the flow: `POST http://127.0.0.1:4175/api/interpolate` returned 200 with `P(3) = 3`, polynomial `6 - x`, and 101 backend graph samples. |
+| Guide / Result Quality tab | PASS - rendered `No backend warnings`, `TRUST THIS RESULT?`, and the graph quality note stating that the frontend does not resample `f(x)`, `P(x)`, or error curves. |
+| Graph tab | PASS - rendered a Recharts graph from backend arrays; DOM inspection found 95 Recharts elements and graph text `NodesP(x)`. |
+| Function-backed lecture example | PASS - loaded `f(x) = 1/x` with nodes `2`, `2.75`, `4`; `/api/validate-function` returned 200; compute returned 200 with `P(3) = 29/88`, `f(3) = 1/3`, and `|error| = 1/264`. |
+| Console / DevTools issues | PARTIAL - DevTools reported one issue: `No label associated with a form field`. DOM inspection traced it to hidden Base UI radio inputs in `DisplayDigitsControl`; visible radio roles have accessible labels, but Chrome still flags the hidden native inputs. Not fixed in this pass because Claude Opus owns React frontend implementation. |
+| Vite dev server from managed harness | BLOCKED - Vite failed with `EPERM` writing `frontend/node_modules/.vite-temp/...`; QA used the built static bundle plus proxy instead. |
+| Process cleanup | PASS - closed the static/proxy server and stopped the backend process listening on port 8000. |
+
+This closes browser QA for the currently committed V1+ frontend guide/result-quality flows. It does not close full Phase 2 workbench QA because the equal-spacing, Hermite, Taylor, and spline frontend controls/renderers are still Claude Opus-owned future work.
 
 ### 2026-05-25 Python 3.11+ Verification Closure
 
