@@ -8,7 +8,11 @@ import { FunctionIntervalInput } from "./FunctionIntervalInput"
 import { MethodSelector } from "./MethodSelector"
 import { PrecisionSettings } from "./PrecisionSettings"
 import { EvaluationTargets } from "./EvaluationTargets"
-import type { InputMode, MethodName, NodeStrategy } from "@/lib/api-types"
+import EqualSpacingHint from "./EqualSpacingHint"
+import DerivativeInputTable from "./DerivativeInputTable"
+import TaylorConfigBlock from "./TaylorConfigBlock"
+import CubicSplineConfigBlock from "./CubicSplineConfigBlock"
+import type { InputMode, MethodName, NodeStrategy, SplineBoundaryCondition } from "@/lib/api-types"
 
 export interface FormState {
   mode: InputMode
@@ -24,6 +28,11 @@ export interface FormState {
   exact: boolean | null
   evaluationX: string[]
   graph: boolean
+  // Phase 2 additions (R5.3, R5.4, R5.5, R5.6)
+  derivatives: Array<{ x: string; value: string }>
+  taylorCenter: string
+  taylorOrder: number
+  splineBoundaryCondition: SplineBoundaryCondition
 }
 
 interface InputPanelProps {
@@ -37,6 +46,42 @@ export function InputPanel({ form, onChange, functionError, validationSuccess }:
   function update(partial: Partial<FormState>) {
     onChange({ ...form, ...partial })
   }
+
+  // Adaptive Input Panel (R5.1, R5.7; design.md §7.5). The shared
+  // x-value array feeds both `EqualSpacingHint` (advisory only) and
+  // `DerivativeInputTable` (one row per node). Strings are preserved
+  // verbatim — no `parseFloat` / `Number()` at the API boundary
+  // (R1.4). For `function_interval` mode the synthesized x-values
+  // are out of scope per design.md §7.1, so the hint receives an
+  // empty array and renders the helper's "fewer than two values"
+  // copy, which is purely informational.
+  const xs = (() => {
+    if (form.mode === "points") {
+      return form.points.map((p) => p[0])
+    }
+    if (form.mode === "x_values_with_function") {
+      return form.xValues
+    }
+    return [] as string[]
+  })()
+
+  // Visibility predicates — the section is hidden entirely when no
+  // Phase 2 method is selected so V1 layout is byte-identical
+  // (R5.7). Each block renders only when its triggering method
+  // family is present in `form.methods`, in the order documented in
+  // design.md §7.5.
+  const showEqualSpacing =
+    form.methods.includes("newton_forward") ||
+    form.methods.includes("newton_backward") ||
+    form.methods.includes("stirling")
+  const showDerivative =
+    form.methods.includes("hermite_divided_difference") ||
+    form.methods.includes("hermite") ||
+    form.methods.includes("osculating")
+  const showTaylor = form.methods.includes("taylor")
+  const showSpline = form.methods.includes("cubic_spline")
+  const showMethodConfig =
+    showEqualSpacing || showDerivative || showTaylor || showSpline
 
   return (
     <div className="space-y-6">
@@ -105,7 +150,44 @@ export function InputPanel({ form, onChange, functionError, validationSuccess }:
         </div>
       </section>
 
-      {/* Section 3: Precision & Evaluation */}
+      {/* Section 3: Method Configuration (Phase 2 adaptive blocks) */}
+      {showMethodConfig && (
+        <section className="rounded-xl border bg-card overflow-hidden">
+          <div className="px-5 py-3 border-b bg-muted/30">
+            <h2 className="text-sm font-semibold text-foreground">Method Configuration</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Method-aware inputs for Phase 2 methods</p>
+          </div>
+          <div className="p-5 space-y-5">
+            {showEqualSpacing && <EqualSpacingHint values={xs} />}
+            {showDerivative && (
+              <DerivativeInputTable
+                xs={xs}
+                derivatives={form.derivatives}
+                onChange={(derivatives) => update({ derivatives })}
+              />
+            )}
+            {showTaylor && (
+              <TaylorConfigBlock
+                mode={form.mode}
+                center={form.taylorCenter}
+                order={form.taylorOrder}
+                onCenterChange={(taylorCenter) => update({ taylorCenter })}
+                onOrderChange={(taylorOrder) => update({ taylorOrder })}
+              />
+            )}
+            {showSpline && (
+              <CubicSplineConfigBlock
+                boundaryCondition={form.splineBoundaryCondition}
+                onBoundaryConditionChange={(splineBoundaryCondition) =>
+                  update({ splineBoundaryCondition })
+                }
+              />
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Section 4: Precision & Evaluation */}
       <section className="rounded-xl border bg-card overflow-hidden">
         <div className="px-5 py-3 border-b bg-muted/30">
           <h2 className="text-sm font-semibold text-foreground">Precision & Evaluation</h2>

@@ -76,4 +76,207 @@ describe("lecture examples", () => {
     expect(screen.getByLabelText("Lagrange method")).toBeChecked()
     expect(screen.getByLabelText("Newton method")).toBeChecked()
   })
+
+  it("loads the Newton Forward equal-spacing example with cos(x) on five nodes", () => {
+    const fetchMock = renderApp()
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /load newton forward \(cos x at 1\.0…2\.2\) example/i })
+    )
+
+    expect(screen.getByRole("tab", { name: "X + f(x)" })).toHaveAttribute("data-active")
+    expect(screen.getByLabelText("Function f(x)")).toHaveValue("cos(x)")
+    expect(screen.getByLabelText("X-value 0")).toHaveValue("1.0")
+    expect(screen.getByLabelText("X-value 1")).toHaveValue("1.3")
+    expect(screen.getByLabelText("X-value 2")).toHaveValue("1.6")
+    expect(screen.getByLabelText("X-value 3")).toHaveValue("1.9")
+    expect(screen.getByLabelText("X-value 4")).toHaveValue("2.2")
+    expect(screen.getByLabelText("Evaluation target 1")).toHaveValue("1.5")
+    expect(screen.getByLabelText("Newton Forward method")).toBeChecked()
+    expect(screen.getByLabelText("Lagrange method")).not.toBeChecked()
+    expect(screen.getByLabelText("Newton method")).not.toBeChecked()
+
+    expect(fetchMock.mock.calls.some(([url]) => url === "/api/interpolate")).toBe(false)
+  })
+
+  it("loads the Newton Backward equal-spacing example with cos(x) on five nodes", () => {
+    const fetchMock = renderApp()
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /load newton backward \(cos x\) example/i })
+    )
+
+    expect(screen.getByRole("tab", { name: "X + f(x)" })).toHaveAttribute("data-active")
+    expect(screen.getByLabelText("Function f(x)")).toHaveValue("cos(x)")
+    expect(screen.getByLabelText("X-value 0")).toHaveValue("1.0")
+    expect(screen.getByLabelText("X-value 4")).toHaveValue("2.2")
+    expect(screen.getByLabelText("Evaluation target 1")).toHaveValue("1.5")
+    expect(screen.getByLabelText("Newton Backward method")).toBeChecked()
+    expect(screen.getByLabelText("Lagrange method")).not.toBeChecked()
+    expect(screen.getByLabelText("Newton method")).not.toBeChecked()
+
+    expect(fetchMock.mock.calls.some(([url]) => url === "/api/interpolate")).toBe(false)
+  })
+
+  it("loads the Stirling centered example with cos(x) on five nodes", () => {
+    const fetchMock = renderApp()
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /load stirling \(cos x, centered\) example/i })
+    )
+
+    expect(screen.getByRole("tab", { name: "X + f(x)" })).toHaveAttribute("data-active")
+    expect(screen.getByLabelText("Function f(x)")).toHaveValue("cos(x)")
+    expect(screen.getByLabelText("X-value 0")).toHaveValue("1.0")
+    expect(screen.getByLabelText("X-value 2")).toHaveValue("1.6")
+    expect(screen.getByLabelText("X-value 4")).toHaveValue("2.2")
+    expect(screen.getByLabelText("Evaluation target 1")).toHaveValue("1.5")
+    expect(screen.getByLabelText("Stirling method")).toBeChecked()
+    expect(screen.getByLabelText("Lagrange method")).not.toBeChecked()
+    expect(screen.getByLabelText("Newton method")).not.toBeChecked()
+
+    expect(fetchMock.mock.calls.some(([url]) => url === "/api/interpolate")).toBe(false)
+  })
+
+  it("loads the Hermite divided-difference Bessel-style example with derivative rows", () => {
+    const fetchMock = renderApp()
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /load hermite divided difference \(bessel-style\) example/i,
+      })
+    )
+
+    expect(screen.getByLabelText("Point 0 x-value")).toHaveValue("1.3")
+    expect(screen.getByLabelText("Point 0 y-value")).toHaveValue("0.6200860")
+    expect(screen.getByLabelText("Point 1 x-value")).toHaveValue("1.6")
+    expect(screen.getByLabelText("Point 1 y-value")).toHaveValue("0.4554022")
+    expect(screen.getByLabelText("Point 2 x-value")).toHaveValue("1.9")
+    expect(screen.getByLabelText("Point 2 y-value")).toHaveValue("0.2818186")
+    expect(screen.getByLabelText("Evaluation target 1")).toHaveValue("1.5")
+    expect(screen.getByLabelText("Hermite Divided Difference method")).toBeChecked()
+    expect(screen.getByLabelText("Hermite method")).not.toBeChecked()
+    expect(screen.getByLabelText("Lagrange method")).not.toBeChecked()
+    expect(screen.getByLabelText("Newton method")).not.toBeChecked()
+
+    expect(screen.getByLabelText("Derivative value for node 0")).toHaveValue(
+      "-0.52202324741466"
+    )
+    expect(screen.getByLabelText("Derivative value for node 1")).toHaveValue(
+      "-0.56989593526168"
+    )
+    expect(screen.getByLabelText("Derivative value for node 2")).toHaveValue(
+      "-0.581157072713434"
+    )
+
+    expect(fetchMock.mock.calls.some(([url]) => url === "/api/interpolate")).toBe(false)
+  })
+
+  it("loads the Hermite basis-form Bessel-style example with the same derivative rows", () => {
+    const fetchMock = renderApp()
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /load hermite \(basis form\) example/i })
+    )
+
+    expect(screen.getByLabelText("Point 0 x-value")).toHaveValue("1.3")
+    expect(screen.getByLabelText("Point 1 x-value")).toHaveValue("1.6")
+    expect(screen.getByLabelText("Point 2 x-value")).toHaveValue("1.9")
+    expect(screen.getByLabelText("Evaluation target 1")).toHaveValue("1.5")
+    expect(screen.getByLabelText("Hermite method")).toBeChecked()
+    expect(screen.getByLabelText("Hermite Divided Difference method")).not.toBeChecked()
+    expect(screen.getByLabelText("Lagrange method")).not.toBeChecked()
+
+    expect(screen.getByLabelText("Derivative value for node 0")).toHaveValue(
+      "-0.52202324741466"
+    )
+    expect(screen.getByLabelText("Derivative value for node 1")).toHaveValue(
+      "-0.56989593526168"
+    )
+    expect(screen.getByLabelText("Derivative value for node 2")).toHaveValue(
+      "-0.581157072713434"
+    )
+
+    expect(fetchMock.mock.calls.some(([url]) => url === "/api/interpolate")).toBe(false)
+  })
+
+  it("loads the Taylor cos(x) order-3 example with center 0 and target 1/2", () => {
+    const fetchMock = renderApp()
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /load taylor \(cos x, order 3\) example/i })
+    )
+
+    expect(screen.getByRole("tab", { name: "X + f(x)" })).toHaveAttribute("data-active")
+    expect(screen.getByLabelText("Function f(x)")).toHaveValue("cos(x)")
+    expect(screen.getByLabelText("X-value 0")).toHaveValue("0")
+    expect(screen.getByLabelText("X-value 1")).toHaveValue("1")
+    expect(screen.getByLabelText("Taylor method")).toBeChecked()
+    expect(screen.getByLabelText("Lagrange method")).not.toBeChecked()
+    expect(screen.getByLabelText("Newton method")).not.toBeChecked()
+
+    expect(screen.getByLabelText("Taylor center")).toHaveValue("0")
+    expect(screen.getByLabelText("Order")).toHaveValue(3)
+    expect(screen.getByLabelText("Evaluation target 1")).toHaveValue("1/2")
+
+    expect(fetchMock.mock.calls.some(([url]) => url === "/api/interpolate")).toBe(false)
+  })
+
+  it("loads the lecture three-point cubic spline example with natural boundary and graph on", () => {
+    const fetchMock = renderApp()
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /load cubic spline \(lecture three-point\) example/i })
+    )
+
+    expect(screen.getByLabelText("Point 0 x-value")).toHaveValue("1")
+    expect(screen.getByLabelText("Point 0 y-value")).toHaveValue("2")
+    expect(screen.getByLabelText("Point 1 x-value")).toHaveValue("2")
+    expect(screen.getByLabelText("Point 1 y-value")).toHaveValue("3")
+    expect(screen.getByLabelText("Point 2 x-value")).toHaveValue("3")
+    expect(screen.getByLabelText("Point 2 y-value")).toHaveValue("5")
+    expect(screen.getByLabelText("Cubic Spline method")).toBeChecked()
+    expect(screen.getByLabelText("Lagrange method")).not.toBeChecked()
+    expect(screen.getByLabelText("Newton method")).not.toBeChecked()
+
+    expect(screen.getByLabelText("Boundary Condition")).toHaveValue("natural")
+    expect(screen.getByLabelText("Evaluation target 1")).toHaveValue("5/2")
+    expect(screen.getByRole("switch", { name: /graph output/i })).toBeChecked()
+
+    expect(fetchMock.mock.calls.some(([url]) => url === "/api/interpolate")).toBe(false)
+  })
+
+  it("loads the deferred Osculating Bessel-style example with derivative rows", () => {
+    const fetchMock = renderApp()
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /load deferred — osculating \(bessel-style\) example/i,
+      })
+    )
+
+    expect(screen.getByLabelText("Point 0 x-value")).toHaveValue("1.3")
+    expect(screen.getByLabelText("Point 0 y-value")).toHaveValue("0.6200860")
+    expect(screen.getByLabelText("Point 1 x-value")).toHaveValue("1.6")
+    expect(screen.getByLabelText("Point 2 x-value")).toHaveValue("1.9")
+    expect(screen.getByLabelText("Point 2 y-value")).toHaveValue("0.2818186")
+    expect(screen.getByLabelText("Evaluation target 1")).toHaveValue("1.5")
+    expect(screen.getByLabelText("Osculating method")).toBeChecked()
+    expect(screen.getByLabelText("Hermite method")).not.toBeChecked()
+    expect(screen.getByLabelText("Hermite Divided Difference method")).not.toBeChecked()
+    expect(screen.getByLabelText("Lagrange method")).not.toBeChecked()
+    expect(screen.getByLabelText("Newton method")).not.toBeChecked()
+
+    expect(screen.getByLabelText("Derivative value for node 0")).toHaveValue(
+      "-0.52202324741466"
+    )
+    expect(screen.getByLabelText("Derivative value for node 1")).toHaveValue(
+      "-0.56989593526168"
+    )
+    expect(screen.getByLabelText("Derivative value for node 2")).toHaveValue(
+      "-0.581157072713434"
+    )
+
+    expect(fetchMock.mock.calls.some(([url]) => url === "/api/interpolate")).toBe(false)
+  })
 })

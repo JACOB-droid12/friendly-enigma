@@ -10,8 +10,9 @@ import { ResultsPanel } from "@/components/ResultsPanel"
 import { ExamplesPanel } from "@/components/ExamplesPanel"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { interpolate, validateFunction, ApiError } from "@/lib/api-client"
-import type { InterpolateRequest, InterpolateResponse } from "@/lib/api-types"
+import type { DerivativeEntry, InterpolateRequest, InterpolateResponse, MethodName, MethodOptions } from "@/lib/api-types"
 import { DisplayDigitsProvider } from "@/lib/display-digits"
+import { assessEqualSpacing } from "@/lib/equal-spacing"
 import { useShortcuts } from "@/lib/use-shortcuts"
 import { AlertTriangle, Play, RotateCcw, HelpCircle, X, Keyboard, Loader2 } from "lucide-react"
 
@@ -29,6 +30,40 @@ const DEFAULT_FORM: FormState = {
   exact: true,
   evaluationX: [],
   graph: false,
+  derivatives: [],
+  taylorCenter: "0",
+  taylorOrder: 3,
+  splineBoundaryCondition: "natural",
+}
+
+function buildMethodOptions(form: FormState): MethodOptions | undefined {
+  const out: MethodOptions = {}
+
+  if (form.methods.includes("taylor")) {
+    out.taylor = {
+      center: form.taylorCenter,                 // string from input
+      order: form.taylorOrder,                   // integer 0..20
+    }
+  }
+
+  if (form.methods.includes("cubic_spline")) {
+    out.cubic_spline = {
+      boundary_condition: form.splineBoundaryCondition, // "natural"
+    }
+  }
+
+  return Object.keys(out).length > 0 ? out : undefined
+}
+
+function buildDerivatives(form: FormState): DerivativeEntry[] | undefined {
+  const needsDerivatives =
+    form.methods.includes("hermite_divided_difference") ||
+    form.methods.includes("hermite") ||
+    form.methods.includes("osculating")
+  if (!needsDerivatives) return undefined
+  return form.derivatives
+    .filter((d) => d.x.trim() !== "" && d.value.trim() !== "")
+    .map((d) => ({ x: d.x, order: 1, value: d.value }))
 }
 
 function buildRequest(form: FormState): InterpolateRequest {
@@ -56,6 +91,12 @@ function buildRequest(form: FormState): InterpolateRequest {
       base.node_count = form.nodeCount
       break
   }
+
+  const methodOptions = buildMethodOptions(form)
+  if (methodOptions) base.method_options = methodOptions
+
+  const derivatives = buildDerivatives(form)
+  if (derivatives) base.derivatives = derivatives
 
   return base
 }
@@ -186,17 +227,54 @@ function AppShell() {
     disabled: loading,
   })
 
-  const isFormBlocked =
+  const isNodeCountBlocked =
     form.mode === "function_interval" &&
     Number.isFinite(form.nodeCount) &&
     (form.nodeCount < 2 || form.nodeCount > 50)
+
+  // Equal-Spacing ineligibility gate (R4.5, R5.2; design.md §7.1).
+  // Compute is blocked only when EVERY selected method is in the
+  // Equal-Spacing Family AND the user-entered x-values do not
+  // appear equally spaced. When at least one selected method is
+  // not Equal-Spacing, Compute stays enabled — the backend remains
+  // the authority for the non-equal-spacing methods.
+  const equalSpacingIneligible = useMemo(() => {
+    // Empty methods list cannot be "all" Equal-Spacing.
+    if (form.methods.length === 0) return null
+    const equalSpacingMethods: ReadonlyArray<MethodName> = [
+      "newton_forward",
+      "newton_backward",
+      "stirling",
+    ]
+    const allEqualSpacing = form.methods.every((m) =>
+      equalSpacingMethods.includes(m),
+    )
+    if (!allEqualSpacing) return null
+
+    // function_interval mode: synthesized x-values aren't meaningful
+    // here; let the backend authority decide. Return null so we don't
+    // gate Compute.
+    if (form.mode === "function_interval") return null
+
+    const xs =
+      form.mode === "points"
+        ? form.points.map((p) => p[0]).filter((s) => s.trim() !== "")
+        : form.xValues.filter((s) => s.trim() !== "")
+
+    const verdict = assessEqualSpacing(xs)
+    return verdict.equallySpaced ? null : verdict.reason ?? "ineligible"
+  }, [form.methods, form.mode, form.points, form.xValues])
+
+  const isFormBlocked = isNodeCountBlocked || equalSpacingIneligible !== null
 
   const computeDisabledReason = !backendOnline
     ? "Backend offline"
     : loading
     ? "Computing"
-    : isFormBlocked
+    : isNodeCountBlocked
     ? "Node count out of range (2\u201350)"
+    : equalSpacingIneligible !== null
+    ? `Equal-spacing methods need equally spaced x-values: ${equalSpacingIneligible}`
     : undefined
 
   return (

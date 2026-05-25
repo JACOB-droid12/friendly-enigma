@@ -18,6 +18,14 @@ const METHOD_LABEL: Record<MethodName, string> = {
   newton: "Newton",
   barycentric: "Barycentric",
   neville: "Neville",
+  newton_forward: "Newton Forward",
+  newton_backward: "Newton Backward",
+  stirling: "Stirling",
+  hermite_divided_difference: "Hermite Divided Difference",
+  hermite: "Hermite",
+  osculating: "Osculating",
+  taylor: "Taylor",
+  cubic_spline: "Cubic Spline",
 }
 
 function methodLabels(methods: MethodName[]) {
@@ -208,6 +216,85 @@ export function GuidedExplanation({ data }: GuidedExplanationProps) {
                 classroom methods.
               </p>
               {graphSource && <p className="mt-2">Backend graph source method: {graphSource}</p>}
+            </MethodBlock>
+          )}
+
+          {data.methods.newton_forward && (
+            <MethodBlock title="Newton Forward">
+              <p>
+                Forward differences are most appropriate near the first nodes. The backend returns
+                {" "}
+                <code>forward_difference_table</code>, <code>s = (x - x_0)/h</code>,{" "}
+                <code>terms</code>, and <code>target_guidance</code>.
+              </p>
+            </MethodBlock>
+          )}
+
+          {data.methods.newton_backward && (
+            <MethodBlock title="Newton Backward">
+              <p>
+                Backward differences are most appropriate near the last nodes. Backend returns{" "}
+                <code>backward_difference_table</code>, <code>s = (x - x_n)/h</code>, and{" "}
+                <code>target_guidance</code>.
+              </p>
+            </MethodBlock>
+          )}
+
+          {data.methods.stirling && (
+            <MethodBlock title="Stirling">
+              <p>
+                Centered differences require an odd number of equally spaced nodes. Backend returns{" "}
+                <code>centered_difference_table</code>, <code>center_index</code>,{" "}
+                <code>center_x</code>, and per-evaluation <code>s</code>.
+              </p>
+            </MethodBlock>
+          )}
+
+          {data.methods.hermite_divided_difference && (
+            <MethodBlock title="Hermite Divided Difference">
+              <p>
+                Hermite duplicates each node and uses <code>f'(x_i)</code> as the first divided
+                difference. Backend returns <code>repeated_nodes</code> and the divided-difference
+                table.
+              </p>
+            </MethodBlock>
+          )}
+
+          {data.methods.hermite && data.methods.hermite.basis_form?.status === "included" && (
+            <MethodBlock title="Hermite Basis Form">
+              <p>
+                Hermite basis polynomials match value and derivative at each node. The basis form is
+                shown when the backend returns it; otherwise the{" "}
+                <code>expanded_polynomial_omitted</code> warning explains why it was hidden.
+              </p>
+            </MethodBlock>
+          )}
+
+          {data.methods.taylor && (
+            <MethodBlock title="Taylor / Maclaurin">
+              <p>
+                Taylor approximates locally around <code>center</code>. Backend returns derivative
+                terms, polynomial forms, and a remainder note. When{" "}
+                <code>series_name === "Maclaurin"</code>, the center is 0.
+              </p>
+            </MethodBlock>
+          )}
+
+          {data.methods.cubic_spline && (
+            <MethodBlock title="Cubic Spline">
+              <p>
+                Natural cubic spline ties the second derivative to zero at the boundary. The
+                polynomial is piecewise; no single global polynomial exists.
+              </p>
+            </MethodBlock>
+          )}
+
+          {data.methods.osculating?.error?.code === "method_not_implemented" && (
+            <MethodBlock title="Deferred methods">
+              <p>
+                Generalized osculating polynomial matching is deferred until the backend implements
+                it. The frontend shows the backend response exactly.
+              </p>
             </MethodBlock>
           )}
         </div>

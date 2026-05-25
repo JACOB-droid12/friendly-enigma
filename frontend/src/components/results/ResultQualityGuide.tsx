@@ -85,6 +85,60 @@ const WARNING_GUIDANCE: Record<string, { means: string; check: string }> = {
       "The backend reordered nodes for computation or presentation consistency.",
     check: "Check the node table before matching rows to lecture notes or handwritten work.",
   },
+  // Phase 2 additions. Severity continues to come from getWarningMeta in
+  // frontend/src/lib/warnings.ts (R1.5); these rows only carry the
+  // display-only "What it means" / "Check next" copy from design.md §10.2.
+  unequal_spacing: {
+    means:
+      "The selected equal-spacing method needs nodes at equal intervals; this set varies.",
+    check:
+      "Check the X-values' spacing or pick a non-equal-spacing method (Lagrange, Newton, Neville).",
+  },
+  stirling_requires_centered_nodes: {
+    means:
+      "Stirling needs an odd number of equally spaced nodes so a single center exists.",
+    check:
+      "Add or remove a node so the count is odd, or pick `newton_forward` / `newton_backward` instead.",
+  },
+  target_not_recommended_for_method: {
+    means:
+      "The backend says the target x is not in the recommended region for this method.",
+    check:
+      "The numerical answer is still valid; consider using the recommended method for accuracy near this target.",
+  },
+  missing_derivative_data: {
+    means: "Hermite needs a first derivative at every node.",
+    check: "Fill in the derivative table or remove Hermite from the method list.",
+  },
+  invalid_derivative_order: {
+    means:
+      "The selected method does not currently support that derivative order.",
+    check:
+      "Hermite supports order 1 only today; remove higher-order rows or wait for backend `osculating`.",
+  },
+  unsupported_taylor_function: {
+    means:
+      "The function expression cannot produce a Taylor polynomial under the safe parser.",
+    check:
+      "Check the function spelling, allowed-functions list, and the `center` value before recomputing.",
+  },
+  unsupported_boundary_condition: {
+    means:
+      "Cubic spline got a boundary condition the backend does not implement.",
+    check:
+      'Switch the boundary selector to "natural" (the only enabled option today).',
+  },
+  piecewise_method_no_global_polynomial: {
+    means: "A piecewise method does not have a single global polynomial.",
+    check:
+      "Use the segment list, continuity checks, and graph instead of expecting a closed-form polynomial.",
+  },
+  method_not_implemented: {
+    means:
+      "The selected method is accepted by schema but not implemented yet.",
+    check:
+      "Pick an implemented method (Hermite for derivative matching) or wait for backend support.",
+  },
 }
 
 function SeverityIcon({ severity, className }: { severity: WarningSeverity; className: string }) {

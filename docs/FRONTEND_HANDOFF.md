@@ -908,3 +908,321 @@ After the fix, all seven Requirement 11 scenarios pass at the strict 320 px view
 - No interpolation algorithm was added or moved into client code.
 - No new design token, font, shadow scale, radius scale, or motion handle was introduced.
 - The smoke-test suite at `frontend/src/components/results/results.smoke.test.tsx` was not relaxed; all 7 tests continue to assert backend-rendering correctness.
+
+
+---
+
+## Phase 2 Frontend Workbench (2026-05-26)
+
+The Phase 2 Frontend Workbench feature spec at
+`.kiro/specs/phase-2-frontend-workbench/` (R1–R18) is implemented under
+`frontend/src/`. This section documents what the workbench presents to
+the user and how it consumes the existing backend contract; the
+file-by-file change log, exact git status, verification command exit
+codes, and per-scenario observations live in `docs/HANDOFF.md` under
+"Session: Phase 2 Frontend Workbench (2026-05-26)" and in the
+per-task results files under
+`.kiro/specs/phase-2-frontend-workbench/screenshots/`.
+
+### Summary
+
+Every Phase 2 lecture method currently shipped by the Codex-owned
+backend is now selectable in the React workbench and renders against
+the live response under the stable `POST /api/interpolate` endpoint:
+
+- Newton Forward, Newton Backward, and Stirling (Equal-Spacing
+  Family).
+- Hermite Divided Difference and Hermite Basis Form (Derivative-Data
+  Family).
+- Taylor / Maclaurin (Function-Derivative Family).
+- Natural Cubic Spline (Piecewise Family).
+
+The deferred `osculating` method stays visible in the catalog and
+renders cleanly from the backend's `method_not_implemented`
+method-level response, per locked decision #3 of the spec.
+
+### Method Selector catalog
+
+`frontend/src/components/MethodSelector.tsx` renders a single
+family-grouped catalog sourced from
+`frontend/src/components/MethodSelector.catalog.ts`. The catalog is
+the workbench's source of truth for method metadata. Family keys (and
+their visible role-tag voices, preserved from the Analysis Bench
+design system):
+
+| Family key | Role-tag voice | Methods |
+|---|---|---|
+| `construction` | CONSTRUCTION | `lagrange`, `newton` |
+| `stable_evaluator` | STABLE EVALUATOR | `barycentric` (primary tint preserved) |
+| `target_specific` | TARGET-SPECIFIC | `neville` |
+| `equal_spacing` | EQUAL SPACING | `newton_forward`, `newton_backward`, `stirling` |
+| `derivative_data` | DERIVATIVE DATA | `hermite_divided_difference`, `hermite`, `osculating` |
+| `function_derivative` | FUNCTION DERIVATIVE | `taylor` |
+| `piecewise` | PIECEWISE | `cubic_spline` |
+
+Catalog entries carry `value`, `label`, `family`, `role`, optional
+`highlight` (Barycentric only), `description`, optional
+`eligibilityHint` (Equal-Spacing family only), `deferred`, and
+`deferredNote`. The `osculating` card renders the `Deferred` badge
+with its `deferredNote` line; Barycentric retains its
+primary-tinted role tag.
+
+### Adaptive Input Panel
+
+`frontend/src/components/InputPanel.tsx` adds a fourth section,
+"Method Configuration", placed between "Methods" and "Precision &
+Evaluation" (locked decision #6 of the spec). The card is hidden
+entirely when no Phase 2 method that needs configuration is selected,
+so V1 layout is byte-identical for the four V1 methods. The card is
+flat (no nested cards) and its blocks stack below the `md` breakpoint.
+
+Adaptive blocks rendered inside the card:
+
+- **`EqualSpacingHint.tsx`** (R4.5 / R5.2). Reads the user-entered
+  string x-values through the pure helper
+  `frontend/src/lib/equal-spacing.ts` (parsing is hint-only; the
+  request body still ships strings) and renders either
+  `Spacing appears equal: h ≈ <h>` or `Spacing not equal: <reason>`.
+  This same helper drives `App.tsx` `isFormBlocked`, which disables
+  the Compute button (with `aria-disabled="true"` and a tooltip
+  reason) when every selected method is in the Equal-Spacing Family
+  and the helper reports ineligibility.
+- **`DerivativeInputTable.tsx`** (R5.3 / R5.4). One row per
+  interpolation node currently in `form.points` or `form.xValues`,
+  read-only `x` cell paired with an editable `value` string input.
+  String at the API boundary; `order: 1` is injected by
+  `App.tsx` `buildDerivatives` per the current Hermite support
+  level.
+- **`TaylorConfigBlock.tsx`** (R5.5). Labelled `center` string input
+  and `<input type="number" min={0} max={20} step={1}>` for `order`.
+  When `form.mode === "points"` the block renders a body-voice
+  disabled hint instead ("Taylor needs a function expression. Switch
+  to X + f(x) or Interval mode."), reusing the existing function
+  input field rather than introducing a second one.
+- **`CubicSplineConfigBlock.tsx`** (R5.6 / R9.5). A
+  `boundary_condition` `<select>` with `Natural` enabled and all other
+  documented boundary conditions present as `disabled` placeholders
+  carrying `title` tooltips that explain the deferral (locked
+  decision #5).
+
+### Family renderers
+
+Each Phase 2 family has a dedicated renderer file under
+`frontend/src/components/results/methods/`. Every renderer reads only
+documented backend fields and performs no math, no symbolic
+manipulation, and no client-side resampling.
+
+- **`EqualSpacingDetails.tsx`** (R6.x). Renders
+  `forward_difference_table` / `backward_difference_table` /
+  `centered_difference_table` (wrapped in
+  `overflow-x-auto rounded-lg`), spacing summary (`spacing_h`,
+  `anchor_index` or `center_index` / `center_x`), per-evaluation block
+  with `s`, `value`, and `terms`, advisory copy when
+  `target_guidance.recommended` differs from this method, and the
+  `steps` ordered list. Method-level `ErrorNotice` for codes such as
+  `unequal_spacing` and `stirling_requires_centered_nodes`.
+- **`HermiteDetails.tsx`** (R7.x). Renders repeated nodes,
+  divided-difference table, coefficients, Newton nested form,
+  expanded form, and `latex_expanded` via KaTeX. For `hermite` with
+  `basis_form.status === "included"`, also the basis formula line,
+  basis-term table, expanded form, latex via KaTeX, and the
+  `matches_divided_difference` indicator. For
+  `basis_form.status === "omitted"`, an informational notice that
+  surfaces the message of the corresponding
+  `expanded_polynomial_omitted` warning whose
+  `details.artifact === "hermite_basis_form"` (locked decision #2 —
+  no `basis_form.reason` field is invented).
+- **`TaylorDetails.tsx`** (R8.x). Renders the header
+  (`center`, `order`, `series_name`), a `Maclaurin (center = 0)`
+  badge when `series_name === "Maclaurin"` (without altering the
+  polynomial fields), the term table with columns `order`,
+  `derivative`, `derivative_at_center`, `coefficient`, `term`, and
+  `latex_term` (KaTeX), polynomial forms (`taylor_form`, `expanded`,
+  `latex_taylor`, `latex_expanded`), evaluation chips, and
+  `remainder_note`. Inline `ErrorNotice` for
+  `unsupported_taylor_function`.
+- **`CubicSplineDetails.tsx`** (R9.x). Renders the
+  boundary-condition badge, ordered-nodes table, second-derivatives
+  chip row (`Mᵢ`), segments table with `index`, `interval`,
+  `coefficients.{a, b, c, d}`, `local_form`, `expanded`, and `latex`
+  (KaTeX), continuity-check rows with `✓` / `✗` glyphs paired with
+  text labels, and evaluation chips that surface `segment_index`
+  when present. Surfaces a body-voice piecewise notice when
+  `polynomial.expanded_omitted_reason ===
+  "piecewise_method_no_global_polynomial"`. Inline `ErrorNotice` for
+  `unsupported_boundary_condition`.
+
+### Deferred renderer
+
+`frontend/src/components/results/methods/DeferredMethodDetails.tsx`
+renders any method whose response carries
+`error.code === "method_not_implemented"`. Used by the `osculating`
+tab today; structurally available for any future deferred method the
+backend exposes the same way. Layout: `Deferred` badge, body-voice
+paragraph carrying the backend `message`, the literal
+`Code: method_not_implemented` in numeric voice via the shared
+`ErrorNotice` (severity `warning`), and lecture-aware copy explaining
+the deferral. No tables, no terms, no simulated values. Sibling
+renderers in the same response remain operational, verified directly
+in PHASE2-OSCULATING-01 Pass B.
+
+### Cross-cutting updates
+
+- **`MethodDetails.tsx`** is now a thin tab dispatcher (locked
+  decision #1). Each Phase 2 method tab delegates to a family
+  renderer file; the four V1 panels are untouched. `pickInitialTab()`
+  still prefers Lagrange → Newton → Neville before Barycentric.
+  Sibling-method visibility under `status === "partial"` (R6.5 /
+  R10.4) is preserved.
+- **`PolynomialCard.tsx`** adds a Hermite tab visible when
+  `polynomial.hermite_form` is non-null (renders `hermite_form` plus
+  `latex_hermite` via KaTeX) and a Taylor tab visible when
+  `polynomial.taylor_form` is non-null (renders `taylor_form` plus
+  `latex_taylor` via KaTeX). When `polynomial.expanded_omitted_reason
+  === "piecewise_method_no_global_polynomial"`, the Expanded tab body
+  is replaced with a body-voice notice and the Factored tab is
+  hidden. V1 KaTeX wrapper styles (`bg-muted/30 rounded-lg p-4` with
+  no inner `border`) are preserved.
+- **`SummaryCard.tsx`** groups the methods row by family in the
+  catalog order. V1 Badge mappings are preserved exactly:
+  `lagrange` / `newton` → `secondary`, `barycentric` → primary tint
+  (Stable Evaluator), `neville` → `info`. Phase 2 methods reuse the
+  `secondary` Badge variant. Family group labels render in
+  `font-label` voice. No change reframes Barycentric as a primary
+  classroom construction method.
+- **`GuidedExplanation.tsx`** adds a `MethodBlock` per implemented
+  Phase 2 method (Newton Forward, Newton Backward, Stirling, Hermite
+  Divided Difference, Hermite Basis Form, Taylor / Maclaurin, Cubic
+  Spline) plus a "Deferred methods" block that fires when
+  `data.methods.osculating?.error?.code === "method_not_implemented"`.
+  Each block reads only `data.methods[<name>]` and the input summary.
+- **`ResultQualityGuide.tsx`** adds `WARNING_GUIDANCE` rows for the
+  Phase 2 codes named in R11.2 plus `nodes_reordered`. Severity
+  continues to come from `getWarningMeta` in
+  `frontend/src/lib/warnings.ts`; nothing in the result quality guide
+  recomputes severity from numerical values.
+
+### Examples Panel V2
+
+`frontend/src/components/ExamplesPanel.tsx` adds the lecture-aligned
+Phase 2 entries below. Loading an example fills the existing form
+fields, including the new Phase 2 `FormState` fields, and never calls
+`/api/interpolate` directly.
+
+| Title | Methods seeded | Notes |
+|---|---|---|
+| `Newton Forward (cos x at 1.0…2.2)` | `["newton_forward"]` | `mode = x_values_with_function`, `function = cos(x)`, `x = ["1.0","1.3","1.6","1.9","2.2"]`, `evaluation_x = ["1.5"]`, `exact = true` |
+| `Newton Backward (cos x)` | `["newton_backward"]` | Same five cos(x) nodes, `exact = true` |
+| `Stirling (cos x, centered)` | `["stirling"]` | Same five cos(x) nodes, `exact = true` |
+| `Hermite Divided Difference (Bessel-style)` | `["hermite_divided_difference"]` | Three Bessel-style points + first derivatives at each |
+| `Hermite (Basis Form)` | `["hermite"]` | Same three Bessel-style points; surfaces the basis-form output |
+| `Taylor (cos x, order 3)` | `["taylor"]` | `taylorCenter = "0"`, `taylorOrder = 3`, `evaluation_x = ["1/2"]` |
+| `Cubic Spline (lecture three-point)` | `["cubic_spline"]` | `splineBoundaryCondition = "natural"`, `evaluation_x = ["5/2"]`, `graph = true` |
+| `Deferred — Osculating (Bessel-style)` | `["osculating"]` | Same Bessel-style points and derivatives as Hermite; loadable per locked decision #4 |
+
+The three Equal-Spacing examples seed `exact: true`. mpmath mode
+(`exact: false`) makes the backend return `unequal_spacing` errors for
+genuinely equal nodes due to float representation; this was caught
+during browser QA and the seeds were corrected accordingly.
+
+### API contract preservation
+
+The frontend stays a thin renderer of the documented contract plus a
+method-aware input layer. Four hard rules apply to every Phase 2
+addition above:
+
+1. The frontend calls only `GET /health`,
+   `POST /api/interpolate`, and `POST /api/validate-function`. No
+   other endpoint paths are introduced. (R1.2)
+2. The request and response shapes documented in
+   `docs/API_CONTRACT.md` are unchanged. The new
+   `InterpolateRequest.method_options` and
+   `InterpolateRequest.derivatives` fields are optional and additive
+   per the existing contract; the eight Phase 2 method response
+   keys under `InterpolateResponse.methods` are likewise optional
+   and additive. TypeScript types in
+   `frontend/src/lib/api-types.ts` mirror documented backend fields
+   only — no field is invented. (R1.3 / R2.6)
+3. Every numeric field inside `points`, `x_values`, `interval`,
+   `evaluation_x`, `derivatives[].x`, `derivatives[].value`, and
+   `method_options.taylor.center` is sent as a string, never through
+   `parseFloat` or `Number()` before reaching the API boundary.
+   (R1.4)
+4. Warning severity is read from `getWarningMeta` in
+   `frontend/src/lib/warnings.ts`. Severity is not recomputed from
+   numerical values in React. (R1.5)
+
+The frontend computes no math: no `eval`, no SymPy, no Math.js, no
+finite-difference reconstruction, no Hermite repeated-node tables,
+no Taylor derivative terms, no spline coefficients, no graph
+samples, no error metrics. (R6.6, R7.5, R8.5, R9.6, R10.3, R11.6)
+
+`docs/API_CONTRACT.md` is owned by Codex (R18.4) and was not
+modified by the Phase 2 frontend work.
+
+### Browser QA Matrix outcomes
+
+Every scenario was driven through Chrome via the DevTools MCP
+against the running stack (backend `http://127.0.0.1:8000`, frontend
+`http://localhost:5173`). Per R18.5 each PASS / PARTIAL outcome
+below traces back to a per-scenario results file under
+`.kiro/specs/phase-2-frontend-workbench/screenshots/`.
+
+| Group | Scenario | Result | Screenshot | Per-scenario results |
+|---|---|---|---|---|
+| Equal-Spacing | PHASE2-EQ-01 happy path | PASS | `phase2-eq-01-happy.png` | `phase2-eq-results.md` |
+| Equal-Spacing | PHASE2-EQ-02 ineligible (frontend gate) | PASS | `phase2-eq-02-ineligible.png` | `phase2-eq-results.md` |
+| Equal-Spacing | PHASE2-EQ-03 Stirling needs centered count | PASS | `phase2-eq-03-stirling-even.png` | `phase2-eq-results.md` |
+| Hermite | PHASE2-HERMITE-01 happy path | PASS | `phase2-hermite-01-happy.png` | `phase2-hermite-results.md` |
+| Hermite | PHASE2-HERMITE-02 missing derivative | PASS | `phase2-hermite-02-missing-derivative.png` | `phase2-hermite-results.md` |
+| Hermite | PHASE2-HERMITE-03 basis form omitted | PASS | `phase2-hermite-03-basis-omitted.png` | `phase2-hermite-results.md` |
+| Taylor | PHASE2-TAYLOR-01 happy path | PASS | `phase2-taylor-01-happy.png` | `phase2-taylor-results.md` |
+| Taylor | PHASE2-TAYLOR-02 unsupported function | PASS | `phase2-taylor-02-unsupported.png` | `phase2-taylor-results.md` |
+| Cubic Spline | PHASE2-SPLINE-01 happy path with graph | PASS | `phase2-spline-01-happy.png` | `phase2-spline-results.md` |
+| Cubic Spline | PHASE2-SPLINE-02 unsupported boundary | PARTIAL | `phase2-spline-02-unsupported-boundary.png` | `phase2-spline-results.md` |
+| Deferred | PHASE2-OSCULATING-01 deferred + sibling | PASS | `phase2-osculating-01-deferred.png`, `phase2-osculating-01-with-sibling.png` | `phase2-osculating-results.md` |
+| V1 / V1+ regressions | PHASE2-V1-01..04 | PASS | `phase2-v1-01-linear-lagrange.png`, `phase2-v1-02-one-over-x.png`, `phase2-v1-03-neville.png`, `phase2-v1-04-newton-dd.png` | `phase2-v1-results.md` |
+| Mobile | PHASE2-MOBILE-01 320px overflow | PASS | `phase2-mobile-01-320px.png`, `phase2-mobile-01-320px-hermite.png` | `phase2-mobile-results.md` |
+
+For PHASE2-SPLINE-01 the rendered Graph card source-method Badge text
+is `Cubic_spline` and the underlying `graph_data.source_method` value
+is the literal `"cubic_spline"`, satisfying R9.4 / R17.5.
+
+### Open caveats
+
+- **TAYLOR-02 trigger.** `sqrt(x)` is whitelist-safe but its
+  derivative at `center = 0` is `zoo` (complex infinity), which is
+  the documented `unsupported_taylor_function` path the renderer
+  exercises. A truly unsafe expression like `gamma(x)` would be
+  rejected earlier by the parser whitelist with the different
+  documented `unsafe_expression` code.
+- **SPLINE-02 PARTIAL.** Driven through a direct in-page
+  `fetch("/api/interpolate", ...)` from the DevTools console because
+  locked decision #5 keeps the boundary-condition `<select>`
+  non-natural options as `disabled` placeholders, so the UI cannot
+  send a non-natural value. The renderer's inline `ErrorNotice` for
+  `unsupported_boundary_condition` is covered by
+  `frontend/src/components/results/methods/CubicSplineDetails.test.tsx`.
+- **MOBILE-01 viewport tooling.** The 320×800 viewport was achieved
+  via `mcp_chrome_devtools_emulate` with
+  `viewport: "320x800x1,mobile,touch"` rather than `resize_page`,
+  which clamps the outer browser window only. DOM assertions and the
+  offender walk were both captured under that emulation.
+- **HERMITE-01 example selection.** The `design.md` §13 row lists
+  methods `["hermite_divided_difference", "hermite"]` but the loaded
+  "Hermite Divided Difference (Bessel-style)" example only selects
+  `hermite_divided_difference`. The Hermite (basis-form) panel is
+  exercised separately by HERMITE-03. The renderer fields required
+  by the design are all present and read directly from the backend
+  payload.
+
+### Reference
+
+- Spec directory:
+  `.kiro/specs/phase-2-frontend-workbench/` —
+  `requirements.md`, `design.md`, `tasks.md`, `.config.kiro`.
+- Screenshots and per-scenario results:
+  `.kiro/specs/phase-2-frontend-workbench/screenshots/`.
+- Cross-link: `docs/HANDOFF.md` "Session: Phase 2 Frontend Workbench
+  (2026-05-26)" carries the full file-by-file change list, command
+  exit codes, and honest deviations.

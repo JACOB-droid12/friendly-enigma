@@ -6,6 +6,17 @@ import { AlertTriangle } from "lucide-react"
 import { useMemo, useState } from "react"
 import type { InterpolateResponse, MethodName } from "@/lib/api-types"
 import { useDisplayDigits } from "@/lib/display-digits"
+// Phase 2 family renderers (locked decision 1 in tasks.md): each Phase 2
+// panel delegates to its per-family renderer under
+// `frontend/src/components/results/methods/`. The V1 inline renderers
+// (`LagrangeDetails`, `NewtonDetails`, `BarycentricDetails`,
+// `NevilleDetails`) intentionally stay inline below — locked decision 1
+// only governs the Phase 2 family files.
+import EqualSpacingDetails from "./methods/EqualSpacingDetails"
+import HermiteDetails from "./methods/HermiteDetails"
+import TaylorDetails from "./methods/TaylorDetails"
+import CubicSplineDetails from "./methods/CubicSplineDetails"
+import DeferredMethodDetails from "./methods/DeferredMethodDetails"
 
 /**
  * Pick the default tab for `MethodDetails`. Prefers Classroom-Facing Methods
@@ -99,6 +110,74 @@ export function MethodDetails({ data }: MethodDetailsProps) {
           {data.methods.neville && (
             <TabsContent value="neville" className="mt-4">
               <NevilleDetails result={data.methods.neville} />
+            </TabsContent>
+          )}
+
+          {/*
+           * Phase 2 panels (additive per design.md §4 / tasks.md 4.6).
+           * Each panel mounts only when the backend returned a result
+           * for that key; `availableMethods` already filters tabs the
+           * same way, so triggers and panels stay in lockstep. A
+           * method-level error inside any of these renderers is
+           * handled by the family renderer itself (R6.5, R10.4 —
+           * sibling methods stay visible and operational).
+           */}
+          {data.methods.newton_forward && (
+            <TabsContent value="newton_forward" className="mt-4">
+              <EqualSpacingDetails
+                method="newton_forward"
+                result={data.methods.newton_forward}
+              />
+            </TabsContent>
+          )}
+          {data.methods.newton_backward && (
+            <TabsContent value="newton_backward" className="mt-4">
+              <EqualSpacingDetails
+                method="newton_backward"
+                result={data.methods.newton_backward}
+              />
+            </TabsContent>
+          )}
+          {data.methods.stirling && (
+            <TabsContent value="stirling" className="mt-4">
+              <EqualSpacingDetails
+                method="stirling"
+                result={data.methods.stirling}
+              />
+            </TabsContent>
+          )}
+          {data.methods.hermite_divided_difference && (
+            <TabsContent value="hermite_divided_difference" className="mt-4">
+              <HermiteDetails
+                method="hermite_divided_difference"
+                result={data.methods.hermite_divided_difference}
+              />
+            </TabsContent>
+          )}
+          {data.methods.hermite && (
+            <TabsContent value="hermite" className="mt-4">
+              <HermiteDetails method="hermite" result={data.methods.hermite} />
+            </TabsContent>
+          )}
+          {data.methods.osculating && (
+            <TabsContent value="osculating" className="mt-4">
+              <DeferredMethodDetails
+                method="osculating"
+                result={data.methods.osculating}
+              />
+            </TabsContent>
+          )}
+          {data.methods.taylor && (
+            <TabsContent value="taylor" className="mt-4">
+              <TaylorDetails result={data.methods.taylor} />
+            </TabsContent>
+          )}
+          {data.methods.cubic_spline && (
+            <TabsContent value="cubic_spline" className="mt-4">
+              <CubicSplineDetails
+                result={data.methods.cubic_spline}
+                polynomial={data.polynomial}
+              />
             </TabsContent>
           )}
         </Tabs>

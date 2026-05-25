@@ -56,16 +56,41 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
    *   is safe and additionally filters near-zero coefficients (high-
    *   precision floating-point noise such as `2.78e-49 x^9`).
    *
-   * - "factored", "lagrange", "newton": the grammar is NOT a top-level
-   *   sum (parenthesised sub-expressions, embedded basis polynomials,
-   *   nested-form Horner). Use `formatLiterals` which only rounds numeric
-   *   literals in place and never drops or merges tokens. The backend
-   *   remains the source of truth for structure.
+   * - "factored", "lagrange", "newton", "hermite", "taylor": the grammar
+   *   is NOT a top-level sum (parenthesised sub-expressions, embedded
+   *   basis polynomials, nested-form Horner, derivative-matched terms).
+   *   Use `formatLiterals` which only rounds numeric literals in place
+   *   and never drops or merges tokens. The backend remains the source
+   *   of truth for structure.
    */
   const expandedFormatted = formatPoly(polynomial.expanded)
   const factoredText = formatLiterals(polynomial.factored)
   const lagrangeText = formatLiterals(polynomial.lagrange_form)
   const newtonText = formatLiterals(polynomial.newton_form)
+  const hermiteText = formatLiterals(polynomial.hermite_form)
+  const taylorText = formatLiterals(polynomial.taylor_form)
+
+  // Phase 2 (R2.4 / R7.2 / R8.1): conditional Hermite and Taylor tabs.
+  const showHermite = polynomial.hermite_form != null
+  const showTaylor = polynomial.taylor_form != null
+
+  // Phase 2 (R9.3): when the backend reports the response is a piecewise
+  // spline with no global polynomial, the Expanded tab content becomes a
+  // body-voice notice and the Factored tab is hidden because there is
+  // nothing to factor.
+  const isPiecewiseNoGlobal =
+    polynomial.expanded_omitted_reason === "piecewise_method_no_global_polynomial"
+  const showFactored = !isPiecewiseNoGlobal
+
+  // Guard: if the active tab disappears (e.g. user had Factored selected
+  // and a new piecewise response arrives), fall back to a visible tab via
+  // a derived value rather than mutating state inside an effect.
+  const visibleTab =
+    (tab === "factored" && !showFactored) ||
+    (tab === "hermite" && !showHermite) ||
+    (tab === "taylor" && !showTaylor)
+      ? "expanded"
+      : tab
 
   return (
     <div className="rounded-xl border bg-card overflow-hidden">
@@ -83,29 +108,48 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
           </Alert>
         )}
 
-        <Tabs value={tab} onValueChange={setTab}>
+        <Tabs value={visibleTab} onValueChange={setTab}>
           <TabsList className="h-8">
             <TabsTrigger value="expanded" className="text-xs">Expanded</TabsTrigger>
-            <TabsTrigger value="factored" className="text-xs">Factored</TabsTrigger>
+            {showFactored && (
+              <TabsTrigger value="factored" className="text-xs">Factored</TabsTrigger>
+            )}
             <TabsTrigger value="lagrange" className="text-xs">Lagrange</TabsTrigger>
             <TabsTrigger value="newton" className="text-xs">Newton</TabsTrigger>
+            {showHermite && (
+              <TabsTrigger value="hermite" className="text-xs">Hermite</TabsTrigger>
+            )}
+            {showTaylor && (
+              <TabsTrigger value="taylor" className="text-xs">Taylor</TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="expanded" className="space-y-3 mt-4">
-            <div className="bg-muted/30 rounded-lg p-4">
-              <KatexDisplay latex={polynomial.latex_expanded} plainText={expandedFormatted.text} />
-            </div>
-            {expandedFormatted.hiddenCount > 0 && (
-              <p className="text-[11px] text-muted-foreground italic">
-                {expandedFormatted.hiddenCount} near-zero {expandedFormatted.hiddenCount === 1 ? "term" : "terms"} hidden at {digits === "full" ? "current" : `${digits} digits`} (likely floating-point noise). Switch to Full to see all terms.
+            {isPiecewiseNoGlobal ? (
+              <p className="text-sm text-muted-foreground">
+                Cubic spline is piecewise; no single global polynomial. See the
+                Methods tab for the segment list.
               </p>
+            ) : (
+              <>
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <KatexDisplay latex={polynomial.latex_expanded} plainText={expandedFormatted.text} />
+                </div>
+                {expandedFormatted.hiddenCount > 0 && (
+                  <p className="text-[11px] text-muted-foreground italic">
+                    {expandedFormatted.hiddenCount} near-zero {expandedFormatted.hiddenCount === 1 ? "term" : "terms"} hidden at {digits === "full" ? "current" : `${digits} digits`} (likely floating-point noise). Switch to Full to see all terms.
+                  </p>
+                )}
+                <CopyableFormula text={expandedFormatted.text} copyAriaLabel="Copy expanded polynomial" />
+              </>
             )}
-            <CopyableFormula text={expandedFormatted.text} copyAriaLabel="Copy expanded polynomial" />
           </TabsContent>
 
-          <TabsContent value="factored" className="space-y-3 mt-4">
-            <CopyableFormula text={factoredText || polynomial.factored} copyAriaLabel="Copy factored polynomial" />
-          </TabsContent>
+          {showFactored && (
+            <TabsContent value="factored" className="space-y-3 mt-4">
+              <CopyableFormula text={factoredText || polynomial.factored} copyAriaLabel="Copy factored polynomial" />
+            </TabsContent>
+          )}
 
           <TabsContent value="lagrange" className="space-y-3 mt-4">
             <div className="bg-muted/30 rounded-lg p-4">
@@ -120,6 +164,34 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
             </div>
             <CopyableFormula text={newtonText || polynomial.newton_form} copyAriaLabel="Copy Newton nested form" />
           </TabsContent>
+
+          {showHermite && (
+            <TabsContent value="hermite" className="space-y-3 mt-4">
+              <CopyableFormula
+                text={hermiteText || polynomial.hermite_form}
+                copyAriaLabel="Copy Hermite form"
+              />
+              {polynomial.latex_hermite != null && (
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <KatexDisplay latex={polynomial.latex_hermite} plainText={hermiteText} />
+                </div>
+              )}
+            </TabsContent>
+          )}
+
+          {showTaylor && (
+            <TabsContent value="taylor" className="space-y-3 mt-4">
+              <CopyableFormula
+                text={taylorText || polynomial.taylor_form}
+                copyAriaLabel="Copy Taylor form"
+              />
+              {polynomial.latex_taylor != null && (
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <KatexDisplay latex={polynomial.latex_taylor} plainText={taylorText} />
+                </div>
+              )}
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>

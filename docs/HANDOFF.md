@@ -1531,3 +1531,271 @@ The polish pass is now visually verified. Stage the seven modified frontend file
 ### Honesty Clause
 
 Every command in the Verification Re-run above was actually executed and observed in this session; exit codes are copied verbatim. Every Live Visual Check scenario was actually driven through the Chrome DevTools MCP against the running dev server and backend; no scenario is claimed to have passed without direct observation. The 320 px page-level overflow was directly observed before the fix (`scrollWidth=397, clientWidth=320`) and directly observed to be absent after the fix (`scrollWidth=320, clientWidth=320`).
+
+
+---
+
+## Session: Phase 2 Frontend Workbench (2026-05-26)
+
+### Scope
+
+Implemented the Phase 2 Frontend Workbench feature spec at
+`.kiro/specs/phase-2-frontend-workbench/` (R1–R18). The spec extends
+the existing React workbench under `frontend/src/` so it can drive
+every Phase 2 lecture method the Codex-owned backend already ships
+under the stable `POST /api/interpolate` endpoint:
+
+- Equal-Spacing Family — `newton_forward`, `newton_backward`,
+  `stirling`.
+- Derivative-Data Family — `hermite_divided_difference`, `hermite`,
+  and the deferred `osculating` (rendered from its
+  `method_not_implemented` response).
+- Function-Derivative Family — `taylor`.
+- Piecewise Family — natural `cubic_spline`.
+
+No file under `backend/` was modified. No new endpoint paths were
+introduced. No fields were added to the documented contract in
+`docs/API_CONTRACT.md` (R1.1, R1.2, R1.3, R18.4 — `API_CONTRACT.md`
+is owned by Codex and was not edited by Claude Opus in this session).
+
+### Files Modified or Created (under `frontend/src/`)
+
+Enumerated from `git status --short` plus
+`git ls-files --others --exclude-standard frontend/src/components/results/methods/`
+on 2026-05-26. Total: **32 files** under `frontend/src/` —
+**13 modified** + **19 newly created**.
+
+#### API types and helpers (3 files)
+
+| Path | Status | Purpose |
+|---|---|---|
+| `frontend/src/lib/api-types.ts` | modified | Extended `MethodName` union with eight Phase 2 literals; added `InterpolateRequest.method_options` and `InterpolateRequest.derivatives`; added the eight Phase 2 method response interfaces; extended `PolynomialData` with `hermite_form`, `taylor_form`, `latex_hermite`, `latex_taylor`, and `expanded_omitted_reason`; widened `InterpolateResponse.methods` so the eight Phase 2 keys are optional. Collection fields (`forward_difference_table`, `evaluations`, `steps`, etc.) were marked optional after browser QA revealed the live wire format omits them on method-level `status: "error"` responses. |
+| `frontend/src/lib/warnings.ts` | modified | Added Phase 2 entries to `CATALOG` (display label + severity) for `unequal_spacing`, `stirling_requires_centered_nodes`, `target_not_recommended_for_method`, `missing_derivative_data`, `invalid_derivative_order`, `unsupported_taylor_function`, `unsupported_boundary_condition`, `piecewise_method_no_global_polynomial`, and `method_not_implemented`. |
+| `frontend/src/lib/equal-spacing.ts` | new | Frontend-only equal-spacing eligibility helper. Used by `EqualSpacingHint.tsx` for the hint copy and by `App.tsx` `isFormBlocked` for the Compute gate (R4.5 / R5.2). |
+
+#### App orchestration (2 files)
+
+| Path | Status | Purpose |
+|---|---|---|
+| `frontend/src/App.tsx` | modified | Extended `FormState` and `DEFAULT_FORM` with the new optional fields (derivatives table, Taylor `center` / `order`, spline `boundary_condition`). Extended `buildMethodOptions` and `buildDerivatives` to attach `method_options` and `derivatives` only when relevant methods are selected (R3.4). Extended `isFormBlocked` to also block Compute when an Equal-Spacing Family method is selected on ineligible nodes per R4.5 / R5.2. |
+| `frontend/src/App.examples.test.tsx` | modified | Added Vitest coverage for the new Phase 2 example seeds and Compute gate behavior. |
+
+#### Form / Input components (5 files)
+
+| Path | Status | Purpose |
+|---|---|---|
+| `frontend/src/components/InputPanel.tsx` | modified | Added the "Method Configuration" card that renders adaptive method-aware blocks only when a Phase 2 method needing them is selected (R5.1, R5.7). |
+| `frontend/src/components/InputPanel.MethodConfig.test.tsx` | new | Vitest coverage for the conditional rendering and ARIA wiring of the Method Configuration card. |
+| `frontend/src/components/EqualSpacingHint.tsx` | new | Frontend-only eligibility hint summarizing whether the user-entered x-values appear equally spaced. Reads `frontend/src/lib/equal-spacing.ts`. |
+| `frontend/src/components/DerivativeInputTable.tsx` | new | Method-aware control bound to the user-entered nodes for entering `f'(x_i)` per node. String inputs at the API boundary (R1.4); `order` fixed at 1 for current Hermite support. |
+| `frontend/src/components/TaylorConfigBlock.tsx` | new | Method-aware control for Taylor: `center` string + `order` integer 0..20. |
+| `frontend/src/components/CubicSplineConfigBlock.tsx` | new | Method-aware control for natural cubic spline: `boundary_condition` selector with only `natural` enabled (other options shown disabled with a future-support tooltip per locked decision #5). |
+
+#### Method Selector (3 files)
+
+| Path | Status | Purpose |
+|---|---|---|
+| `frontend/src/components/MethodSelector.tsx` | modified | Refactored from the flat `ALL_METHODS` array to a family-grouped catalog renderer. Adds eligibility-hint copy, the `Deferred` badge for `osculating`, and the family group headers. Preserves the existing typography voice and palette (R13). |
+| `frontend/src/components/MethodSelector.catalog.ts` | new | Single source-of-truth catalog (4 V1 + 8 Phase 2 method literals, family groupings, role tags, eligibility hints, deferred notes). |
+| `frontend/src/components/MethodSelector.test.tsx` | new | Vitest coverage for family grouping, deferred badge, and selection wiring. |
+
+#### Result renderers (12 files)
+
+| Path | Status | Purpose |
+|---|---|---|
+| `frontend/src/components/results/MethodDetails.tsx` | modified | Refactored as a thin tab dispatcher. Each Phase 2 method tab delegates to a family-specific renderer (V1 panels untouched). |
+| `frontend/src/components/results/methods/EqualSpacingDetails.tsx` | new | Renderer for `newton_forward`, `newton_backward`, and `stirling` (forward/backward/centered difference tables, target guidance, per-evaluation `s` and `terms`). |
+| `frontend/src/components/results/methods/EqualSpacingDetails.test.tsx` | new | Vitest coverage. |
+| `frontend/src/components/results/methods/HermiteDetails.tsx` | new | Renderer for `hermite_divided_difference` and `hermite` (repeated nodes, divided-difference table, coefficients, nested form, expanded form, LaTeX, basis form included/omitted). |
+| `frontend/src/components/results/methods/HermiteDetails.test.tsx` | new | Vitest coverage including the `basis_form.status === "omitted"` branch. |
+| `frontend/src/components/results/methods/TaylorDetails.tsx` | new | Renderer for `taylor` (center, order, series_name with Maclaurin label, term list, taylor_form, latex_taylor, evaluations, remainder note). |
+| `frontend/src/components/results/methods/TaylorDetails.test.tsx` | new | Vitest coverage. |
+| `frontend/src/components/results/methods/CubicSplineDetails.tsx` | new | Renderer for `cubic_spline` (boundary_condition, ordered_nodes, second_derivatives, segments, continuity_checks, evaluations). Surfaces the piecewise notice when `polynomial.expanded_omitted_reason === "piecewise_method_no_global_polynomial"`. |
+| `frontend/src/components/results/methods/CubicSplineDetails.test.tsx` | new | Vitest coverage including the `unsupported_boundary_condition` inline error path (this test covers the renderer error-path that PHASE2-SPLINE-02 cannot exercise through the UI per locked decision #5). |
+| `frontend/src/components/results/methods/CubicSplineGraphPassthrough.test.tsx` | new | Vitest coverage that `GraphCard` surfaces `graph_data.source_method === "cubic_spline"` correctly (R9.4). |
+| `frontend/src/components/results/methods/DeferredMethodDetails.tsx` | new | Renderer for any method-level `method_not_implemented` response. Used for `osculating`. |
+| `frontend/src/components/results/methods/DeferredMethodDetails.test.tsx` | new | Vitest coverage. |
+| `frontend/src/components/results/PolynomialCard.tsx` | modified | Added Hermite and Taylor polynomial-form tabs. Surfaces the piecewise notice when `expanded_omitted_reason === "piecewise_method_no_global_polynomial"`. Replaced a setState-in-effect tab-pruning pattern with a `useMemo`-derived `visibleTab` to satisfy the `react-hooks` ESLint rule. |
+| `frontend/src/components/results/SummaryCard.tsx` | modified | Grouped methods by family in the methods row (R11.3). Preserves the Barycentric "Stable Evaluator" tag voice and Neville "Target-Specific" tag voice (R12.1, R13). |
+| `frontend/src/components/results/GuidedExplanation.tsx` | modified | Added a `MethodBlock` per implemented Phase 2 method with lecture-aligned defense copy plus a "Deferred methods" block when `osculating` is present (R11.1). |
+| `frontend/src/components/results/ResultQualityGuide.tsx` | modified | Added `WARNING_GUIDANCE` rows for the Phase 2 codes named in R11.2. |
+
+#### Examples and fixtures (2 files)
+
+| Path | Status | Purpose |
+|---|---|---|
+| `frontend/src/components/ExamplesPanel.tsx` | modified | Added Phase 2 lecture examples (at least one per implemented Phase 2 method plus a deferred-labelled `osculating` entry, R11.4 / R11.5). The three Equal-Spacing examples were switched to `exact: true` after browser QA revealed `exact: false` (mpmath mode) makes the backend return `unequal_spacing` errors for genuinely equal nodes due to float representation. |
+| `frontend/src/test/interpolate-response.fixtures.ts` | modified | Added one fixture per Phase 2 method response plus the four error-path fixtures (`unequalSpacingErrorResponse`, `hermiteMissingDerivativeErrorResponse`, `taylorUnsupportedFunctionResponse`, `splineUnsupportedBoundaryResponse`). The four error fixtures were trimmed during browser QA to match the live wire shape (collection fields omitted on method-level error). |
+
+### Verification Commands (G1, G2, G3)
+
+Ran from `frontend/` (working directory) using PowerShell on
+Windows. Each command was actually executed and observed; exit
+codes are copied verbatim per R18.5.
+
+| Group | Command | Working directory | Exit code | Outcome |
+|---|---|---|---|---|
+| G1 | `npm run build` | `frontend/` | `0` | TypeScript build + Vite production build completed. |
+| G2 | `npm run lint` | `frontend/` | `0` | ESLint completed with zero errors. The earlier `react-hooks/exhaustive-deps` setState-in-effect warning in `PolynomialCard.tsx` was fixed by replacing the pattern with a `useMemo`-derived `visibleTab`. |
+| G3 | `npm test` | `frontend/` | `0` | All **57 / 57** Vitest tests passed across the V1 suite + the new Phase 2 family renderer tests + the Method Selector / Method Configuration / examples tests. Ten test fixes were applied to align the existing test fixtures with the post-Phase-2 type widening; no production code was relaxed to make tests pass. |
+
+### Browser QA Matrix (G4 – G10)
+
+Driven through Chrome via the DevTools MCP against the running
+stack: backend `http://127.0.0.1:8000` (uvicorn, terminalId 4),
+frontend `http://localhost:5173` (Vite dev, terminalId 3). Every
+scenario was actually executed and observed in the browser; the
+per-task results files in
+`.kiro/specs/phase-2-frontend-workbench/screenshots/` are the
+ground truth this matrix is summarized from. Per R18.5, no
+scenario is marked PASS unless it was directly observed.
+
+| Group | Scenario | Result | Screenshot | Notes |
+|---|---|---|---|---|
+| G4 | PHASE2-EQ-01 — Equal-Spacing happy path | PASS | `screenshots/phase2-eq-01-happy.png` | Loaded "Newton Forward (cos x at 1.0…2.2)" example with all three Equal-Spacing methods, Compute returned `status: "ok"`. |
+| G4 | PHASE2-EQ-02 — Equal-Spacing ineligible (frontend gate) | PASS | `screenshots/phase2-eq-02-ineligible.png` | Compute button `disabled` + `aria-disabled="true"` + frontend gate `title` text. No `POST /api/interpolate` was issued. |
+| G4 | PHASE2-EQ-03 — Stirling needs centered count | PASS | `screenshots/phase2-eq-03-stirling-even.png` | Six equally-spaced nodes (even count). Backend returned method-level `stirling_requires_centered_nodes`; renderer surfaced the inline `ErrorNotice`. |
+| G5 | PHASE2-HERMITE-01 — Hermite happy path | PASS | `screenshots/phase2-hermite-01-happy.png` | Bessel-style 3-node example. Repeated nodes, divided-difference table, coefficients, nested form, expanded, LaTeX, and steps all rendered from the live response. |
+| G5 | PHASE2-HERMITE-02 — Hermite missing derivative | PASS | `screenshots/phase2-hermite-02-missing-derivative.png` | Cleared `f'(x_1)`. Backend returned `methods.hermite_divided_difference.error.code: "missing_derivative_data"`; renderer surfaced the inline `ErrorNotice` (severity `error`). |
+| G5 | PHASE2-HERMITE-03 — Hermite basis form omitted | PASS | `screenshots/phase2-hermite-03-basis-omitted.png` | Six cos(x) nodes (exceeds backend `MAX_BASIS_NODE_COUNT = 5`). Backend returned `methods.hermite.basis_form.status: "omitted"` with the `expanded_polynomial_omitted` warning carrying `details.artifact === "hermite_basis_form"`. |
+| G6 | PHASE2-TAYLOR-01 — Taylor happy path | PASS | `screenshots/phase2-taylor-01-happy.png` | `cos(x)` at `center = 0`, `order = 3`. Term table (orders 0–3), `taylor_form`, `latex_taylor`, evaluation chip `P(1/2) = 7/8`, and remainder note all rendered from the live response. |
+| G6 | PHASE2-TAYLOR-02 — Taylor unsupported function | PASS | `screenshots/phase2-taylor-02-unsupported.png` | Trigger was `sqrt(x)` at `center = 0`. Backend returned `unsupported_taylor_function` with `details.value: "zoo"`; renderer surfaced the inline `ErrorNotice`. **Honest deviation:** design.md §13 phrases this as "unsafe or unsupported function expression"; a truly unsafe expression like `gamma(x)` would be rejected earlier by the parser whitelist with the different `unsafe_expression` code. `sqrt(x)` parses cleanly through the whitelist but its derivative at the chosen Taylor center is `zoo` (complex infinity), which is the documented `unsupported_taylor_function` path. |
+| G7 | PHASE2-SPLINE-01 — Cubic spline happy path | PASS | `screenshots/phase2-spline-01-happy.png` | Lecture three-point example, `boundary_condition: "natural"`, `evaluation_x = ["5/2"]`, `graph: true`, `exact: true`. Boundary-condition badge, ordered nodes, second-derivative chips, segments table, continuity checks, evaluation chip `P(5/2) = 125/32 (segment 1)`, and the piecewise notice all rendered. **`graph_data.source_method` observed: `"cubic_spline"`** (R9.4 / R17.5). |
+| G7 | PHASE2-SPLINE-02 — Cubic spline unsupported boundary | PARTIAL | `screenshots/phase2-spline-02-unsupported-boundary.png` | The network expectation and backend error contract are exercised end-to-end: `methods.cubic_spline.error.code: "unsupported_boundary_condition"`, `error.details: { boundary_condition: "clamped", supported: ["natural"] }`. **Honest deviation:** the request was driven via a direct in-page `fetch("/api/interpolate", ...)` from the DevTools console because locked decision #5 keeps the boundary-condition `<select>` non-natural options as `disabled` `<option>` placeholders, so the UI cannot send a non-natural value (design.md §13 row PHASE2-SPLINE-02 explicitly notes this fallback). The renderer's `unsupported_boundary_condition` error branch is covered by `frontend/src/components/results/methods/CubicSplineDetails.test.tsx`. |
+| G8 | PHASE2-OSCULATING-01 — Deferred Osculating | PASS | `screenshots/phase2-osculating-01-deferred.png`, `screenshots/phase2-osculating-01-with-sibling.png` | Two passes. Pass A: `osculating` alone — backend returned `method_not_implemented`; renderer surfaced the `Deferred` badge, the `ErrorNotice`, and the lecture-aware copy. Pass B: `osculating` alongside `hermite_divided_difference` — sibling renderer rendered the full happy-path output (R10.4). |
+| G9 | PHASE2-V1-01 — V1 Linear Lagrange regression | PASS | `screenshots/phase2-v1-01-linear-lagrange.png` | Lagrange basis polynomials, summation form, expanded `6 - x`, LaTeX, and steps all rendered. SummaryCard family grouping preserved. |
+| G9 | PHASE2-V1-02 — V1+ `1/x` regression (function-backed) | PASS | `screenshots/phase2-v1-02-one-over-x.png` | `f(x) = 1/x` at `2, 2.75, 4`. `POST /api/validate-function` returned 200 (debounced); compute returned `P(3) = 29/88`, `f(3) = 1/3`, `\|error\| = 1/264`. |
+| G9 | PHASE2-V1-03 — V1+ Neville Table regression | PASS | `screenshots/phase2-v1-03-neville.png` | Triangular Neville table for `x = 1.5` with all five `P0..P4` columns. SummaryCard family grouping shows CONSTRUCTION → Lagrange + Newton, TARGET-SPECIFIC → Neville. |
+| G9 | PHASE2-V1-04 — V1+ Newton Divided Difference regression | PASS | `screenshots/phase2-v1-04-newton-dd.png` | Divided-difference table, coefficients, nested form, expanded, LaTeX, and steps all rendered. |
+| G10 | PHASE2-MOBILE-01 — 320px viewport overflow check | PASS | `screenshots/phase2-mobile-01-320px.png`, `screenshots/phase2-mobile-01-320px-hermite.png` | Two stress states verified: cubic-spline result on the Methods tab (segments table) and Hermite divided-difference result on the Methods tab (6×6 DD table + long expanded LaTeX). DOM assertion `document.documentElement.scrollWidth <= document.documentElement.clientWidth` returned `true` in both states (`scrollWidth: 320, clientWidth: 320`). The offender walk returned an empty array. **Honest deviation:** `mcp_chrome_devtools_resize_page` clamps the outer browser window rather than the page viewport; the actual 320px viewport was achieved via `mcp_chrome_devtools_emulate` with `viewport: "320x800x1,mobile,touch"`. All 320px assertions above were captured under that emulation. |
+
+### Network URL set observed across G4 – G10
+
+Within the R1.2 allow-list of `{ /health, /api/interpolate,
+/api/validate-function }`:
+
+- `GET http://localhost:5173/health` (proxied to backend by Vite per
+  `frontend/vite.config.ts`).
+- `POST http://localhost:5173/api/interpolate` (every Compute and
+  the SPLINE-02 direct fetch).
+- `POST http://localhost:5173/api/validate-function` (debounced
+  function validation in V1-02 and TAYLOR-01 / TAYLOR-02).
+
+R1.2 only forbids paths outside the allow-list; it does not require
+all three to be hit. No other backend paths were called.
+
+### Critical bug fixes during browser QA
+
+These bugs were discovered during the live browser walk-through and
+fixed in the same session. Each fix is reflected in the file table
+above.
+
+1. **Equal-Spacing example exact-mode bug.** The three Phase 2
+   Equal-Spacing examples in `ExamplesPanel.tsx` originally seeded
+   `exact: false` (mpmath mode), which made the backend return
+   `unequal_spacing` errors for genuinely equal nodes due to float
+   representation. Fix: switched all three to `exact: true`.
+2. **Method renderer error-path crash.** `EqualSpacingDetails.tsx`,
+   `HermiteDetails.tsx`, `TaylorDetails.tsx`, and
+   `CubicSplineDetails.tsx` crashed with `Cannot read properties of
+   undefined (reading 'map')` when the backend returned a
+   method-level error (`status: "error"`) because the live wire
+   format omits collection fields (`forward_difference_table`,
+   `evaluations`, `steps`, etc.) on error rather than emitting empty
+   arrays. Fix: marked those collection fields optional (`?:`) on
+   the Phase 2 result interfaces in
+   `frontend/src/lib/api-types.ts`; added `?? []` / `?.` /
+   `!= null` guards in all four family renderers; slimmed the four
+   error fixtures (`unequalSpacingErrorResponse`,
+   `hermiteMissingDerivativeErrorResponse`,
+   `taylorUnsupportedFunctionResponse`,
+   `splineUnsupportedBoundaryResponse`) in
+   `frontend/src/test/interpolate-response.fixtures.ts` to match
+   the live wire shape.
+3. **Equal-Spacing `isFormBlocked` wiring.** A sub-agent reported
+   task 1.13 complete after only adding the `assessEqualSpacing`
+   import without wiring it into `isFormBlocked`. The orchestrator
+   detected the missing wiring and repaired it in `App.tsx` so the
+   Compute gate fires for ineligible Equal-Spacing inputs.
+4. **PolynomialCard setState-in-effect lint error.** `npm run lint`
+   reported a `react-hooks` rule violation on a setState-in-effect
+   tab-pruning pattern in `PolynomialCard.tsx`. Fix: replaced the
+   pattern with a `useMemo`-derived `visibleTab`.
+
+### Backend Boundary Statement
+
+`git status --short` (run from the repository root on 2026-05-26)
+showed **zero paths under `backend/`**. The only paths in the
+output were:
+
+- 13 modified + 19 new files under `frontend/src/`.
+- The new spec directory `.kiro/specs/phase-2-frontend-workbench/`
+  (untracked, includes `requirements.md`, `design.md`, `tasks.md`,
+  the screenshots directory, and the per-task results markdown
+  files).
+- Pre-existing dirty paths under `Lecture/` (modified
+  `DOCUMENTATION_CHANGELOG.md`, deleted PDF and JPG, untracked Word
+  lock file). These are unrelated to Phase 2 frontend work and were
+  recorded as pre-existing in earlier HANDOFF entries (2026-05-25).
+
+R1.1 is satisfied: no file under `backend/` was modified. R18.4 is
+satisfied: `docs/API_CONTRACT.md` was not edited.
+
+### Honest Caveats / Deviations
+
+Listed once for the matrix above; each is also recorded in the
+corresponding per-task results file under
+`.kiro/specs/phase-2-frontend-workbench/screenshots/`.
+
+- **TAYLOR-02 trigger.** `sqrt(x)` (whitelist-safe but its
+  derivative at `center = 0` is `zoo`) drives
+  `unsupported_taylor_function`, which is what the design and the
+  renderer test exercise. A truly unsafe expression like `gamma(x)`
+  would yield the different documented `unsafe_expression` code at
+  parser time.
+- **SPLINE-02 PARTIAL.** Driven through a direct in-page
+  `fetch("/api/interpolate", ...)` rather than the UI selector,
+  because locked decision #5 keeps the boundary-condition `<select>`
+  non-natural options as `disabled` placeholders. The renderer's
+  inline `ErrorNotice` for `unsupported_boundary_condition` is
+  covered by `CubicSplineDetails.test.tsx`.
+- **MOBILE-01 viewport tooling.** The 320×800 mobile viewport was
+  achieved via `mcp_chrome_devtools_emulate` (not `resize_page`,
+  which clamps the outer browser window only). The DOM assertions
+  and offender walk were both captured under that emulation.
+- **HERMITE-01 example selection.** The `design.md` §13 row lists
+  methods `["hermite_divided_difference", "hermite"]` but the
+  loaded "Hermite Divided Difference (Bessel-style)" example only
+  selects `hermite_divided_difference`. The Hermite (basis-form)
+  panel is exercised separately by HERMITE-03. The renderer fields
+  required by the design are all present and read directly from the
+  backend payload.
+
+### Reference
+
+- Spec: `.kiro/specs/phase-2-frontend-workbench/`
+  (`requirements.md`, `design.md`, `tasks.md`).
+- Screenshots and per-task results:
+  `.kiro/specs/phase-2-frontend-workbench/screenshots/` —
+  17 screenshots (G4–G10) plus 7 per-task results markdown files
+  (`phase2-eq-results.md`, `phase2-hermite-results.md`,
+  `phase2-taylor-results.md`, `phase2-spline-results.md`,
+  `phase2-osculating-results.md`, `phase2-v1-results.md`,
+  `phase2-mobile-results.md`).
+
+### Honesty Clause
+
+Every command in the Verification Commands table above (G1, G2,
+G3) was actually executed against the worktree from `frontend/`
+on 2026-05-26 and the recorded exit codes (`0`, `0`, `0`) were
+observed in this session. Every Browser QA scenario in the matrix
+above was actually driven through Chrome via the DevTools MCP
+against the running backend at `http://127.0.0.1:8000` and the
+running frontend dev server at `http://localhost:5173`; the
+per-scenario results files under
+`.kiro/specs/phase-2-frontend-workbench/screenshots/` are the
+ground truth and contain verbatim request bodies, response field
+extracts, and DOM observations. No PASS / PARTIAL outcome was
+claimed without a corresponding observation. No backend file was
+modified; `git status --short` from the repository root contains
+zero `backend/` paths.
