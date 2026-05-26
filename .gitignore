@@ -1,5 +1,7 @@
 .codex/
 .vercel/
+~$*.docx
+Lecture/~$*.docx
 __pycache__/
 *.py[cod]
 .pytest_cache/
