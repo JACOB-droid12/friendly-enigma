@@ -1,6 +1,43 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Post-audit preview deploy from committed release-train state (2026-05-26). Committed the Vercel preview plumbing, backend graph-data reliability fixes, numeric-mode tolerance hardening, repo hygiene cleanup, and documentation evidence. Pushed `codex/interpolation-backend-v1` and deployed a new Vercel preview from the pushed branch. Production was not promoted.
+
+Preview URL: `https://interpolation-workbench-bnuyc0i94-marvillarq20-3593s-projects.vercel.app`
+
+Deployment id: `dpl_9gUubAmn1UbbkF97WgZjFTGieaUW`
+
+Verification:
+
+| Command / Check | Result |
+|---|---|
+| `backend\.venv\Scripts\python.exe -m pytest` | PASS - 89 passed, 1 existing Pydantic deprecation warning. |
+| `backend\.venv\Scripts\python.exe -m ruff check .` | PASS - `All checks passed!`. |
+| `npm run lint` from `frontend/` | PASS. |
+| `npm run build` from `frontend/` | PASS - Vite chunk-size warning only. |
+| `npm test` from `frontend/` | PASS - 12 files / 57 tests. |
+| `git push -u origin codex/interpolation-backend-v1` | PASS - branch pushed and tracking `origin/codex/interpolation-backend-v1`. |
+| `npx vercel deploy --yes` | PASS - preview ready at `https://interpolation-workbench-bnuyc0i94-marvillarq20-3593s-projects.vercel.app`. |
+| `npx vercel curl /health --deployment https://interpolation-workbench-bnuyc0i94-marvillarq20-3593s-projects.vercel.app` | PASS - returned `{"status":"ok","service":"interpolation-backend","version":"0.1.0"}`. |
+| `npx vercel curl /api/validate-function ... {"function":"sin(x)"}` | PASS - returned status `ok`, normalized expression `sin(x)`, and allowed symbol `x`. |
+| Linear Lagrange `/api/interpolate` smoke | PASS - returned status `ok`, `best_P_x` at `x=3` as `3`, and graph data with `source_method` `barycentric`. |
+| Newton Forward cos(x) `/api/interpolate` smoke | PASS - returned status `ok`, method status `ok`, `best_method` `newton_forward`, and graph data with `source_method` `barycentric`. |
+
+Git commits created:
+
+- `1aa4d0d feat(deploy): add vercel preview plumbing`
+- `7848747 fix(graph): improve backend graph sampling reliability`
+- `6fceb9e fix(precision): tolerate numeric-mode residual comparisons`
+- `7df075e docs: record deploy and numeric reliability evidence`
+- `736c368 chore(repo): ignore local lock and vite log artifacts`
+
+Remaining notes:
+
+- `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md` remains intentionally untracked and was not staged.
+- `Lecture/~$cumentation.docx` was removed from Git tracking with `git rm --cached` and remains present locally; future Word lock files are ignored.
+- Preview remains a Vercel preview. Production promotion still requires explicit user approval.
+
+## Previous Current Task - Candidate A Numeric-Mode Tolerance Hardening
 Candidate A numeric-mode tolerance hardening (2026-05-26). Fixed numeric-mode false mismatches caused by exact symbolic zero checks on SymPy `Float(precision)` values in finite-difference equal-spacing, finite Newton method eligibility, cubic-spline continuity checks, and Hermite basis/divided-difference matching. Candidate B remains deferred.
 
 ## Previous Current Task - Vercel Graph Timeout Fix
