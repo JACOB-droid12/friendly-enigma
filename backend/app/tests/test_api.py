@@ -237,3 +237,101 @@ def test_interpolate_cubic_spline_method_contract() -> None:
     assert body["polynomial"]["expanded_omitted_reason"] == "piecewise_method_no_global_polynomial"
     assert body["graph_data"]["source_method"] == "cubic_spline"
     assert body["graph_data"]["P_x"]
+
+
+def _numeric_equal_spacing_payload(methods: list[str]) -> dict[str, object]:
+    return {
+        "mode": "x_values_with_function",
+        "x_values": ["1.0", "1.3", "1.6", "1.9", "2.2"],
+        "function": "cos(x)",
+        "methods": methods,
+        "evaluation_x": ["1.5"],
+        "precision": 50,
+        "exact": False,
+    }
+
+
+def _numeric_unequal_spacing_payload(methods: list[str]) -> dict[str, object]:
+    return {
+        "mode": "x_values_with_function",
+        "x_values": ["1.0", "1.3", "1.61", "1.9", "2.2"],
+        "function": "cos(x)",
+        "methods": methods,
+        "evaluation_x": ["1.5"],
+        "precision": 50,
+        "exact": False,
+    }
+
+
+def test_numeric_newton_forward_accepts_decimal_equal_spacing() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate", json=_numeric_equal_spacing_payload(["newton_forward"])
+    )
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["methods"]["newton_forward"]["status"] == "ok"
+    assert body["methods"]["newton_forward"]["error"] is None
+
+
+def test_numeric_newton_backward_accepts_decimal_equal_spacing() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate", json=_numeric_equal_spacing_payload(["newton_backward"])
+    )
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["methods"]["newton_backward"]["status"] == "ok"
+    assert body["methods"]["newton_backward"]["error"] is None
+
+
+def test_numeric_stirling_accepts_decimal_equal_spacing() -> None:
+    client = TestClient(app)
+
+    response = client.post("/api/interpolate", json=_numeric_equal_spacing_payload(["stirling"]))
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["methods"]["stirling"]["status"] == "ok"
+    assert body["methods"]["stirling"]["error"] is None
+
+
+def test_numeric_newton_forward_rejects_truly_unequal_spacing() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate", json=_numeric_unequal_spacing_payload(["newton_forward"])
+    )
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["methods"]["newton_forward"]["status"] == "error"
+    assert body["methods"]["newton_forward"]["error"]["code"] == "unequal_spacing"
+
+
+def test_numeric_newton_backward_rejects_truly_unequal_spacing() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate", json=_numeric_unequal_spacing_payload(["newton_backward"])
+    )
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["methods"]["newton_backward"]["status"] == "error"
+    assert body["methods"]["newton_backward"]["error"]["code"] == "unequal_spacing"
+
+
+def test_numeric_stirling_rejects_truly_unequal_spacing() -> None:
+    client = TestClient(app)
+
+    response = client.post("/api/interpolate", json=_numeric_unequal_spacing_payload(["stirling"]))
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["methods"]["stirling"]["status"] == "error"
+    assert body["methods"]["stirling"]["error"]["code"] == "unequal_spacing"

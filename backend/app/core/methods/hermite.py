@@ -8,7 +8,7 @@ from app.core.methods.repeated_nodes import (
     build_first_derivative_repeated_nodes,
 )
 from app.core.parser import X
-from app.core.precision import format_value, to_sympy
+from app.core.precision import format_value, to_sympy, values_close
 
 MAX_BASIS_NODE_COUNT = 5
 
@@ -32,13 +32,16 @@ def build_hermite(
     precision: int,
     evaluation_x: list[str],
     derivatives: list[DerivativeDatum],
+    exact: bool = True,
 ) -> dict[str, Any]:
     repeated = build_first_derivative_repeated_nodes(
         nodes, derivatives, precision=precision, method_name="hermite"
     )
     payload = _base_payload(nodes, repeated, precision=precision, evaluation_x=evaluation_x)
     warnings = list(payload["warnings"])
-    payload["basis_form"] = _basis_form(nodes, repeated, payload["polynomial"], precision=precision)
+    payload["basis_form"] = _basis_form(
+        nodes, repeated, payload["polynomial"], precision=precision, exact=exact
+    )
     if payload["basis_form"]["status"] == "omitted":
         warnings.append(
             {
@@ -122,6 +125,7 @@ def _basis_form(
     polynomial: sp.Expr,
     *,
     precision: int,
+    exact: bool = True,
 ) -> dict[str, Any]:
     if len(nodes) > MAX_BASIS_NODE_COUNT:
         return {
@@ -162,8 +166,25 @@ def _basis_form(
         "terms": terms,
         "expanded": str(expanded),
         "latex": sp.latex(expression),
-        "matches_divided_difference": sp.simplify(expanded - polynomial) == 0,
+        "matches_divided_difference": _polynomials_match(
+            expanded, polynomial, exact=exact, precision=precision
+        ),
     }
+
+
+def _polynomials_match(left: sp.Expr, right: sp.Expr, *, exact: bool, precision: int) -> bool:
+    difference = sp.expand(left - right)
+    if exact:
+        return sp.simplify(difference) == 0
+    coefficient_precision = max(8, precision - 1)
+    try:
+        polynomial = sp.Poly(difference, X)
+    except sp.PolynomialError:
+        return values_close(difference, 0, precision=coefficient_precision)
+    return all(
+        values_close(coefficient, 0, precision=coefficient_precision)
+        for coefficient in polynomial.coeffs()
+    )
 
 
 def _lagrange_basis(nodes: list[Node], index: int) -> sp.Expr:

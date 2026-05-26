@@ -4,6 +4,7 @@ from typing import Any
 import sympy as sp
 
 from app.core.domain import Node
+from app.core.precision import values_close
 
 
 @dataclass(slots=True)
@@ -13,7 +14,7 @@ class SpacingResult:
     spacings: list[sp.Expr]
 
 
-def equal_spacing(nodes: list[Node]) -> SpacingResult:
+def equal_spacing(nodes: list[Node], *, exact: bool = True, precision: int = 50) -> SpacingResult:
     sorted_nodes = sorted(nodes, key=lambda node: float(sp.N(node.x, 30)))
     spacings = [
         sp.simplify(sorted_nodes[index + 1].x - sorted_nodes[index].x)
@@ -22,7 +23,12 @@ def equal_spacing(nodes: list[Node]) -> SpacingResult:
     if not spacings:
         return SpacingResult(is_equal=False, h=None, spacings=[])
     first = spacings[0]
-    is_equal = all(sp.simplify(spacing - first) == 0 for spacing in spacings[1:])
+    if exact:
+        is_equal = all(sp.simplify(spacing - first) == 0 for spacing in spacings[1:])
+    else:
+        is_equal = all(
+            values_close(spacing, first, precision=precision) for spacing in spacings[1:]
+        )
     return SpacingResult(is_equal=is_equal, h=first if is_equal else None, spacings=spacings)
 
 

@@ -1,7 +1,9 @@
 import sympy as sp
 
 from app.core.domain import DerivativeDatum, Node
-from app.core.methods.hermite import build_hermite, build_hermite_divided_difference
+from app.core.methods.hermite import _basis_form, build_hermite, build_hermite_divided_difference
+from app.core.methods.repeated_nodes import build_first_derivative_repeated_nodes
+from app.core.precision import to_sympy
 
 
 def _lecture_nodes() -> list[Node]:
@@ -16,6 +18,24 @@ def _lecture_nodes() -> list[Node]:
     ]
 
 
+def _numeric_lecture_nodes() -> list[Node]:
+    data = [
+        ("1.3", "0.6200860"),
+        ("1.6", "0.4554022"),
+        ("1.9", "0.2818186"),
+    ]
+    return [
+        Node(
+            index=index,
+            x=to_sympy(x, exact=False, precision=50),
+            y=to_sympy(y, exact=False, precision=50),
+            x_text=x,
+            y_text=y,
+        )
+        for index, (x, y) in enumerate(data)
+    ]
+
+
 def _lecture_derivatives() -> list[DerivativeDatum]:
     data = [
         ("1.3", "-0.52202324741466"),
@@ -25,6 +45,24 @@ def _lecture_derivatives() -> list[DerivativeDatum]:
     return [
         DerivativeDatum(
             x=sp.Rational(x), order=1, value=sp.Rational(value), x_text=x, value_text=value
+        )
+        for x, value in data
+    ]
+
+
+def _numeric_lecture_derivatives() -> list[DerivativeDatum]:
+    data = [
+        ("1.3", "-0.52202324741466"),
+        ("1.6", "-0.56989593526168"),
+        ("1.9", "-0.581157072713434"),
+    ]
+    return [
+        DerivativeDatum(
+            x=to_sympy(x, exact=False, precision=50),
+            order=1,
+            value=to_sympy(value, exact=False, precision=50),
+            x_text=x,
+            value_text=value,
         )
         for x, value in data
     ]
@@ -76,3 +114,39 @@ def test_hermite_returns_basis_form_for_low_degree_data() -> None:
     assert result["basis_form"]["status"] == "included"
     assert result["basis_form"]["terms"][0]["value_basis"]
     assert result["basis_form"]["terms"][0]["derivative_basis"]
+
+
+def test_numeric_hermite_basis_accepts_tiny_float_residual_coefficients() -> None:
+    result = build_hermite(
+        _numeric_lecture_nodes(),
+        precision=50,
+        evaluation_x=["1.5"],
+        derivatives=_numeric_lecture_derivatives(),
+        exact=False,
+    )
+
+    assert result["basis_form"]["matches_divided_difference"] is True
+
+
+def test_numeric_hermite_basis_does_not_hide_real_mismatch() -> None:
+    nodes = _numeric_lecture_nodes()
+    derivatives = _numeric_lecture_derivatives()
+    repeated = build_first_derivative_repeated_nodes(
+        nodes, derivatives, precision=50, method_name="hermite"
+    )
+    result = build_hermite(
+        nodes,
+        precision=50,
+        evaluation_x=[],
+        derivatives=derivatives,
+        exact=False,
+    )
+    basis_form = _basis_form(
+        nodes,
+        repeated,
+        result["polynomial"] + sp.Float("1e-20", 50),
+        precision=50,
+        exact=False,
+    )
+
+    assert basis_form["matches_divided_difference"] is False

@@ -6,7 +6,7 @@ from app.core.domain import Node
 from app.core.errors import InterpolationError
 from app.core.methods.piecewise import evaluate_piecewise_polynomial
 from app.core.parser import X
-from app.core.precision import format_value, to_sympy
+from app.core.precision import format_value, to_sympy, values_close
 
 
 def build_cubic_spline(
@@ -15,6 +15,7 @@ def build_cubic_spline(
     precision: int,
     evaluation_x: list[str],
     method_options: dict[str, Any],
+    exact: bool = True,
 ) -> dict[str, Any]:
     boundary_condition = method_options.get("boundary_condition", "natural")
     if boundary_condition != "natural":
@@ -58,7 +59,7 @@ def build_cubic_spline(
         "segment_polynomials": segment_polynomials,
         "segment_intervals": segment_intervals,
         "continuity_checks": _continuity_checks(
-            ordered_nodes, segment_polynomials, precision=precision
+            ordered_nodes, segment_polynomials, precision=precision, exact=exact
         ),
         "evaluations": evaluations,
         "steps": [
@@ -155,7 +156,7 @@ def _segments(
 
 
 def _continuity_checks(
-    nodes: list[Node], segment_polynomials: list[sp.Expr], *, precision: int
+    nodes: list[Node], segment_polynomials: list[sp.Expr], *, precision: int, exact: bool = True
 ) -> list[dict[str, Any]]:
     checks = []
     for knot_index in range(1, len(nodes) - 1):
@@ -172,9 +173,15 @@ def _continuity_checks(
             {
                 "knot_index": nodes[knot_index].index,
                 "x": format_value(knot, precision=precision),
-                "value_continuous": sp.simplify(left_value - right_value) == 0,
-                "first_derivative_continuous": sp.simplify(left_first - right_first) == 0,
-                "second_derivative_continuous": sp.simplify(left_second - right_second) == 0,
+                "value_continuous": _continuous(
+                    left_value, right_value, exact=exact, precision=precision
+                ),
+                "first_derivative_continuous": _continuous(
+                    left_first, right_first, exact=exact, precision=precision
+                ),
+                "second_derivative_continuous": _continuous(
+                    left_second, right_second, exact=exact, precision=precision
+                ),
                 "left_value": format_value(left_value, precision=precision),
                 "right_value": format_value(right_value, precision=precision),
                 "left_first_derivative": format_value(left_first, precision=precision),
@@ -184,3 +191,9 @@ def _continuity_checks(
             }
         )
     return checks
+
+
+def _continuous(left: sp.Expr, right: sp.Expr, *, exact: bool, precision: int) -> bool:
+    if exact:
+        return sp.simplify(left - right) == 0
+    return values_close(left, right, precision=precision)

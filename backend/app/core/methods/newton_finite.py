@@ -35,8 +35,8 @@ def _render_table(table: list[list[sp.Expr | None]], *, precision: int) -> list[
     ]
 
 
-def _require_equal_spacing(nodes: list[Node]) -> sp.Expr:
-    spacing = equal_spacing(nodes)
+def _require_equal_spacing(nodes: list[Node], *, exact: bool, precision: int) -> sp.Expr:
+    spacing = equal_spacing(nodes, exact=exact, precision=precision)
     if not spacing.is_equal or spacing.h is None:
         raise InterpolationError(
             "unequal_spacing",
@@ -47,9 +47,9 @@ def _require_equal_spacing(nodes: list[Node]) -> sp.Expr:
 
 
 def build_newton_forward(
-    nodes: list[Node], *, precision: int, evaluation_x: list[str]
+    nodes: list[Node], *, precision: int, evaluation_x: list[str], exact: bool = True
 ) -> dict[str, Any]:
-    h = _require_equal_spacing(nodes)
+    h = _require_equal_spacing(nodes, exact=exact, precision=precision)
     table = build_forward_difference_table(nodes)
     evaluations = []
     for target in evaluation_x:
@@ -86,9 +86,9 @@ def build_newton_forward(
 
 
 def build_newton_backward(
-    nodes: list[Node], *, precision: int, evaluation_x: list[str]
+    nodes: list[Node], *, precision: int, evaluation_x: list[str], exact: bool = True
 ) -> dict[str, Any]:
-    h = _require_equal_spacing(nodes)
+    h = _require_equal_spacing(nodes, exact=exact, precision=precision)
     table = build_backward_difference_table(nodes)
     last = len(nodes) - 1
     evaluations = []
@@ -125,8 +125,10 @@ def build_newton_backward(
     }
 
 
-def build_stirling(nodes: list[Node], *, precision: int, evaluation_x: list[str]) -> dict[str, Any]:
-    h = _require_equal_spacing(nodes)
+def build_stirling(
+    nodes: list[Node], *, precision: int, evaluation_x: list[str], exact: bool = True
+) -> dict[str, Any]:
+    h = _require_equal_spacing(nodes, exact=exact, precision=precision)
     if len(nodes) % 2 == 0:
         raise InterpolationError(
             "stirling_requires_centered_nodes",

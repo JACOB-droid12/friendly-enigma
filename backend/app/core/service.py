@@ -98,6 +98,14 @@ def _run_methods(problem) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str
                 kwargs["method_options"] = problem.method_options.get(method, {})
             if method == "cubic_spline":
                 kwargs["method_options"] = problem.method_options.get(method, {})
+            if method in {
+                "newton_forward",
+                "newton_backward",
+                "stirling",
+                "hermite",
+                "cubic_spline",
+            }:
+                kwargs["exact"] = problem.exact
             payload = builder(problem.nodes, **kwargs)
             raw_results[method] = payload
             api_results[method] = _method_success(payload)
