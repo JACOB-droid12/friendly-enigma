@@ -1,0 +1,25 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "cd frontend && npm ci && npm run build",
+  "outputDirectory": "frontend/dist",
+  "functions": {
+    "api/**/*.py": {
+      "excludeFiles": "{Lecture/**,.codex/**,.impeccable/**,.kiro/**,.vscode/**,docs/**,frontend/**,backend/.venv/**,backend/.pytest_cache/**,backend/.ruff_cache/**,backend/interpolation_backend.egg-info/**,backend/app/tests/**,backend/**/__pycache__/**,backend/**/*.pyc}"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/health",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/:path((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
