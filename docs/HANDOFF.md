@@ -1,7 +1,110 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
-Frontend critique-driven refactor (2026-05-26). Rolled the priority issues from `.impeccable/critique/2026-05-26T05-43-56Z__frontend.md` into actionable code: shared method-metadata and backend-code registries, Examples panel redesigned around Quick Start + Lecture Catalog, PolynomialCard duplicate-Alert suppressed for piecewise responses, Display digits coupled to KaTeX rendering, em dashes removed, reduced-motion expanded to `animate-pulse`, result-tab hotkeys 1-7 added, and minor polish across surfaces. Backend untouched per AGENTS.md.
+Candidate A numeric-mode tolerance hardening (2026-05-26). Fixed numeric-mode false mismatches caused by exact symbolic zero checks on SymPy `Float(precision)` values in finite-difference equal-spacing, finite Newton method eligibility, cubic-spline continuity checks, and Hermite basis/divided-difference matching. Candidate B remains deferred.
+
+## Previous Current Task - Vercel Graph Timeout Fix
+Vercel graph-enabled example timeout fix (2026-05-26). The deployed preview showed server errors/timeouts for some examples when `graph: true`, especially exact function-backed equal-spacing examples such as `cos(x)` with `newton_forward`, `newton_backward`, or `stirling`.
+
+Root cause: `backend/app/core/graph_data.py` used the symbolic `evaluate_barycentric()` path for non-spline graph samples. For exact function-backed nodes, node values such as `cos(1)`, `cos(13/10)`, and `cos(11/5)` stayed symbolic, so each of the 101 graph samples triggered repeated SymPy simplification. This did not affect non-graph method output, but it exceeded Vercel serverless runtime limits.
+
+Fix:
+
+- `backend/app/core/graph_data.py`: graph sampling now precomputes numeric barycentric nodes/weights at the requested precision and evaluates graph `P_x` numerically without changing method outputs, endpoint paths, request shape, or response shape.
+- `backend/app/tests/test_graph_data.py`: added `test_exact_function_graph_sampling_avoids_symbolic_timeout` for exact `cos(x)` graph sampling.
+
+Verification:
+
+| Command / Check | Result |
+|---|---|
+| Deployed repro on prior preview with `newton_forward` + `cos(x)` + `graph: true` | FAIL reproduced - `npx vercel curl` timed out after 120s; Vercel logs showed `POST /api/interpolate` 504 runtime timeouts. |
+| Local comparison, same payload with `graph: false` | PASS - returned in about 1.262s. |
+| Local comparison, same payload with `graph: true` before fix | FAIL reproduced - command timed out after 184s. |
+| Targeted regression before fix | FAIL reproduced - `python -m pytest app/tests/test_graph_data.py::test_exact_function_graph_sampling_avoids_symbolic_timeout -q` timed out after 49s. |
+| Targeted regression after fix | PASS - 1 passed, existing Pydantic deprecation warning. |
+| Local graph-enabled examples after fix | PASS - `newton_forward`, `newton_backward`, `stirling`, Hermite, and Taylor graph-enabled examples returned successfully. |
+| `python -m pytest` from `backend/` | PASS - 74 passed, 1 existing Pydantic deprecation warning. |
+| `python -m ruff check .` from `backend/` | PASS - `All checks passed!`. |
+| `.\scripts\verify-backend.ps1` from `backend/` | PASS - 74 passed and Ruff passed; wrapper used the machine default Python 3.10.11, so Python 3.12.13 remains the release verification interpreter. |
+| `npx vercel deploy --yes` | PASS - new preview `https://interpolation-workbench-l5rm96fe6-marvillarq20-3593s-projects.vercel.app`, deployment id `dpl_7YuDqCSX4yPXVXmgNdmsi7kxwfHv`. |
+| `npx vercel inspect https://interpolation-workbench-l5rm96fe6-marvillarq20-3593s-projects.vercel.app` | PASS - Ready preview; function bundle `api/index` 21.21 MB. |
+| Deployed graph smoke on new preview | PASS - `newton_forward`, `newton_backward`, `stirling`, Taylor, Linear Lagrange, and Cubic Spline graph-enabled payloads all returned HTTP 200 JSON with 101 graph samples. |
+| `npx vercel logs ... --since 10m --level error` on new preview | PASS - no logs found. |
+
+Current preview URL: `https://interpolation-workbench-l5rm96fe6-marvillarq20-3593s-projects.vercel.app`
+
+Production URL: NOT PROMOTED. Preview remains protected by Vercel Deployment Protection/SSO.
+
+## Previous Current Task - Vercel Deployment Prep
+Vercel preview deployment prep and verification (2026-05-26). Chosen architecture is one Vercel project named `interpolation-workbench`: Vite frontend builds to `frontend/dist`; FastAPI is exposed through a minimal `api/index.py` adapter that imports the existing `backend/app/main.py` `app`; `vercel.json` rewrites `/health` and `/api/:path*` into that adapter and keeps SPA fallback to `index.html`. No numerical code, backend route handlers, endpoint paths, request shapes, or response shapes changed.
+
+Preview URL: `https://interpolation-workbench-n8b0juxdx-marvillarq20-3593s-projects.vercel.app`
+
+Production URL: NOT PROMOTED. Preview remains protected by Vercel Deployment Protection/SSO, so direct unauthenticated `Invoke-RestMethod` requests return `Authentication Required`. API and browser smoke checks were run through authenticated Vercel CLI/protection-bypass paths.
+
+Files changed for deployment:
+
+- `.gitignore`: ignore `.vercel/` link/env metadata.
+- `.python-version`: pin Vercel Python function packaging to Python 3.12.
+- `.vercelignore`: exclude local/tooling/generated and non-runtime source folders from upload, including `Lecture/`.
+- `api/index.py`: smallest FastAPI ASGI adapter; imports the existing backend app.
+- `requirements.txt`: Vercel serverless runtime imports only (`fastapi`, `pydantic`, `sympy`, `mpmath`). SciPy and Uvicorn stay in `backend/pyproject.toml` for local backend/dev but are not imported by deployed runtime code.
+- `vercel.json`: Vite build command/output, Python function bundle exclusions, `/health`, `/api/:path*`, and SPA fallback rewrites.
+- `frontend/src/lib/api-client.ts`: optional `VITE_API_BASE_URL` support with same-origin default `""`.
+
+Deployment attempts and results:
+
+| Command | Result |
+|---|---|
+| `npx vercel --version` | PASS - Vercel CLI 54.4.1 available through `npx`. |
+| `npx vercel whoami` | PASS - authenticated as `marvillarq20-3593`. |
+| `npx vercel project add interpolation-workbench` | PASS - project created. |
+| `npx vercel link --yes --project interpolation-workbench` | PASS - repo linked; `.vercel/` ignored by Git. |
+| `npx vercel build --yes` | FAIL - local machine missing `uv` executable (`spawn uv ENOENT`) before app build. Remote Vercel build later used hosted `uv` successfully. |
+| `npx vercel deploy --yes` with initial full runtime requirements | FAIL - Lambda bundle 276.26 MB exceeded 245 MB limit because SciPy/Uvicorn runtime deps were included. |
+| `npx vercel deploy --yes` after trimming Vercel-only `requirements.txt` | PASS - preview `7x2z2cy84` ready, but `/api/*` returned 404 because `api/index.py` was not an automatic nested catch-all. |
+| `npx vercel deploy --yes` after adding `/api/:path*` rewrite | PASS - final preview `n8b0juxdx` ready, deployment id `dpl_Exdc1EiCKtrGyHaQGLJtaH3BxVtL`; function bundle `api/index` is 21.21 MB. |
+| `npx vercel inspect https://interpolation-workbench-n8b0juxdx-marvillarq20-3593s-projects.vercel.app` | PASS - status Ready, target preview. |
+
+Required verification:
+
+| Command | Result |
+|---|---|
+| From `backend/`: `. .\.venv\Scripts\Activate.ps1; python --version; python -m pytest; python -m ruff check .; .\scripts\verify-backend.ps1` | PASS - Python 3.12.13; direct pytest 73 passed / 1 existing Pydantic deprecation warning; direct Ruff passed; wrapper reran pytest/Ruff and passed. |
+| From `frontend/`: `npm run build` | PASS - Vite production build completed; existing chunk-size warning remains. |
+| From `frontend/`: `npm run lint` | PASS. |
+| From `frontend/`: `npm test` | PASS - 12 files, 57 tests. |
+| From repo root: `git status --short` | PASS - only deployment/doc changes and `frontend/src/lib/api-client.ts` are modified/untracked; no generated folders staged. |
+| From repo root: `git diff --check` | PASS - no whitespace errors; Git reported CRLF working-copy warnings for `.gitignore` and `api-client.ts`. |
+| From repo root: `git diff --cached --check` | PASS - no staged diff. |
+
+Preview API smoke:
+
+| Check | Result |
+|---|---|
+| `GET /health` via `npx vercel curl` | PASS - `{"status":"ok","service":"interpolation-backend","version":"0.1.0"}`. |
+| `POST /api/validate-function` with `{"function":"sin(x)"}` | PASS - status `ok`, normalized expression `sin(x)`. |
+| Linear Lagrange API: points `(2,4)`, `(5,1)`, evaluation `3`, graph true | PASS - expanded polynomial `6 - x`; `best_P_x` at `3` is `3`; graph arrays returned. |
+| Phase 2 Taylor API: `cos(x)`, center `0`, order `3`, evaluation `1/2`, graph true | PASS - Taylor/Maclaurin polynomial `1 - x**2/2`; evaluation `7/8`; graph arrays returned. |
+
+Preview browser smoke:
+
+| Check | Result |
+|---|---|
+| Open deployed frontend | PASS through Vercel protection bypass; title `Interpolating Polynomial Calculator`. |
+| Health/backend connected state | PASS - header displayed `Backend connected`; network `GET /health` returned 200. |
+| Linear Lagrange workflow | PASS - Quick Start example loaded `(2,4)`, `(5,1)` and target `3`; compute returned 200; Evaluations tab showed `x=3`, `best P(x)=3`, method `Lagrange`; Polynomial tab showed `6 - x`. |
+| Phase 2 workflow | PASS - Cubic Spline Quick Start computed; Methods tab rendered ordered nodes, second derivatives, segments, continuity checks, and `P(5/2)=3.90625`. |
+| Graph/result rendering | PASS - Cubic Spline graph tab rendered Recharts output with `Nodes` and `P(x)` legend and graph axes. |
+| Console/network | PASS WITH KNOWN CAVEAT - all app/API requests observed in DevTools were 200; no Vercel runtime error logs found. Chrome still reports the pre-existing `No label associated with a form field` issue for hidden Base UI controls. |
+| Mobile/narrow viewport | PASS - emulated `320x800x1,mobile,touch`; header, backend status, Quick Start, inputs, methods, and compute controls remained usable/scannable. |
+
+Known limitations:
+
+- Preview is protected by Vercel Deployment Protection/SSO. Direct unauthenticated access is blocked unless deployment protection is changed or a bypass token is used.
+- Production was not promoted.
+- Local `npx vercel build --yes` did not run to completion on this Windows machine because `uv` is not on PATH; remote Vercel build passed.
+- Vercel-only `requirements.txt` intentionally contains runtime imports only to stay under the Lambda bundle limit. `backend/pyproject.toml` remains the local/dev dependency source of truth.
 
 Phase 2 continuation checkpoint after P2.5 stays open. The frontend now reads only what it always read; the backend remains the source of truth for parsing, validation, precision, interpolation, method tables, warnings, graph-ready data, and numerical correctness.
 
@@ -1832,3 +1935,223 @@ extracts, and DOM observations. No PASS / PARTIAL outcome was
 claimed without a corresponding observation. No backend file was
 modified; `git status --short` from the repository root contains
 zero `backend/` paths.
+
+---
+
+## Session: Candidate A Numeric-Mode Tolerance Hardening (2026-05-26)
+
+### Scope
+
+Implemented Candidate A only: numeric-mode tolerance hardening for
+exact symbolic zero checks that were incorrectly used on SymPy
+`Float(precision)` values. Candidate B remains deferred; Chebyshev
+exact-mode behavior and graph-data exact-mode sampling were not
+changed.
+
+### Files Changed
+
+- `backend/app/core/methods/finite_differences.py`
+  - Added `exact` and `precision` keyword arguments to
+    `equal_spacing`.
+  - Preserved symbolic `sp.simplify(...) == 0` comparison for
+    `exact=true`.
+  - Used `precision.values_close` for `exact=false` spacing
+    comparisons.
+- `backend/app/core/methods/newton_finite.py`
+  - Threaded `exact` and `precision` into the equal-spacing guard
+    used by `newton_forward`, `newton_backward`, and `stirling`.
+- `backend/app/core/methods/cubic_spline.py`
+  - Threaded `exact` into `_continuity_checks`.
+  - Preserved exact symbolic continuity checks for `exact=true`.
+  - Used `precision.values_close` for numeric value, first-derivative,
+    and second-derivative continuity checks.
+- `backend/app/core/methods/hermite.py`
+  - Threaded `exact` into `_basis_form`.
+  - Preserved exact symbolic polynomial equality for `exact=true`.
+  - Used coefficient-level precision-aware numeric matching for
+    `exact=false`, with one guard digit reserved for accumulated
+    expansion noise.
+- `backend/app/core/service.py`
+  - Passed `problem.exact` to the affected method builders only.
+- `backend/app/tests/test_finite_differences.py`
+  - Added numeric-mode equal-spacing acceptance and truly-unequal
+    guardrail tests.
+- `backend/app/tests/test_api.py`
+  - Added API regressions for numeric-mode decimal equal spacing for
+    `newton_forward`, `newton_backward`, and `stirling`.
+  - Added API negative regressions proving truly unequal spacing still
+    returns method-level `unequal_spacing`.
+- `backend/app/tests/test_cubic_spline.py`
+  - Added numeric-mode continuity acceptance and real-mismatch
+    guardrail coverage.
+- `backend/app/tests/test_hermite.py`
+  - Added numeric-mode Hermite basis match acceptance and real-mismatch
+    guardrail coverage.
+- `docs/PLAN.md`, `docs/API_CONTRACT.md`,
+  `docs/FRONTEND_HANDOFF.md`, `docs/HANDOFF.md`
+  - Updated coordination notes for the completed backend behavior
+    hardening and verification results.
+
+### Commands Run
+
+Red run before production changes:
+
+```powershell
+cd backend
+python -m pytest app/tests/test_finite_differences.py app/tests/test_api.py app/tests/test_cubic_spline.py app/tests/test_hermite.py -q
+```
+
+Result: exit 1. Expected failures included `equal_spacing()` /
+`build_cubic_spline()` / `_continuity_checks()` / `build_hermite()`
+missing the new internal `exact` keyword and numeric equal-spacing API
+calls returning method status `error` instead of `ok`.
+
+Focused green run after implementation:
+
+```powershell
+cd backend
+python -m pytest app/tests/test_finite_differences.py app/tests/test_api.py app/tests/test_cubic_spline.py app/tests/test_hermite.py -q
+```
+
+Result: exit 0, `31 passed in 4.11s`.
+
+Required verification:
+
+```powershell
+cd backend
+python -m pytest -q
+```
+
+Result: exit 0, `86 passed in 6.67s`.
+
+```powershell
+cd backend
+python -m ruff check .
+```
+
+Result: exit 0, `All checks passed!`.
+
+### Notes and Risks
+
+- No request schemas, response schemas, endpoint paths, frontend
+  behavior, interpolation formulas, Chebyshev behavior, or graph-data
+  behavior were changed.
+- Numeric comparisons remain in SymPy/high-precision space and use the
+  existing backend precision tolerance helper. No Python `float`
+  conversion was added for equality/continuity comparison.
+- Negative guardrail tests cover truly unequal finite-difference
+  spacing, a real cubic-spline continuity mismatch, and a real Hermite
+  polynomial mismatch, so the tolerance does not hide material
+  mathematical differences.
+
+## Session: Graph Accuracy and Reliability Fix (2026-05-26)
+
+### Summary
+
+Checked backend-owned graph data accuracy. Standard interpolation graph
+samples were accurate because barycentric evaluation matches the same
+interpolating polynomial used by Lagrange/Newton/Neville-style methods.
+Cubic spline graph samples were already sourced from backend spline
+segments.
+
+Found and fixed two graph reliability issues:
+
+- Taylor and Hermite graph samples incorrectly used barycentric
+  interpolation through nodes, so `graph_data.P_x` could disagree with
+  the method-owned Taylor/Hermite polynomial and top-level evaluations.
+- Exact decimal graph sampling used Python `float` for sample bounds and
+  grid points, so exact endpoints such as `0.3` could become
+  `0.30000000000000004`.
+
+### Files Changed
+
+- `backend/app/core/graph_data.py`
+  - Added method-polynomial graph sampling for successful `taylor`,
+    `hermite`, and `hermite_divided_difference` results.
+  - Preserved `cubic_spline` segment sampling precedence.
+  - Preserved numeric barycentric graph sampling as the default for
+    standard interpolation methods.
+  - Replaced Python-float graph sample bounds/grid construction with
+    SymPy-space bounds and steps.
+- `backend/app/tests/test_graph_data.py`
+  - Added regression coverage proving Taylor graph samples use the
+    Taylor polynomial.
+  - Added regression coverage proving Hermite graph samples use the
+    Hermite polynomial.
+  - Added exact decimal endpoint regression coverage for graph samples.
+- `docs/API_CONTRACT.md`, `docs/FRONTEND_HANDOFF.md`,
+  `docs/PLAN.md`, `docs/HANDOFF.md`
+  - Updated graph-data source-method and validation notes.
+
+### Commands Run
+
+Initial targeted checks before the fix:
+
+```powershell
+python -m pytest backend/app/tests/test_graph_data.py backend/app/tests/test_api.py -q
+```
+
+Result: exit 0, `19 passed in 4.81s`.
+
+```powershell
+python -m pytest backend/app/tests/test_barycentric.py backend/app/tests/test_cubic_spline.py backend/app/tests/test_taylor.py -q
+```
+
+Result: exit 0, `10 passed in 1.47s`.
+
+One-off numeric probe:
+
+```powershell
+@'
+# imported app.core.service.interpolate and checked line, quadratic,
+# cubic_spline, and Taylor graph samples
+'@ | python -
+```
+
+Result: line/quadratic/cubic-spline graph samples were consistent, but
+Taylor `graph_data.source_method` was `barycentric` and `P_x` at `0.5`
+was `0.87758256189037271611628158260382965199164519710974` while the
+Taylor evaluation was `0.875`.
+
+Red tests before production changes:
+
+```powershell
+python -m pytest backend/app/tests/test_graph_data.py -q
+```
+
+Result: exit 1. Expected failures showed Taylor and Hermite graph
+source methods still returning `barycentric`.
+
+```powershell
+python -m pytest backend/app/tests/test_graph_data.py::test_exact_decimal_graph_sampling_preserves_endpoint_text -q
+```
+
+Result: exit 1. Expected failure showed endpoint `0.3` rendered as
+`0.30000000000000004`.
+
+Focused green runs:
+
+```powershell
+python -m pytest backend/app/tests/test_graph_data.py -q
+```
+
+Result: exit 0, `6 passed in 5.65s`.
+
+Required verification:
+
+```powershell
+python -m pytest backend/app/tests -q
+```
+
+Result: exit 0, `89 passed in 7.36s`.
+
+### Notes and Risks
+
+- The response shape is unchanged.
+- `graph_data.source_method` can now be `taylor`, `hermite`, or
+  `hermite_divided_difference` when one of those successful method
+  results owns the graph polynomial.
+- For standard interpolation methods, graph `P_x` still defaults to
+  numeric barycentric evaluation for speed and stability.
+- No frontend files were edited. React should continue rendering
+  backend `graph_data` arrays without resampling.

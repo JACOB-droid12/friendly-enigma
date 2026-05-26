@@ -5,6 +5,20 @@ For the remaining Claude Opus Phase 2 React workbench implementation checklist, 
 ## Status
 Frontend v1.5 with critique-driven refactors. Builds, lints, type-checks, and tests clean (12 test files, 57 tests). Live-tested against backend.
 
+## Vercel Deployment Notes (2026-05-26)
+
+Current preview:
+
+```text
+https://interpolation-workbench-l5rm96fe6-marvillarq20-3593s-projects.vercel.app
+```
+
+Architecture: single Vercel project. The frontend remains a Vite static app built from `frontend/` into `frontend/dist`. The backend remains the existing FastAPI app from `backend/app/main.py`, exposed to Vercel through `api/index.py`. `vercel.json` rewrites `/health` and `/api/:path*` to the adapter and rewrites other non-API paths to `/index.html` for SPA refresh support.
+
+Environment variables: none required for the single-project same-origin deployment. `frontend/src/lib/api-client.ts` now honors optional `VITE_API_BASE_URL`; if unset, it keeps the existing same-origin behavior used by Vite dev proxy and Vercel rewrites.
+
+Verification: deployed preview passed `GET /health`, `POST /api/validate-function`, the Linear Lagrange workflow `(2,4),(5,1), x=3 -> P(x)=6-x, P(3)=3`, a Phase 2 Taylor API workflow, a Phase 2 Cubic Spline browser workflow, graph rendering, and 320px mobile viewport smoke. A later graph-timeout fix also verified graph-enabled exact `cos(x)` examples for `newton_forward`, `newton_backward`, and `stirling`; each now returns 101 backend graph samples from the same `/api/interpolate` response shape. Preview is protected by Vercel Deployment Protection/SSO, so browser/API checks used authenticated Vercel CLI or bypass-cookie flows.
+
 ## v1.5 Highlights (2026-05-26)
 
 Critique pass `2026-05-26T05-43-56Z__frontend.md` flagged five priority issues plus several minor observations. All fixes shipped in this build.
@@ -1140,10 +1154,12 @@ fields, including the new Phase 2 `FormState` fields, and never calls
 | `Cubic Spline (lecture three-point)` | `["cubic_spline"]` | `splineBoundaryCondition = "natural"`, `evaluation_x = ["5/2"]`, `graph = true` |
 | `Deferred — Osculating (Bessel-style)` | `["osculating"]` | Same Bessel-style points and derivatives as Hermite; loadable per locked decision #4 |
 
-The three Equal-Spacing examples seed `exact: true`. mpmath mode
-(`exact: false`) makes the backend return `unequal_spacing` errors for
-genuinely equal nodes due to float representation; this was caught
-during browser QA and the seeds were corrected accordingly.
+The three Equal-Spacing examples currently seed `exact: true` for
+lecture-style exact arithmetic. Backend Candidate A hardening on
+2026-05-26 also makes the same decimal nodes eligible in numeric mode
+(`exact: false`) by using backend precision-aware tolerance for the
+equal-spacing guard. The frontend does not need to work around numeric
+residuals or alter display-digit behavior.
 
 ### API contract preservation
 
@@ -1207,6 +1223,25 @@ below traces back to a per-scenario results file under
 For PHASE2-SPLINE-01 the rendered Graph card source-method Badge text
 is `Cubic_spline` and the underlying `graph_data.source_method` value
 is the literal `"cubic_spline"`, satisfying R9.4 / R17.5.
+
+### Backend graph accuracy update
+
+Codex fixed backend graph sampling on 2026-05-26 after an accuracy
+check. React behavior does not change: continue rendering
+`graph_data.x`, `graph_data.f_x`, `graph_data.P_x`, and
+`graph_data.error` exactly as returned, with no client-side resampling.
+
+Frontend-relevant details:
+
+- Standard interpolation graph samples still default to
+  `source_method: "barycentric"`.
+- Cubic spline graph samples still use backend spline segments and
+  `source_method: "cubic_spline"`.
+- Taylor and Hermite graph samples now use the successful method-owned
+  polynomial, so `source_method` can also be `"taylor"`, `"hermite"`,
+  or `"hermite_divided_difference"`.
+- Exact decimal graph endpoints are generated without Python-float
+  drift, so endpoint labels such as `0.3` should remain stable.
 
 ### Open caveats
 
