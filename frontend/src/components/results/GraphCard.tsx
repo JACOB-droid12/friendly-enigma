@@ -15,6 +15,7 @@ import {
 import type { GraphData, NodeEntry } from "@/lib/api-types"
 import { useDisplayDigits } from "@/lib/display-digits"
 import { roundNumericString } from "@/lib/format-numeric"
+import { methodLabel } from "@/lib/method-metadata"
 
 interface GraphCardProps {
   graphData: GraphData
@@ -197,8 +198,8 @@ export function GraphCard({ graphData, nodes }: GraphCardProps) {
           <h2 className="text-sm font-semibold text-foreground">Graph</h2>
           <p className="text-xs text-muted-foreground mt-0.5">Interpolation vs. original function</p>
         </div>
-        <Badge variant="secondary" className="text-[10px] font-numeric capitalize">
-          {graphData.source_method}
+        <Badge variant="secondary" className="text-[10px] font-numeric">
+          {methodLabel(graphData.source_method)}
         </Badge>
       </div>
       <div className="p-5 space-y-6">

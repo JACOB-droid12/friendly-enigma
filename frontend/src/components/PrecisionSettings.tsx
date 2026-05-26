@@ -85,7 +85,7 @@ export function PrecisionSettings({
                   "h-6 px-2 rounded-md text-[11px] font-numeric transition-subtle outline-none " +
                   "focus-visible:ring-3 focus-visible:ring-ring/50 " +
                   (active
-                    ? "bg-primary/10 text-primary"
+                    ? "bg-primary/10 text-primary font-semibold ring-1 ring-inset ring-primary/30"
                     : "bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted")
                 }
               >

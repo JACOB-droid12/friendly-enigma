@@ -25,6 +25,18 @@ function renderApp() {
   return fetchMock
 }
 
+/**
+ * Open the "Lecture Catalog" disclosure. Quick Start renders 4
+ * curriculum cards on first paint; the rest live behind a
+ * "Show ... more lecture examples" button. Catalog tests open the
+ * disclosure first so their target buttons are mounted.
+ */
+function openCatalog() {
+  fireEvent.click(
+    screen.getByRole("button", { name: /show \d+ more lecture examples/i }),
+  )
+}
+
 describe("lecture examples", () => {
   afterEach(() => {
     vi.unstubAllGlobals()
@@ -65,6 +77,7 @@ describe("lecture examples", () => {
   it("loads the Neville table example with the five lecture points", () => {
     renderApp()
 
+    openCatalog()
     fireEvent.click(screen.getByRole("button", { name: /load neville table example/i }))
 
     expect(screen.getByLabelText("Point 0 x-value")).toHaveValue("1.0")
@@ -80,8 +93,11 @@ describe("lecture examples", () => {
   it("loads the Newton Forward equal-spacing example with cos(x) on five nodes", () => {
     const fetchMock = renderApp()
 
+    openCatalog()
     fireEvent.click(
-      screen.getByRole("button", { name: /load newton forward \(cos x at 1\.0…2\.2\) example/i })
+      screen.getByRole("button", {
+        name: /load newton forward \(cos x at 1\.0 to 2\.2\) example/i,
+      }),
     )
 
     expect(screen.getByRole("tab", { name: "X + f(x)" })).toHaveAttribute("data-active")
@@ -102,8 +118,9 @@ describe("lecture examples", () => {
   it("loads the Newton Backward equal-spacing example with cos(x) on five nodes", () => {
     const fetchMock = renderApp()
 
+    openCatalog()
     fireEvent.click(
-      screen.getByRole("button", { name: /load newton backward \(cos x\) example/i })
+      screen.getByRole("button", { name: /load newton backward \(cos x\) example/i }),
     )
 
     expect(screen.getByRole("tab", { name: "X + f(x)" })).toHaveAttribute("data-active")
@@ -121,8 +138,9 @@ describe("lecture examples", () => {
   it("loads the Stirling centered example with cos(x) on five nodes", () => {
     const fetchMock = renderApp()
 
+    openCatalog()
     fireEvent.click(
-      screen.getByRole("button", { name: /load stirling \(cos x, centered\) example/i })
+      screen.getByRole("button", { name: /load stirling \(cos x, centered\) example/i }),
     )
 
     expect(screen.getByRole("tab", { name: "X + f(x)" })).toHaveAttribute("data-active")
@@ -141,10 +159,11 @@ describe("lecture examples", () => {
   it("loads the Hermite divided-difference Bessel-style example with derivative rows", () => {
     const fetchMock = renderApp()
 
+    openCatalog()
     fireEvent.click(
       screen.getByRole("button", {
         name: /load hermite divided difference \(bessel-style\) example/i,
-      })
+      }),
     )
 
     expect(screen.getByLabelText("Point 0 x-value")).toHaveValue("1.3")
@@ -160,13 +179,13 @@ describe("lecture examples", () => {
     expect(screen.getByLabelText("Newton method")).not.toBeChecked()
 
     expect(screen.getByLabelText("Derivative value for node 0")).toHaveValue(
-      "-0.52202324741466"
+      "-0.52202324741466",
     )
     expect(screen.getByLabelText("Derivative value for node 1")).toHaveValue(
-      "-0.56989593526168"
+      "-0.56989593526168",
     )
     expect(screen.getByLabelText("Derivative value for node 2")).toHaveValue(
-      "-0.581157072713434"
+      "-0.581157072713434",
     )
 
     expect(fetchMock.mock.calls.some(([url]) => url === "/api/interpolate")).toBe(false)
@@ -175,8 +194,9 @@ describe("lecture examples", () => {
   it("loads the Hermite basis-form Bessel-style example with the same derivative rows", () => {
     const fetchMock = renderApp()
 
+    openCatalog()
     fireEvent.click(
-      screen.getByRole("button", { name: /load hermite \(basis form\) example/i })
+      screen.getByRole("button", { name: /load hermite \(basis form\) example/i }),
     )
 
     expect(screen.getByLabelText("Point 0 x-value")).toHaveValue("1.3")
@@ -188,13 +208,13 @@ describe("lecture examples", () => {
     expect(screen.getByLabelText("Lagrange method")).not.toBeChecked()
 
     expect(screen.getByLabelText("Derivative value for node 0")).toHaveValue(
-      "-0.52202324741466"
+      "-0.52202324741466",
     )
     expect(screen.getByLabelText("Derivative value for node 1")).toHaveValue(
-      "-0.56989593526168"
+      "-0.56989593526168",
     )
     expect(screen.getByLabelText("Derivative value for node 2")).toHaveValue(
-      "-0.581157072713434"
+      "-0.581157072713434",
     )
 
     expect(fetchMock.mock.calls.some(([url]) => url === "/api/interpolate")).toBe(false)
@@ -203,8 +223,9 @@ describe("lecture examples", () => {
   it("loads the Taylor cos(x) order-3 example with center 0 and target 1/2", () => {
     const fetchMock = renderApp()
 
+    openCatalog()
     fireEvent.click(
-      screen.getByRole("button", { name: /load taylor \(cos x, order 3\) example/i })
+      screen.getByRole("button", { name: /load taylor \(cos x, order 3\) example/i }),
     )
 
     expect(screen.getByRole("tab", { name: "X + f(x)" })).toHaveAttribute("data-active")
@@ -226,7 +247,7 @@ describe("lecture examples", () => {
     const fetchMock = renderApp()
 
     fireEvent.click(
-      screen.getByRole("button", { name: /load cubic spline \(lecture three-point\) example/i })
+      screen.getByRole("button", { name: /load cubic spline \(lecture three-point\) example/i }),
     )
 
     expect(screen.getByLabelText("Point 0 x-value")).toHaveValue("1")
@@ -249,10 +270,11 @@ describe("lecture examples", () => {
   it("loads the deferred Osculating Bessel-style example with derivative rows", () => {
     const fetchMock = renderApp()
 
+    openCatalog()
     fireEvent.click(
       screen.getByRole("button", {
-        name: /load deferred — osculating \(bessel-style\) example/i,
-      })
+        name: /load deferred: osculating \(bessel-style\) example/i,
+      }),
     )
 
     expect(screen.getByLabelText("Point 0 x-value")).toHaveValue("1.3")
@@ -268,13 +290,13 @@ describe("lecture examples", () => {
     expect(screen.getByLabelText("Newton method")).not.toBeChecked()
 
     expect(screen.getByLabelText("Derivative value for node 0")).toHaveValue(
-      "-0.52202324741466"
+      "-0.52202324741466",
     )
     expect(screen.getByLabelText("Derivative value for node 1")).toHaveValue(
-      "-0.56989593526168"
+      "-0.56989593526168",
     )
     expect(screen.getByLabelText("Derivative value for node 2")).toHaveValue(
-      "-0.581157072713434"
+      "-0.581157072713434",
     )
 
     expect(fetchMock.mock.calls.some(([url]) => url === "/api/interpolate")).toBe(false)

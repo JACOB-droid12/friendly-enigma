@@ -1,6 +1,39 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Frontend critique-driven refactor (2026-05-26). Rolled the priority issues from `.impeccable/critique/2026-05-26T05-43-56Z__frontend.md` into actionable code: shared method-metadata and backend-code registries, Examples panel redesigned around Quick Start + Lecture Catalog, PolynomialCard duplicate-Alert suppressed for piecewise responses, Display digits coupled to KaTeX rendering, em dashes removed, reduced-motion expanded to `animate-pulse`, result-tab hotkeys 1-7 added, and minor polish across surfaces. Backend untouched per AGENTS.md.
+
+Phase 2 continuation checkpoint after P2.5 stays open. The frontend now reads only what it always read; the backend remains the source of truth for parsing, validation, precision, interpolation, method tables, warnings, graph-ready data, and numerical correctness.
+
+## 2026-05-26 Critique Refactor
+
+Files added:
+
+- `frontend/src/lib/method-metadata.ts` (single source of truth for method label / short label / family / role / badge variant / description / eligibility hint / deferred note).
+- `frontend/src/lib/backend-codes.ts` (shared backend code resolver with safe fallback).
+
+Files removed:
+
+- `frontend/src/components/MethodSelector.catalog.ts` (data migrated to `lib/method-metadata.ts`).
+
+Files edited (frontend only): `App.tsx`, `App.examples.test.tsx`, `index.css`, `lib/format-numeric.ts`, `lib/display-digits.tsx`, `lib/warnings.ts`, `lib/use-shortcuts.ts`, `components/MethodSelector.tsx`, `components/MethodSelector.test.tsx`, `components/ExamplesPanel.tsx`, `components/PrecisionSettings.tsx`, `components/ErrorNotice.tsx`, `components/DerivativeInputTable.tsx`, `components/ResultsPanel.tsx`, `components/results/PolynomialCard.tsx`, `components/results/EvaluationTable.tsx`, `components/results/SummaryCard.tsx`, `components/results/MethodDetails.tsx`, `components/results/GuidedExplanation.tsx`, `components/results/GraphCard.tsx`, `components/results/ResultQualityGuide.tsx`, `components/results/ResultQualityGuide.test.tsx`, `components/results/results.smoke.test.tsx`, `components/results/methods/CubicSplineGraphPassthrough.test.tsx`, plus a new screenshots set under `.impeccable/critique/screens/2026-05-26-*.png`. See `docs/FRONTEND_HANDOFF.md` v1.5 for the per-component summary.
+
+Verification:
+
+| Command | Result |
+|---|---|
+| `npm run build` from `frontend/` | PASS — 2567 modules, ~1s. |
+| `npm run lint` from `frontend/` | PASS — 0 errors, 0 warnings. |
+| `npm test` from `frontend/` | PASS — 12 test files, 57 tests passing. |
+| Browser QA, Linear Lagrange compute | PASS — Result Summary shows friendly `Lagrange` label; result-tab hotkey 4 jumped to Evaluations; column header reads `LAGRANGE` short label; best-method Badge reads `Lagrange`. |
+| Browser QA, Cubic Spline compute | PASS — Polynomial tab shows the body-voice piecewise notice only (no duplicate `piecewise_method_no_global_polynomial` Alert); SummaryCard methods row reads `Cubic Spline`. |
+| Browser QA, Display digits 6 / 12 / 25 / Full radio | PASS — selectable via keyboard hotkeys 3 (Polynomial) then arrow-key navigation on the segmented control. |
+
+Backend status unchanged from prior checkpoint.
+
+---
+
+## Previous Status
 Phase 2 continuation checkpoint after P2.5. Scope in this change group is completion-gate alignment: the backend Phase 2 expansion is complete, but full product completion remains blocked on Claude Opus-owned Phase 2 frontend controls/renderers and their browser QA. No backend numerical implementation and no public endpoint changes.
 
 ## Current Status

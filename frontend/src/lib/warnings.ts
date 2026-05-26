@@ -45,7 +45,7 @@ const CATALOG: Record<string, WarningMeta> = {
   invalid_derivative_order: { label: "Invalid Derivative Order", severity: "error" },
   unsupported_taylor_function: { label: "Unsupported Taylor Function", severity: "error" },
   unsupported_boundary_condition: { label: "Unsupported Boundary Condition", severity: "error" },
-  piecewise_method_no_global_polynomial: { label: "Piecewise — No Global Polynomial", severity: "info" },
+  piecewise_method_no_global_polynomial: { label: "Piecewise: No Global Polynomial", severity: "info" },
   method_not_implemented: { label: "Method Not Implemented", severity: "warning" },
 }
 

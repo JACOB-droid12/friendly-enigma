@@ -2,6 +2,11 @@ import { useMemo } from "react"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { useDisplayDigits } from "@/lib/display-digits"
+import {
+  methodBadgeVariant,
+  methodLabel,
+  methodShortLabel,
+} from "@/lib/method-metadata"
 import type { EvaluationEntry, MethodName } from "@/lib/api-types"
 
 interface EvaluationTableProps {
@@ -51,7 +56,9 @@ export function EvaluationTable({ evaluations, methodsRequested }: EvaluationTab
     <div className="rounded-xl border bg-card overflow-hidden">
       <div className="px-5 py-3 border-b bg-muted/30">
         <h2 className="text-sm font-semibold text-foreground">Evaluation Comparison</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">P(x) values across methods with error analysis</p>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          P(x) values across methods with error analysis (absolute error).
+        </p>
       </div>
       <div className="p-5">
         <div className="overflow-x-auto rounded-lg">
@@ -62,7 +69,13 @@ export function EvaluationTable({ evaluations, methodsRequested }: EvaluationTab
                 <TableHead className="font-label text-muted-foreground">Best P(x)</TableHead>
                 <TableHead className="font-label text-muted-foreground">Method</TableHead>
                 {methodsRequested.map((m) => (
-                  <TableHead key={m} className="font-label text-muted-foreground">{m}</TableHead>
+                  <TableHead
+                    key={m}
+                    className="font-label text-muted-foreground"
+                    title={methodLabel(m)}
+                  >
+                    {methodShortLabel(m)}
+                  </TableHead>
                 ))}
                 <TableHead className="font-label text-muted-foreground">f(x)</TableHead>
                 <TableHead
@@ -81,8 +94,11 @@ export function EvaluationTable({ evaluations, methodsRequested }: EvaluationTab
                     {row.bestPx}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className="capitalize text-[10px]">
-                      {row.bestMethod}
+                    <Badge
+                      variant={methodBadgeVariant(row.bestMethod)}
+                      className="text-[10px]"
+                    >
+                      {methodLabel(row.bestMethod)}
                     </Badge>
                   </TableCell>
                   {methodsRequested.map((m) => (

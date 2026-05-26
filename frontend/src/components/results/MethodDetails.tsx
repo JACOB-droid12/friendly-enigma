@@ -6,6 +6,7 @@ import { AlertTriangle } from "lucide-react"
 import { useMemo, useState } from "react"
 import type { InterpolateResponse, MethodName } from "@/lib/api-types"
 import { useDisplayDigits } from "@/lib/display-digits"
+import { methodShortLabel } from "@/lib/method-metadata"
 // Phase 2 family renderers (locked decision 1 in tasks.md): each Phase 2
 // panel delegates to its per-family renderer under
 // `frontend/src/components/results/methods/`. The V1 inline renderers
@@ -82,9 +83,9 @@ export function MethodDetails({ data }: MethodDetailsProps) {
               <TabsTrigger
                 key={m}
                 value={m}
-                className={`capitalize text-xs gap-1 ${METHOD_TAB_TINT[m] ?? ""}`}
+                className={`text-xs gap-1 ${METHOD_TAB_TINT[m] ?? ""}`}
               >
-                {m}
+                {methodShortLabel(m)}
                 {data.methods[m]?.status !== "ok" && (
                   <AlertTriangle className="h-3 w-3 text-warning" aria-hidden="true" />
                 )}

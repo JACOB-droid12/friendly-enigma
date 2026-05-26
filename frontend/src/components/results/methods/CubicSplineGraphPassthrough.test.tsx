@@ -98,18 +98,20 @@ beforeEach(() => {
 })
 
 describe("GraphCard cubic-spline pass-through", () => {
-  it("renders the cubic_spline source-method Badge text verbatim", () => {
+  it("renders the cubic_spline source-method Badge using the friendly label", () => {
     const graphData = cubicSplineResponse.graph_data!
     renderWithDisplay(
       <GraphCard graphData={graphData} nodes={cubicSplineResponse.nodes} />,
     )
 
-    // The Badge is a Tailwind-styled span; the `capitalize` utility is a
-    // CSS-only transform so the underlying text node is the unmodified
-    // `source_method` string. A case-insensitive match keeps the
-    // assertion robust to future styling tweaks while still pinning the
-    // backend-driven value.
-    expect(screen.getByText(/^cubic_spline$/i)).toBeInTheDocument()
+    // The Badge previously rendered the raw backend `source_method`
+    // string under a CSS `capitalize` utility (so `cubic_spline` showed
+    // up as "Cubic_spline"). It now routes through `methodLabel`, which
+    // resolves the canonical method label "Cubic Spline" via the
+    // method-metadata registry. The raw snake_case string must never
+    // reach the rendered DOM.
+    expect(screen.getByText("Cubic Spline")).toBeInTheDocument()
+    expect(screen.queryByText(/cubic_spline/i)).toBeNull()
   })
 
   it("mounts the ComposedChart region (Recharts mock sentinel present)", () => {

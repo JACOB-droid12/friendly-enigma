@@ -1,5 +1,6 @@
 import { AlertCircle, AlertTriangle, Info } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { resolveBackendCodePayload } from "@/lib/backend-codes"
 
 /**
  * Shared, reusable error / warning / info renderer.
@@ -117,28 +118,15 @@ export function ErrorNotice({
   const hasCode = trimmedCode.length > 0
   const hasMessage = trimmedMessage.length > 0
 
-  // Resolve the three content slots per Requirement 6.1, 6.2, 6.11.
-  // - missingMessage: code present, message absent -> code becomes primary.
-  // - bothMissing: defensive fallback so the notice never renders empty.
-  const missingMessage = !hasMessage && hasCode
+  // Route the payload through the shared backend-code registry so an
+  // unknown code falls back to a safe display rather than crashing or
+  // surfacing snake_case as a primary line. The registry's `humanized`
+  // flag is informational; we do not currently change layout based on it.
+  const resolved = resolveBackendCodePayload(trimmedCode, trimmedMessage)
+  const primaryText = resolved.primary
+  const secondaryText = resolved.secondary ?? null
+  const showCodeLine = resolved.showCode
   const bothMissing = !hasMessage && !hasCode
-
-  let primaryText: string
-  let secondaryText: string | null = null
-  if (hasMessage) {
-    primaryText = trimmedMessage
-  } else if (missingMessage) {
-    primaryText = trimmedCode
-    secondaryText = "Backend did not provide a description."
-  } else {
-    // bothMissing
-    primaryText = "An unexpected error occurred."
-  }
-
-  // Code: <code> secondary line only when message was used as primary AND
-  // code is non-empty. When code already serves as the primary line we do
-  // not echo it back here (Requirement 6.2).
-  const showCodeLine = hasMessage && hasCode
 
   // Recovery guidance is suppressed for inline layout (compactness) and for
   // the missing-message and both-missing branches (the secondary slot is

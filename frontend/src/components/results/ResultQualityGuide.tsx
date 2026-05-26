@@ -2,6 +2,7 @@ import { AlertCircle, AlertTriangle, CheckCircle2, Info, LineChart } from "lucid
 import { Badge } from "@/components/ui/badge"
 import type { InterpolateResponse, WarningBody } from "@/lib/api-types"
 import { getWarningMeta, type WarningSeverity } from "@/lib/warnings"
+import { methodLabel } from "@/lib/method-metadata"
 
 interface ResultQualityGuideProps {
   data: InterpolateResponse
@@ -315,7 +316,7 @@ export function ResultQualityGuide({ data }: ResultQualityGuideProps) {
               </p>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                 Source method:{" "}
-                <span className="font-numeric break-all text-foreground">{data.graph_data.source_method}</span>
+                <span className="text-foreground">{methodLabel(data.graph_data.source_method)}</span>
                 {typeof graphPointCount === "number" && (
                   <>
                     {" "}

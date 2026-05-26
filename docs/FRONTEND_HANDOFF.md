@@ -3,7 +3,27 @@
 For the remaining Claude Opus Phase 2 React workbench implementation checklist, see `docs/OPUS_PHASE_2_FRONTEND_HANDOFF.md`.
 
 ## Status
-Frontend v1.1 with UX improvements. Builds, lints, and type-checks clean. Live-tested against backend.
+Frontend v1.5 with critique-driven refactors. Builds, lints, type-checks, and tests clean (12 test files, 57 tests). Live-tested against backend.
+
+## v1.5 Highlights (2026-05-26)
+
+Critique pass `2026-05-26T05-43-56Z__frontend.md` flagged five priority issues plus several minor observations. All fixes shipped in this build.
+
+- **`lib/method-metadata.ts`**: single source of truth for `MethodName` -> label, short label, family, role, badge variant, description, eligibility hint, deferred note. `MethodSelector`, `SummaryCard`, `MethodDetails`, `EvaluationTable`, `GraphCard`, `ResultQualityGuide`, and `GuidedExplanation` all consume it. The legacy `MethodSelector.catalog.ts` was deleted.
+- **`lib/backend-codes.ts`**: shared registry for backend warning/error/omission codes. Reuses the existing `lib/warnings.ts` catalog and adds a safe fallback so unknown codes show the backend message first and the raw code in a `Code:` companion line. `ErrorNotice` routes through the registry; `WarningsDisplay` and `ResultQualityGuide` continue to read `getWarningMeta` directly because they already render labelled warnings.
+- **EvaluationTable**: column headers use `methodShortLabel` (`Hermite DD`, `Newton Fwd`, etc.) and the best-method Badge uses `methodLabel` plus `methodBadgeVariant` for role-tinted, friendly output. The previous `capitalize` Tailwind utility on raw snake_case is gone.
+- **PolynomialCard**: when the response is a piecewise spline (`expanded_omitted_reason === "piecewise_method_no_global_polynomial"`), the duplicate Alert is suppressed so the body-voice notice in the Expanded tab is the single source of truth. For every other omission reason, the Alert routes through the friendly registry label (`Polynomial Omitted` instead of `expanded_polynomial_omitted`).
+- **Examples panel**: redesigned around the user's "Quick Start + Lecture Catalog" direction. Four curriculum-critical cards on first paint (Linear Lagrange, Newton Divided Difference, Second-Degree Lagrange, Cubic Spline). A `Show 8 more lecture examples` disclosure opens the rest of the Phase 2 catalog. Categories (`Lecture / Function / Demo`) stay as subtle Badge tags only; primary navigation is the Quick Start vs Catalog split, not the categories.
+- **Display digits and KaTeX parity**: `formatLatexLiterals` (in `lib/format-numeric.ts`) rounds numeric literals inside SymPy LaTeX without touching `\frac`, `\left`, `\right`, identifiers, or braces. Exposed through `useDisplayDigits().formatLatex`. PolynomialCard now passes Display-respected LaTeX to every `KatexDisplay`. The Copy buttons preserve full backend precision via the new `fullPrecisionText` prop on `CopyableFormula`.
+- **GuidedExplanation**: dropped the local `METHOD_LABEL` map (it duplicated what is now in `method-metadata.ts`) and swapped Tailwind's `font-mono` for the project's `.font-numeric` handle so the polynomial and evaluation lines align with the rest of the numeric voice.
+- **Em dashes**: removed from user-facing copy. `lib/warnings.ts` (`Piecewise: No Global Polynomial`) and `ExamplesPanel.tsx` (`Deferred: Osculating (Bessel-style)`).
+- **Reduced motion**: `prefers-reduced-motion: reduce` now also neutralizes Tailwind's `animate-pulse` (used by `Skeleton` and the `HealthIndicator` checking-state dot). The `Loader2` spinner stays running because removing it would imply "computation has stopped".
+- **Result-tab hotkeys**: digits 1 to 7 select Overview / Guide / Polynomial / Evaluations / Graph / Methods / Notes, skipping disabled tabs. Wired through a `tabHotkey: { index, tick }` prop on `ResultsPanel` so React's "no setState in an effect body" rule stays satisfied.
+- **PrecisionSettings**: active preset chip now pairs the color shift with `font-semibold` and `ring-1 ring-inset ring-primary/30`, so severity is never carried by color alone. The `App.tsx` header logo opacity moved from `bg-primary/8` to `bg-primary/10` to match the rest of the codebase's /5 /10 /15 /20 ladder.
+- **DerivativeInputTable**: extra inline help on derivative order so first-time students see "Hermite currently supports first-derivative data only (order = 1). Enter f'(x_i) per node; the request builder fills the order field for you." up front.
+- **Tests updated**: `App.examples.test.tsx` now opens the Lecture Catalog disclosure before clicking through Phase 2 examples; `CubicSplineGraphPassthrough.test.tsx` and `results.smoke.test.tsx` and `ResultQualityGuide.test.tsx` expect the friendly `Cubic Spline` / `Barycentric` text instead of the raw `cubic_spline` / `barycentric` strings.
+
+Verification: `npm run build` (PASS, 2567 modules), `npm run lint` (PASS, 0 errors), `npm test` (PASS, 12 files, 57 tests). Live browser QA on Linear Lagrange, Cubic Spline (the previously-double-signaled piecewise notice is now single), and the Display=6 radio selecting via keyboard hotkey 3.
 
 ## Ownership Boundary
 Claude Opus owns the React frontend. Codex owns the backend, numerical engine, tests, and API contract.

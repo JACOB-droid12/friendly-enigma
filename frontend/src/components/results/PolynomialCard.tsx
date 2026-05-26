@@ -5,19 +5,36 @@ import { Info, Copy, Check } from "lucide-react"
 import { useState } from "react"
 import type { PolynomialData } from "@/lib/api-types"
 import { useDisplayDigits } from "@/lib/display-digits"
+import { resolveBackendCodePayload } from "@/lib/backend-codes"
 
 interface PolynomialCardProps {
   polynomial: PolynomialData
 }
 
-function CopyableFormula({ text, copyAriaLabel }: { text: string | null; copyAriaLabel?: string }) {
+function CopyableFormula({
+  text,
+  copyAriaLabel,
+  fullPrecisionText,
+}: {
+  text: string | null
+  copyAriaLabel?: string
+  /**
+   * Optional full-precision version of the same expression. When
+   * provided, the Copy button copies this string instead of the
+   * Display-digit-rounded `text`. This preserves the "full precision
+   * always available through copy" rule while letting the visible
+   * pre block honor the user's Display digits choice.
+   */
+  fullPrecisionText?: string | null
+}) {
   const [copied, setCopied] = useState(false)
 
   if (!text) return <span className="text-xs italic text-muted-foreground">Not available for this degree</span>
 
   async function handleCopy() {
-    if (!text) return
-    await navigator.clipboard.writeText(text)
+    const payload = fullPrecisionText ?? text
+    if (!payload) return
+    await navigator.clipboard.writeText(payload)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -34,6 +51,11 @@ function CopyableFormula({ text, copyAriaLabel }: { text: string | null; copyAri
           copied ? " animate-success-pop text-primary" : ""
         }`}
         aria-label={copied ? "Copied" : copyAriaLabel ?? "Copy expression to clipboard"}
+        title={
+          fullPrecisionText && fullPrecisionText !== text
+            ? "Copies the full backend precision; the rendered text shown above respects your Display digits selection."
+            : undefined
+        }
       >
         {copied ? (
           <><Check className="h-3 w-3" aria-hidden="true" /> Copied</>
@@ -47,7 +69,7 @@ function CopyableFormula({ text, copyAriaLabel }: { text: string | null; copyAri
 
 export function PolynomialCard({ polynomial }: PolynomialCardProps) {
   const [tab, setTab] = useState("expanded")
-  const { digits, formatPoly, formatLiterals } = useDisplayDigits()
+  const { digits, formatPoly, formatLiterals, formatLatex } = useDisplayDigits()
 
   /*
    * Display-precision routing per polynomial form.
@@ -62,6 +84,12 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
    *   Use `formatLiterals` which only rounds numeric literals in place
    *   and never drops or merges tokens. The backend remains the source
    *   of truth for structure.
+   *
+   * KaTeX rendering: every `latex_*` field passes through `formatLatex`
+   * so the rendered formula honors the same Display-digits budget as
+   * the plain-text fallback. Full backend precision stays available
+   * through the Copy button (which always copies the unrounded backend
+   * string) and through the "Full" Display-digits radio.
    */
   const expandedFormatted = formatPoly(polynomial.expanded)
   const factoredText = formatLiterals(polynomial.factored)
@@ -69,6 +97,11 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
   const newtonText = formatLiterals(polynomial.newton_form)
   const hermiteText = formatLiterals(polynomial.hermite_form)
   const taylorText = formatLiterals(polynomial.taylor_form)
+  const expandedLatex = formatLatex(polynomial.latex_expanded)
+  const lagrangeLatex = formatLatex(polynomial.latex_lagrange)
+  const newtonLatex = formatLatex(polynomial.latex_newton)
+  const hermiteLatex = formatLatex(polynomial.latex_hermite)
+  const taylorLatex = formatLatex(polynomial.latex_taylor)
 
   // Phase 2 (R2.4 / R7.2 / R8.1): conditional Hermite and Taylor tabs.
   const showHermite = polynomial.hermite_form != null
@@ -81,6 +114,16 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
   const isPiecewiseNoGlobal =
     polynomial.expanded_omitted_reason === "piecewise_method_no_global_polynomial"
   const showFactored = !isPiecewiseNoGlobal
+
+  // The piecewise notice already lives in the Expanded tab body
+  // (`<p>...</p>` below), so suppressing the duplicate Alert avoids
+  // double-signaling the same fact. For every other reason we route the
+  // backend code through the shared registry so the user sees a friendly
+  // label (e.g. "Polynomial Omitted") instead of a raw snake_case code.
+  const omittedNotice =
+    polynomial.expanded_omitted_reason && !isPiecewiseNoGlobal
+      ? resolveBackendCodePayload(polynomial.expanded_omitted_reason, null)
+      : null
 
   // Guard: if the active tab disappears (e.g. user had Factored selected
   // and a new piecewise response arrives), fall back to a visible tab via
@@ -101,10 +144,12 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
         </p>
       </div>
       <div className="p-5">
-        {polynomial.expanded_omitted_reason && (
+        {omittedNotice && (
           <Alert className="mb-4">
             <Info className="h-4 w-4" aria-hidden="true" />
-            <AlertDescription className="text-xs">{polynomial.expanded_omitted_reason}</AlertDescription>
+            <AlertDescription className="text-xs">
+              {omittedNotice.primary}
+            </AlertDescription>
           </Alert>
         )}
 
@@ -133,47 +178,64 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
             ) : (
               <>
                 <div className="bg-muted/30 rounded-lg p-4">
-                  <KatexDisplay latex={polynomial.latex_expanded} plainText={expandedFormatted.text} />
+                  <KatexDisplay latex={expandedLatex} plainText={expandedFormatted.text} />
                 </div>
                 {expandedFormatted.hiddenCount > 0 && (
                   <p className="text-[11px] text-muted-foreground italic">
                     {expandedFormatted.hiddenCount} near-zero {expandedFormatted.hiddenCount === 1 ? "term" : "terms"} hidden at {digits === "full" ? "current" : `${digits} digits`} (likely floating-point noise). Switch to Full to see all terms.
                   </p>
                 )}
-                <CopyableFormula text={expandedFormatted.text} copyAriaLabel="Copy expanded polynomial" />
+                <CopyableFormula
+                  text={expandedFormatted.text}
+                  fullPrecisionText={polynomial.expanded}
+                  copyAriaLabel="Copy expanded polynomial"
+                />
               </>
             )}
           </TabsContent>
 
           {showFactored && (
             <TabsContent value="factored" className="space-y-3 mt-4">
-              <CopyableFormula text={factoredText || polynomial.factored} copyAriaLabel="Copy factored polynomial" />
+              <CopyableFormula
+                text={factoredText || polynomial.factored}
+                fullPrecisionText={polynomial.factored}
+                copyAriaLabel="Copy factored polynomial"
+              />
             </TabsContent>
           )}
 
           <TabsContent value="lagrange" className="space-y-3 mt-4">
             <div className="bg-muted/30 rounded-lg p-4">
-              <KatexDisplay latex={polynomial.latex_lagrange} plainText={lagrangeText} />
+              <KatexDisplay latex={lagrangeLatex} plainText={lagrangeText} />
             </div>
-            <CopyableFormula text={lagrangeText || polynomial.lagrange_form} copyAriaLabel="Copy Lagrange form" />
+            <CopyableFormula
+              text={lagrangeText || polynomial.lagrange_form}
+              fullPrecisionText={polynomial.lagrange_form}
+              copyAriaLabel="Copy Lagrange form"
+            />
           </TabsContent>
 
           <TabsContent value="newton" className="space-y-3 mt-4">
             <div className="bg-muted/30 rounded-lg p-4">
-              <KatexDisplay latex={polynomial.latex_newton} plainText={newtonText} />
+              <KatexDisplay latex={newtonLatex} plainText={newtonText} />
             </div>
-            <CopyableFormula text={newtonText || polynomial.newton_form} copyAriaLabel="Copy Newton nested form" />
+            <CopyableFormula
+              text={newtonText || polynomial.newton_form}
+              fullPrecisionText={polynomial.newton_form}
+              copyAriaLabel="Copy Newton nested form"
+            />
           </TabsContent>
 
           {showHermite && (
             <TabsContent value="hermite" className="space-y-3 mt-4">
               <CopyableFormula
                 text={hermiteText || polynomial.hermite_form}
+                fullPrecisionText={polynomial.hermite_form}
                 copyAriaLabel="Copy Hermite form"
               />
-              {polynomial.latex_hermite != null && (
+              {hermiteLatex != null && (
                 <div className="bg-muted/30 rounded-lg p-4">
-                  <KatexDisplay latex={polynomial.latex_hermite} plainText={hermiteText} />
+                  <KatexDisplay latex={hermiteLatex} plainText={hermiteText} />
                 </div>
               )}
             </TabsContent>
@@ -183,11 +245,12 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
             <TabsContent value="taylor" className="space-y-3 mt-4">
               <CopyableFormula
                 text={taylorText || polynomial.taylor_form}
+                fullPrecisionText={polynomial.taylor_form}
                 copyAriaLabel="Copy Taylor form"
               />
-              {polynomial.latex_taylor != null && (
+              {taylorLatex != null && (
                 <div className="bg-muted/30 rounded-lg p-4">
-                  <KatexDisplay latex={polynomial.latex_taylor} plainText={taylorText} />
+                  <KatexDisplay latex={taylorLatex} plainText={taylorText} />
                 </div>
               )}
             </TabsContent>

@@ -8,7 +8,7 @@ import { MethodSelector } from "./MethodSelector"
  *
  * Validates: Requirements R4.1, R4.3, R4.4, R10.1, R15.2.
  *
- * The catalog data lives in `MethodSelector.catalog.ts` and the rendering
+ * The catalog data lives in `lib/method-metadata.ts` and the rendering
  * shape lives in `MethodSelector.tsx`. These tests exercise the rendered
  * output only and never recompute catalog content.
  */

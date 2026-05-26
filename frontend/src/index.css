@@ -318,11 +318,17 @@ body {
  *   - `.animate-row-enter`     fresh-row entrance in editor lists
  *   - `.animate-success-pop`   transient confirmation pulse
  *
+ * Tailwind's `animate-pulse` is used by `Skeleton.tsx` and the
+ * `HealthIndicator.tsx` checking-state dot. Both are decorative
+ * (a pulsing skeleton bar and a pulsing dot, not a progress
+ * indicator), so they are also neutralised here. The `Loader2`
+ * spinner (Tailwind's `animate-spin`) is a functional progress
+ * indicator and is left running deliberately: removing it would
+ * imply "computation has stopped" to the user.
+ *
  * If a new handle is added above, it MUST also be reset here. This block
  * is part of the accessibility contract; do not remove it as part of
- * cleanup. The `Loader2` spinner (Tailwind's `animate-spin`) is a
- * functional progress indicator and is left running deliberately:
- * removing it would imply "computation has stopped" to the user. */
+ * cleanup. */
 @media (prefers-reduced-motion: reduce) {
   .transition-subtle,
   .transition-colors-fast {
@@ -330,7 +336,8 @@ body {
   }
   .animate-in-results,
   .animate-row-enter,
-  .animate-success-pop {
+  .animate-success-pop,
+  .animate-pulse {
     animation: none;
   }
 }

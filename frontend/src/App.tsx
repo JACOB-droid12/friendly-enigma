@@ -119,6 +119,7 @@ function AppShell() {
   const [backendOnline, setBackendOnline] = useState(false)
   const [showQuickRef, setShowQuickRef] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [tabHotkey, setTabHotkey] = useState<{ index: number; tick: number }>({ index: 1, tick: 0 })
 
   const validateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -224,6 +225,9 @@ function AppShell() {
     onCompute: backendOnline ? handleCompute : undefined,
     onReset: handleReset,
     onToggleHelp: () => setShowQuickRef((s) => !s),
+    onResultTab: result
+      ? (index) => setTabHotkey((prev) => ({ index, tick: prev.tick + 1 }))
+      : undefined,
     disabled: loading,
   })
 
@@ -283,7 +287,7 @@ function AppShell() {
       <header className="border-b bg-card sticky top-0 z-10">
         <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-3.5 min-w-0">
-            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/8 ring-1 ring-primary/15 shrink-0">
+            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 ring-1 ring-primary/15 shrink-0">
               <span className="font-math text-xl font-semibold italic text-primary">P</span>
             </div>
             <div className="min-w-0">
@@ -457,7 +461,11 @@ function AppShell() {
         {result && !loading && (
           <div className="mt-8 animate-in-results">
             <Separator className="mb-6" />
-            <ResultsPanel data={result} />
+            <ResultsPanel
+              data={result}
+              tabHotkeyIndex={tabHotkey.index}
+              tabHotkeyTick={tabHotkey.tick}
+            />
           </div>
         )}
       </main>
@@ -508,6 +516,7 @@ function ShortcutsDialog({
             <ShortcutRow keys={["Ctrl/Cmd", "Enter"]} description="Compute" />
             <ShortcutRow keys={["Alt", "R"]} description="Reset form" />
             <ShortcutRow keys={["?"]} description="Toggle quick reference" />
+            <ShortcutRow keys={["1", "to", "7"]} description="Switch result tab" />
             <ShortcutRow keys={["Esc"]} description="Close this overlay" />
           </dl>
           <DialogPrimitive.Description className="text-[11px] text-muted-foreground mt-3 leading-relaxed">

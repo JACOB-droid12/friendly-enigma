@@ -95,6 +95,6 @@ describe("interpolation result smoke rendering", () => {
     )
 
     expect(screen.getByRole("region", { name: /Interpolation graph/i })).toBeInTheDocument()
-    expect(screen.getAllByText("barycentric").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Barycentric").length).toBeGreaterThan(0)
   })
 })

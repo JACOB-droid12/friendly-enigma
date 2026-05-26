@@ -1,10 +1,12 @@
 import type { MethodName } from "@/lib/api-types"
 import { Badge } from "@/components/ui/badge"
 import {
-  METHOD_CATALOG,
-  type MethodCatalogEntry,
-  type MethodFamily,
-} from "./MethodSelector.catalog"
+  FAMILY_LABEL,
+  FAMILY_ORDER,
+  METHOD_METADATA,
+  METHOD_ORDER,
+  type MethodMetadata,
+} from "@/lib/method-metadata"
 
 interface MethodSelectorProps {
   selected: MethodName[]
@@ -12,63 +14,42 @@ interface MethodSelectorProps {
 }
 
 /**
- * Method roles use the canonical wording from the project requirements.
- * Barycentric is highlighted because it is the unique source of graph data
- * in the API contract, not because it is "best".
+ * Family-grouped method selector.
  *
- * The role tag is rendered in the design-system label voice (`font-label`):
- * IBM Plex Sans, 0.625rem / 500 / 0.05em / uppercase. Size, weight, padding,
- * and layout are identical across every card; the only differentiator is
- * the Barycentric tint (`text-primary/80` vs `text-muted-foreground`).
+ * Catalog content (labels, families, role tags, descriptions, eligibility
+ * hints, and the deferred chip) is owned by `lib/method-metadata.ts`.
+ * This file is the renderer: it groups the catalog by family per
+ * `FAMILY_ORDER` and renders one card per method.
  *
- * Per Phase 2 design.md §8.x the catalog is family-grouped. Catalog data
- * is owned by `MethodSelector.catalog.ts`; this file only renders it.
+ * Role tags use the design-system label voice (`font-label`). The only
+ * differentiator across method cards is the Barycentric tint
+ * (`text-primary/80` vs `text-muted-foreground`); size, weight, padding,
+ * and layout are identical so the eye is drawn to the actual method
+ * name first, the role tag second.
+ *
+ * Hybrid intent routing (per the design direction) is presented above
+ * this component as a Quick Start row in `ExamplesPanel`. The Method
+ * Selector remains the advanced manual catalog, grouped by method
+ * family, so once a user knows what they want they can pick it directly
+ * without re-reading lecture-aware copy.
  */
 
-/**
- * Family render order. Matches the `MethodFamily` declaration order in
- * `MethodSelector.catalog.ts` and design.md §8.2 verbatim. Per design.md
- * §8.2 the labels are: Construction, Stable Evaluator, Target-Specific,
- * Equal Spacing, Derivative Data, Function Derivative, Piecewise.
- */
-const FAMILIES_IN_ORDER: { family: MethodFamily; label: string }[] = [
-  { family: "construction", label: "Construction" },
-  { family: "stable_evaluator", label: "Stable Evaluator" },
-  { family: "target_specific", label: "Target-Specific" },
-  { family: "equal_spacing", label: "Equal Spacing" },
-  { family: "derivative_data", label: "Derivative Data" },
-  { family: "function_derivative", label: "Function Derivative" },
-  { family: "piecewise", label: "Piecewise" },
-]
-
-/**
- * Group catalog entries by family, preserving declaration order within
- * each family (so `lagrange` precedes `newton`, etc., per §8.3).
- */
-function groupByFamily(
-  entries: MethodCatalogEntry[]
-): Record<MethodFamily, MethodCatalogEntry[]> {
-  const out: Record<MethodFamily, MethodCatalogEntry[]> = {
-    construction: [],
-    stable_evaluator: [],
-    target_specific: [],
-    equal_spacing: [],
-    derivative_data: [],
-    function_derivative: [],
-    piecewise: [],
-  }
-  for (const entry of entries) {
-    out[entry.family].push(entry)
+function groupByFamily(): Map<string, MethodMetadata[]> {
+  const out = new Map<string, MethodMetadata[]>()
+  for (const family of FAMILY_ORDER) out.set(family, [])
+  for (const name of METHOD_ORDER) {
+    const meta = METHOD_METADATA[name]
+    out.get(meta.family)!.push(meta)
   }
   return out
 }
 
-const GROUPED_CATALOG = groupByFamily(METHOD_CATALOG)
+const GROUPED_CATALOG = groupByFamily()
 
 export function MethodSelector({ selected, onChange }: MethodSelectorProps) {
   function toggle(method: MethodName) {
     if (selected.includes(method)) {
-      // At-least-one-method-selected guard (preserved from V1).
+      // At-least-one-method-selected guard.
       if (selected.length <= 1) return
       onChange(selected.filter((m) => m !== method))
     } else {
@@ -79,14 +60,12 @@ export function MethodSelector({ selected, onChange }: MethodSelectorProps) {
   return (
     <fieldset className="space-y-3">
       <legend className="sr-only">Interpolation methods</legend>
-      {FAMILIES_IN_ORDER.map(({ family, label }) => {
-        const entries = GROUPED_CATALOG[family]
-        // Defensive guard: skip families with zero entries. None should be
-        // empty in practice given the catalog in §8.2.
+      {FAMILY_ORDER.map((family) => {
+        const entries = GROUPED_CATALOG.get(family) ?? []
         if (entries.length === 0) return null
         return (
           <section key={family} className="space-y-2">
-            <h3 className="font-label text-muted-foreground">{label}</h3>
+            <h3 className="font-label text-muted-foreground">{FAMILY_LABEL[family]}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {entries.map((m) => {
                 const isSelected = selected.includes(m.value)

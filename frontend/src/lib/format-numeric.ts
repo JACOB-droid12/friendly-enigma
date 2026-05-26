@@ -278,3 +278,42 @@ export function formatNumericLiteralsInString(
   const NUM = /(?:\d+\.\d+|\d+)(?:[eE][+-]?\d+)?/g
   return input.replace(NUM, (match) => roundNumericString(match, digits))
 }
+
+
+/**
+ * Structure-preserving numeric-literal formatter for LaTeX strings.
+ *
+ * SymPy emits LaTeX where numeric literals appear as plain digit runs
+ * (`1.5`, `0.7651977`, `1.2e-5`) interleaved with control sequences
+ * (`\frac`, `\left`, `\right`), braces, and identifiers. Rounding the
+ * literals while leaving everything else alone keeps KaTeX rendering
+ * stable: the same `\frac{...}{...}` shape, just shorter coefficients.
+ *
+ * Implementation notes:
+ *
+ *   - Negative signs are operators; we never consume them as part of
+ *     a literal. A `-` in the middle of an expression is left alone.
+ *   - Exponents inside a control sequence (e.g. the integer in
+ *     `\frac{1}{2}`) round through `roundNumericString`, but
+ *     integers and rationals already pass through unchanged so the
+ *     LaTeX shape is preserved verbatim.
+ *   - The implementation reuses `formatNumericLiteralsInString` so
+ *     bug fixes apply to both plain-text and LaTeX output. We call
+ *     it under a separate name to make the intent explicit at call
+ *     sites and to leave room for LaTeX-specific tightening later
+ *     (for example, skipping numerals inside `\text{...}` blocks).
+ *
+ * Display-digits parity: when the polynomial card renders the plain
+ * text and the LaTeX side by side, both pass through the same
+ * digit-budget helper. At Display 6 the plain text and the KaTeX
+ * output round to six significant figures together. Full precision
+ * stays available through "Full" mode and through the Copy button on
+ * the polynomial forms.
+ */
+export function formatLatexLiterals(
+  input: string,
+  digits: DisplayDigits,
+): string {
+  if (digits === "full") return input
+  return formatNumericLiteralsInString(input, digits)
+}

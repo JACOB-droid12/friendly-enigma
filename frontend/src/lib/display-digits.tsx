@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react"
 import {
   DEFAULT_DISPLAY_DIGITS,
+  formatLatexLiterals,
   formatNumericLiteralsInString,
   formatPolynomial,
   nearZeroThresholdFor,
@@ -41,6 +42,15 @@ export interface DisplayDigitsContextValue {
    * unchanged. Never drops or merges tokens.
    */
   formatLiterals: (s: string | null | undefined) => string
+  /**
+   * Structure-preserving rounding of numeric literals inside a LaTeX
+   * string. Pair this with `KatexDisplay` so the rendered formula
+   * respects the user's Display-digits selection alongside the plain
+   * text fallback. Returns `null` when the input is `null`/`undefined`
+   * so callers can pass the result straight to `KatexDisplay`'s
+   * `latex` prop.
+   */
+  formatLatex: (s: string | null | undefined) => string | null
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -65,6 +75,10 @@ export function DisplayDigitsProvider({ children }: { children: ReactNode }) {
       formatLiterals: (s) => {
         if (s == null) return ""
         return formatNumericLiteralsInString(s, digits)
+      },
+      formatLatex: (s) => {
+        if (s == null) return null
+        return formatLatexLiterals(s, digits)
       },
     }
   }, [digits])

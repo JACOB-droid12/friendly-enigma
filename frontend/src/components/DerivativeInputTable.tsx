@@ -97,6 +97,8 @@ export default function DerivativeInputTable({
       <h3 className="font-label text-foreground">Derivative Data</h3>
       <p className="text-xs text-muted-foreground">
         Hermite currently supports first-derivative data only (order = 1).
+        Enter f&prime;(x<sub aria-hidden="true">i</sub>) per node; the
+        request builder fills the order field for you.
       </p>
 
       {xs.length === 0 ? (

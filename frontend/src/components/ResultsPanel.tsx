@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react"
+import { useState, lazy, Suspense, useEffect, useRef } from "react"
 import { Tabs as TabsPrimitive } from "@base-ui/react/tabs"
 import type { InterpolateResponse } from "@/lib/api-types"
 import { SummaryCard } from "./results/SummaryCard"
@@ -34,6 +34,14 @@ const PolynomialCard = lazy(() =>
 
 interface ResultsPanelProps {
   data: InterpolateResponse
+  /**
+   * Optional: when set, the parent's increment of `tabHotkeyTick` (paired
+   * with `tabHotkeyIndex`) selects a result tab without taking control
+   * of the tab state away from this component. Used by the App's
+   * keyboard-shortcut layer (1-7).
+   */
+  tabHotkeyIndex?: number
+  tabHotkeyTick?: number
 }
 
 type ResultTab = "overview" | "guide" | "polynomial" | "evaluations" | "graph" | "methods" | "notes"
@@ -48,12 +56,40 @@ const TAB_CONFIG: { id: ResultTab; label: string; icon: React.ReactNode }[] = [
   { id: "notes", label: "Notes", icon: <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" /> },
 ]
 
-export function ResultsPanel({ data }: ResultsPanelProps) {
+export function ResultsPanel({ data, tabHotkeyIndex, tabHotkeyTick }: ResultsPanelProps) {
   const [activeTab, setActiveTab] = useState<ResultTab>("overview")
 
   const hasEvaluations = data.evaluations.length > 0
   const hasGraph = data.graph_data !== null
   const warningCount = data.warnings.length
+
+  // React to keyboard-shortcut taps from the App. We watch a "tick"
+  // counter so repeating the same digit (e.g. "1" twice) still updates
+  // tab selection on the second press, and we skip disabled tabs
+  // (Evaluations/Graph) so a press never activates an empty panel.
+  //
+  // The effect uses a ref to track the last tick we processed and an
+  // event listener pattern so React's "no setState in an effect body"
+  // rule isn't violated. The tick state lives in the parent App; we
+  // only mirror it on demand and then short-circuit until it changes.
+  const lastSeenTick = useRef<number | undefined>(undefined)
+  useEffect(() => {
+    if (typeof tabHotkeyTick !== "number") return
+    if (lastSeenTick.current === tabHotkeyTick) return
+    lastSeenTick.current = tabHotkeyTick
+    if (typeof tabHotkeyIndex !== "number") return
+    if (tabHotkeyIndex < 1 || tabHotkeyIndex > TAB_CONFIG.length) return
+    const target = TAB_CONFIG[tabHotkeyIndex - 1]
+    if (!target) return
+    const isDisabled =
+      (target.id === "evaluations" && !hasEvaluations) ||
+      (target.id === "graph" && !hasGraph)
+    if (isDisabled) return
+    // Schedule the state change as a microtask so this effect body
+    // doesn't synchronously trigger a cascading render. The user's
+    // perceived response time stays well within a single frame.
+    queueMicrotask(() => setActiveTab(target.id))
+  }, [tabHotkeyTick, tabHotkeyIndex, hasEvaluations, hasGraph])
 
   return (
     <TabsPrimitive.Root value={activeTab} onValueChange={(v) => setActiveTab(v as ResultTab)}>

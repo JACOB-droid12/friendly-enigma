@@ -1,6 +1,7 @@
 import { BookOpenCheck, ListChecks, Presentation, Route } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import type { InterpolateResponse, MethodName } from "@/lib/api-types"
+import { methodLabel } from "@/lib/method-metadata"
 import { ResultQualityGuide } from "./ResultQualityGuide"
 
 interface GuidedExplanationProps {
@@ -13,23 +14,8 @@ const INPUT_MODE_LABEL: Record<InterpolateResponse["input_summary"]["mode"], str
   function_interval: "function interval",
 }
 
-const METHOD_LABEL: Record<MethodName, string> = {
-  lagrange: "Lagrange",
-  newton: "Newton",
-  barycentric: "Barycentric",
-  neville: "Neville",
-  newton_forward: "Newton Forward",
-  newton_backward: "Newton Backward",
-  stirling: "Stirling",
-  hermite_divided_difference: "Hermite Divided Difference",
-  hermite: "Hermite",
-  osculating: "Osculating",
-  taylor: "Taylor",
-  cubic_spline: "Cubic Spline",
-}
-
 function methodLabels(methods: MethodName[]) {
-  return methods.map((method) => METHOD_LABEL[method]).join(", ")
+  return methods.map((method) => methodLabel(method)).join(", ")
 }
 
 function polynomialText(data: InterpolateResponse) {
@@ -127,7 +113,7 @@ export function GuidedExplanation({ data }: GuidedExplanationProps) {
                 title="Polynomial result"
                 icon={<BookOpenCheck className="h-3.5 w-3.5" aria-hidden="true" />}
               />
-              <p className="mt-3 rounded-md bg-muted/35 px-3 py-2 font-mono text-sm text-foreground">
+              <p className="mt-3 rounded-md bg-muted/35 px-3 py-2 font-numeric text-sm text-foreground">
                 {polynomialText(data)}
               </p>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
@@ -146,7 +132,7 @@ export function GuidedExplanation({ data }: GuidedExplanationProps) {
                   {evaluations.map((lines, index) => (
                     <div key={index} className="rounded-md bg-muted/35 px-3 py-2 text-sm">
                       {lines.map((line) => (
-                        <p key={line} className="font-mono text-foreground">
+                        <p key={line} className="font-numeric text-foreground">
                           {line}
                         </p>
                       ))}

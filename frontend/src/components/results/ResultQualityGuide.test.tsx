@@ -49,7 +49,7 @@ describe("ResultQualityGuide", () => {
     render(<ResultQualityGuide data={linearPointsResponse} />)
 
     expect(screen.getByText("Graph quality note")).toBeInTheDocument()
-    expect(screen.getByText("barycentric")).toBeInTheDocument()
+    expect(screen.getByText("Barycentric")).toBeInTheDocument()
     expect(screen.getByText(/The graph is rendered from backend-provided samples only/i)).toBeInTheDocument()
   })
 })

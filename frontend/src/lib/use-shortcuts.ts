@@ -7,6 +7,12 @@ interface ShortcutHandlers {
   onReset?: () => void
   /** Quick reference toggle. Bound to "?". */
   onToggleHelp?: () => void
+  /**
+   * Result-tab hotkey. Fires with the digit 1-7 the user pressed; the
+   * caller maps the digit to a tab id. Bound only when results are on
+   * screen (the App passes `undefined` while `result === null`).
+   */
+  onResultTab?: (index: number) => void
   /** Disable shortcuts entirely (e.g. while loading). */
   disabled?: boolean
 }
@@ -20,12 +26,22 @@ const isAltR = (e: KeyboardEvent) =>
 const isQuestion = (e: KeyboardEvent) =>
   e.key === "?" && !e.ctrlKey && !e.metaKey && !e.altKey
 
+const isPlainDigit = (e: KeyboardEvent) =>
+  /^[1-9]$/.test(e.key) &&
+  !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey
+
 /**
  * Page-level shortcuts. Fires for top-level surfaces only: ignores events
  * originating inside form controls so typing a number doesn't trigger
  * Compute, and Esc/Enter inside input fields keeps native semantics.
  */
-export function useShortcuts({ onCompute, onReset, onToggleHelp, disabled }: ShortcutHandlers) {
+export function useShortcuts({
+  onCompute,
+  onReset,
+  onToggleHelp,
+  onResultTab,
+  disabled,
+}: ShortcutHandlers) {
   useEffect(() => {
     if (disabled) return
 
@@ -34,7 +50,9 @@ export function useShortcuts({ onCompute, onReset, onToggleHelp, disabled }: Sho
       const tag = target.tagName
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
         // Allow Ctrl/Cmd+Enter from inside inputs: that is the canonical
-        // "submit form from anywhere" combo. Suppress only Alt+R and "?".
+        // "submit form from anywhere" combo. Suppress Alt+R, "?", and
+        // result-tab digits so the user can still type "1" into an
+        // x-value field without changing tabs.
         return false
       }
       if (target.isContentEditable) return true
@@ -60,9 +78,17 @@ export function useShortcuts({ onCompute, onReset, onToggleHelp, disabled }: Sho
         onToggleHelp()
         return
       }
+      if (isPlainDigit(e) && onResultTab) {
+        const index = Number(e.key)
+        if (index >= 1 && index <= 7) {
+          e.preventDefault()
+          onResultTab(index)
+          return
+        }
+      }
     }
 
     document.addEventListener("keydown", handler)
     return () => document.removeEventListener("keydown", handler)
-  }, [onCompute, onReset, onToggleHelp, disabled])
+  }, [onCompute, onReset, onToggleHelp, onResultTab, disabled])
 }
