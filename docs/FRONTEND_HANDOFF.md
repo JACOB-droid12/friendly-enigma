@@ -7,7 +7,7 @@ Frontend v1.5 with critique-driven refactors. Builds, lints, type-checks, and te
 
 ## Task 2 Backend Helper Note (2026-05-28)
 
-Generalized confluent divided-difference support now exists only as a backend helper in `backend/app/core/methods/repeated_nodes.py`. The API still intentionally leaves `osculating` deferred until Task 3 routes the helper through method/service orchestration, so Claude Opus does not need to change frontend request handling or result rendering for this task.
+Generalized confluent divided-difference support now exists only as a backend helper in `backend/app/core/methods/repeated_nodes.py`. Focused helper-level tests now reconstruct the Newton polynomial and verify mixed osculating constraints, but the API still intentionally leaves `osculating` deferred until Task 3 routes the helper through method/service orchestration. Claude Opus does not need to change frontend request handling or result rendering for this task.
 
 ## Reciprocal Graph Node Plotting Fix (2026-05-26)
 

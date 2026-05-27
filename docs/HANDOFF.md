@@ -1,6 +1,32 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Focused Task 2 quality fix is complete locally on `codex/interpolation-backend-v1`. This remained helper/test-only; `osculating` was not routed through service and no frontend files were touched.
+
+Files changed in this fix:
+
+- `backend/app/tests/test_osculating.py`
+  - Added local `_newton_expression(...)` test helper to reconstruct the Newton polynomial from `result.repeated_x` and `result.coefficients`.
+  - Aligned the mixed-order fixture with the requested constraints: `P(0)=1`, `P'(0)=2`, `P''(0)=6`, `P(1)=3`, `P'(1)=5`.
+  - Added direct assertions for those value/derivative constraints on the reconstructed polynomial.
+  - Added an ordinary cross-node divided-difference assertion: `result.table[2][1] == 2`.
+- `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/API_CONTRACT.md`, `docs/FRONTEND_HANDOFF.md`
+  - Recorded the focused quality-fix scope and verification.
+
+Commands run in this fix:
+
+| Command / Check | Result |
+|---|---|
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_repeated_nodes.py app/tests/test_osculating.py -q` | PASS - 4 passed in 1.22s. |
+| `.\.venv\Scripts\python.exe -m ruff check app/core/methods/repeated_nodes.py app/tests/test_osculating.py app/tests/test_repeated_nodes.py` | PASS - `All checks passed!`. |
+
+Notes and risks:
+
+- This change strengthens helper-level coverage only. No endpoint path, request JSON, response JSON, validation behavior, warning code, or frontend behavior changed.
+- `osculating` should still return the existing deferred service response until Task 3 wires this helper into method/service orchestration.
+- The optional omitted-`orders_by_node_index` default-to-order-0 behavior was not expanded in this pass; the requested mixed-order reconstruction coverage was the focused fix.
+
+## Previous Current Task
 Task 2: Generalized Confluent Divided Differences is complete locally on `codex/interpolation-backend-v1`. This task added helper-level backend support only; `osculating` is not routed through the service yet.
 
 Files changed in this task:
