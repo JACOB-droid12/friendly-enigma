@@ -71,6 +71,26 @@ Release notes / repo audit batch (2026-05-27):
   - `npm run build` from `frontend/`: PASS with existing Vite large-chunk warning. Bundle evidence: main JS 725.00 kB / 211.84 kB gzip, GraphCard 378.60 kB / 109.73 kB gzip, PolynomialCard 6.55 kB / 2.30 kB gzip, CSS 92.11 kB / 19.37 kB gzip.
   - `npm test` from `frontend/`: PASS - 14 files / 62 tests.
 
+Fresh post-RC preview deploy and smoke (2026-05-27):
+
+- Preview URL: `https://interpolation-workbench-c85z59ylk-marvillarq20-3593s-projects.vercel.app`
+- Deployment id: `dpl_9ciPFpehZqwSuGnR7drBJqwWbV3u`
+- Ready state: `READY`
+- Production was not promoted.
+- Vercel access/protection mode was not changed.
+
+| Command / Check | Result |
+|---|---|
+| `git push -u origin codex/interpolation-backend-v1` | PASS - pushed commits through `c88a9da` before deployment. |
+| `npx vercel deploy --yes` | PASS - preview ready at `https://interpolation-workbench-c85z59ylk-marvillarq20-3593s-projects.vercel.app`, deployment id `dpl_9ciPFpehZqwSuGnR7drBJqwWbV3u`. Vercel build passed with the same Vite chunk-size warning. |
+| Direct unauthenticated `Invoke-WebRequest /health` | HTTP 401 Vercel Authentication - expected because Deployment Protection remains enabled. |
+| `npx vercel curl /health --deployment <preview> -- --include` | HTTP 200 - `{"status":"ok","service":"interpolation-backend","version":"0.1.0"}`. |
+| `npx vercel curl /api/validate-function ... {"function":"sin(x)"}` | HTTP 200 - `status: ok`, normalized expression `sin(x)`, allowed symbol `x`. |
+| Linear Lagrange `/api/interpolate` smoke | HTTP 200 - `status: ok`, `best_method: lagrange`, `best_P_x: 3`, graph source `barycentric`, 101 samples. |
+| Newton Forward cos(x) `/api/interpolate` smoke | HTTP 200 - `status: ok`, method status `ok`, `best_method: newton_forward`, `best_P_x` near `0.0707141211`, function error near `0.0000230805`, graph source `barycentric`. |
+| Corrected Stirling `/api/interpolate` smoke | HTTP 200 - `status: ok`, method status `ok`, `best_method: stirling`, value `621861293/1215000000`, and five `terms` entries for orders 0 through 4. |
+| Unsorted-node cubic spline `/api/interpolate` smoke | HTTP 200 - `status: ok`, `input_summary.sorted_nodes: true`, method warning `nodes_reordered`, ordered node indices `[1,2,0]`, `best_P_x: 125/32`. |
+
 ## Previous Current Task
 Reciprocal interpolation graph node plotting bug fix (2026-05-26). Root cause was frontend-only: `GraphCard` converted backend numeric strings with `parseFloat`, so exact rational node strings such as `"1/2"`, `"2/3"`, and `"3/2"` were partially parsed as `1`, `2`, and `3`. Backend normalization and graph-data generation were checked; the reciprocal payload returns the correct exact node strings, correct evaluation table, no `f_x`/`error` arrays for point-only input, and `P_x` samples through the five nodes.
 

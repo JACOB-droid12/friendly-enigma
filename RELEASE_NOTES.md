@@ -42,6 +42,14 @@ Fresh post-RC local verification on 2026-05-27:
 
 Fresh post-RC preview verification will be recorded in `docs/HANDOFF.md` and `docs/PLAN.md` after the final deploy/smoke step in this session.
 
+Fresh post-RC preview deployment on 2026-05-27:
+
+- Preview URL: `https://interpolation-workbench-c85z59ylk-marvillarq20-3593s-projects.vercel.app`
+- Deployment id: `dpl_9ciPFpehZqwSuGnR7drBJqwWbV3u`
+- Ready state: `READY`
+- Smoke checks through authenticated `vercel curl`: `/health`, `/api/validate-function`, Linear Lagrange, Newton Forward cos(x), corrected Stirling, and unsorted-node cubic spline all returned HTTP 200 with expected contract fields.
+- Direct unauthenticated request to `/health` returned HTTP 401 Vercel Authentication, so Deployment Protection remains enabled.
+
 ## Known Caveats
 
 - Preview may remain protected by Vercel Deployment Protection/SSO. Public/professor access needs an explicit access-mode decision.
