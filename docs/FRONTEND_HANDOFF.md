@@ -5,6 +5,23 @@ For the remaining Claude Opus Phase 2 React workbench implementation checklist, 
 ## Status
 Frontend v1.5 with critique-driven refactors. Builds, lints, type-checks, and tests clean (12 test files, 57 tests). Live-tested against backend.
 
+## Reciprocal Graph Node Plotting Fix (2026-05-26)
+
+`GraphCard` now parses backend numeric strings with a strict graph parser instead of `parseFloat`. This matters for exact-mode point inputs because the backend returns rational node strings such as `"1/2"` and `"2/3"`; `parseFloat` partially parsed those as `1` and `2`, which made the red node series appear at stale-looking integer coordinates while the orange `P(x)` curve was sampled from correct decimal `graph_data`.
+
+Frontend-relevant behavior after the fix:
+
+- Node scatter points use the actual backend node coordinates, including exact rational `a/b` strings.
+- Graph sample arrays, optional `f_x`, optional `error`, tooltip values, and brush x-coordinates all pass through the same numeric parser.
+- Point-only interpolation still renders no original `f(x)` curve and no true error curve because the backend returns null `f_x` and `error` arrays when no function is supplied.
+- No interpolation math, graph sampling, endpoint path, request shape, or response shape changed.
+
+Regression coverage:
+
+- `frontend/src/components/results/methods/CubicSplineGraphPassthrough.test.tsx` now includes the reciprocal case nodes `(0,1)`, `(1/2,2/3)`, `(1,1/2)`, `(3/2,2/5)`, `(2,1/3)` and asserts the Recharts `Scatter` data is `(0,1)`, `(0.5,0.6666...)`, `(1,0.5)`, `(1.5,0.4)`, `(2,0.3333...)`.
+- Verification passed with `npm run lint`, `npm run build`, and `npm test` (58 tests).
+- Browser DOM/SVG QA on `http://127.0.0.1:5173/` confirmed five node markers at half-step x positions and a graph legend containing only `Nodes` and `P(x)`. Browser screenshot capture timed out, so the recorded proof is DOM/SVG coordinate evidence.
+
 ## Vercel Deployment Notes (2026-05-26)
 
 Current preview:

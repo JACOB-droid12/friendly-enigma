@@ -31,6 +31,12 @@ interface ChartPoint {
   nodeLabel?: string
 }
 
+interface NodeChartPoint extends ChartPoint {
+  nodeY: number
+  isNode: true
+  nodeLabel: string
+}
+
 interface TooltipPayloadEntry {
   dataKey: string
   name: string
@@ -70,6 +76,24 @@ function readGraphTokens(): GraphTokens {
     if (v) out[name] = v
   }
   return out
+}
+
+const RATIONAL_NUMBER_PATTERN = /^([+-]?\d+)\/([+-]?\d+)$/
+
+function parseGraphNumber(value: string): number | null {
+  const trimmed = value.trim()
+  const rational = trimmed.match(RATIONAL_NUMBER_PATTERN)
+  if (rational) {
+    const numerator = Number(rational[1])
+    const denominator = Number(rational[2])
+    if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator === 0) {
+      return null
+    }
+    return numerator / denominator
+  }
+
+  const parsed = Number(trimmed)
+  return Number.isFinite(parsed) ? parsed : null
 }
 
 /**
@@ -152,27 +176,27 @@ export function GraphCard({ graphData, nodes }: GraphCardProps) {
   const chartData: ChartPoint[] = graphData.x
     .map((xStr, i) => {
       if (xStr === null) return null
-      const x = parseFloat(xStr)
-      if (isNaN(x)) return null
+      const x = parseGraphNumber(xStr)
+      if (x === null) return null
 
       const point: ChartPoint = { x }
 
       const fxStr = graphData.f_x[i]
       if (fxStr !== null) {
-        const fxVal = parseFloat(fxStr)
-        if (!isNaN(fxVal)) point.f_x = fxVal
+        const fxVal = parseGraphNumber(fxStr)
+        if (fxVal !== null) point.f_x = fxVal
       }
 
       const pxStr = graphData.P_x[i]
       if (pxStr !== null) {
-        const pxVal = parseFloat(pxStr)
-        if (!isNaN(pxVal)) point.P_x = pxVal
+        const pxVal = parseGraphNumber(pxStr)
+        if (pxVal !== null) point.P_x = pxVal
       }
 
       const errStr = graphData.error[i]
       if (errStr !== null) {
-        const errVal = parseFloat(errStr)
-        if (!isNaN(errVal)) point.error = errVal
+        const errVal = parseGraphNumber(errStr)
+        if (errVal !== null) point.error = errVal
       }
 
       return point
@@ -180,13 +204,18 @@ export function GraphCard({ graphData, nodes }: GraphCardProps) {
     .filter((p): p is ChartPoint => p !== null)
 
   const nodePoints = nodes
-    .map((n) => ({
-      x: parseFloat(n.x),
-      nodeY: parseFloat(n.y),
-      isNode: true,
-      nodeLabel: `(${n.x}, ${n.y})`,
-    }))
-    .filter((p) => !isNaN(p.x) && !isNaN(p.nodeY))
+    .map((n) => {
+      const x = parseGraphNumber(n.x)
+      const nodeY = parseGraphNumber(n.y)
+      if (x === null || nodeY === null) return null
+      return {
+        x,
+        nodeY,
+        isNode: true,
+        nodeLabel: `(${n.x}, ${n.y})`,
+      }
+    })
+    .filter((p): p is NodeChartPoint => p !== null)
 
   const hasOriginalFunction = chartData.some((p) => p.f_x !== undefined)
   const hasError = chartData.some((p) => p.error !== undefined && p.error !== 0)

@@ -24,9 +24,10 @@ import { GraphCard } from "@/components/results/GraphCard"
  * The captured props for `ComposedChart` carry the chart's `data` array,
  * which is the only place where graph arrays could be mutated on the
  * client. The assertions confirm that for each entry, `x` and `P_x` are
- * the `parseFloat` of the backend strings at the same index and that
- * `f_x` / `error` stay `undefined` for the all-null fixture columns. This
- * proves the renderer never recomputes any graph value (R6.6, R9.6).
+ * the numeric coordinates represented by the backend strings at the same
+ * index and that `f_x` / `error` stay `undefined` for the all-null fixture
+ * columns. This proves the renderer never recomputes any graph value
+ * (R6.6, R9.6).
  */
 
 interface CapturedProps {
@@ -89,6 +90,12 @@ function renderWithDisplay(ui: React.ReactElement) {
   return render(<DisplayDigitsProvider>{ui}</DisplayDigitsProvider>)
 }
 
+function graphNumber(value: string): number {
+  const rational = value.match(/^([+-]?\d+)\/([+-]?\d+)$/)
+  if (rational) return Number(rational[1]) / Number(rational[2])
+  return Number(value)
+}
+
 beforeEach(() => {
   // Reset captured props between specs so each test reads only its own
   // render. The hoisted store is shared across all tests in the file.
@@ -145,7 +152,7 @@ describe("GraphCard cubic-spline pass-through", () => {
     //      chart's brush — the secondary error chart does not include
     //      one), proving no error chart was mounted; and
     //   3. the most recent captured `data` array is the unmutated
-    //      `parseFloat` mapping of the backend strings.
+    //      numeric mapping of the backend strings.
     expect(captured.ComposedChart.length).toBeGreaterThanOrEqual(1)
 
     // Every ComposedChart capture must carry a Brush descendant so we
@@ -167,25 +174,23 @@ describe("GraphCard cubic-spline pass-through", () => {
     }>
 
     // The fixture's `graph_data.x` has 5 non-null entries; the renderer
-    // filters out null/NaN entries via `parseFloat` and `isNaN`, so the
-    // chart data array length must match the count of non-null backend
-    // entries one-to-one.
+    // filters out null/unparseable entries, so the chart data array length
+    // must match the count of non-null backend entries one-to-one.
     const nonNullXCount = graphData.x.filter((s): s is string => s !== null).length
     expect(nonNullXCount).toBe(5)
     expect(data).toHaveLength(nonNullXCount)
 
-    // Mirror only `parseFloat` (the renderer's own string→number step)
-    // when verifying pass-through. The test does NOT recompute any
-    // graph value, evaluate spline polynomials, or interpret rational
-    // strings; it only confirms each chart entry equals the parseFloat
-    // of the backend string at the same index.
+    // Mirror only the renderer's string-to-number step when verifying
+    // pass-through. The test does NOT recompute any graph value or
+    // evaluate spline polynomials; it only confirms each chart entry
+    // equals the backend string's numeric coordinate at the same index.
     data.forEach((entry, i) => {
       const xStr = graphData.x[i]
       const pxStr = graphData.P_x[i]
       expect(xStr).not.toBeNull()
       expect(pxStr).not.toBeNull()
-      expect(entry.x).toBe(parseFloat(xStr as string))
-      expect(entry.P_x).toBe(parseFloat(pxStr as string))
+      expect(entry.x).toBe(graphNumber(xStr as string))
+      expect(entry.P_x).toBe(graphNumber(pxStr as string))
       // The cubic-spline fixture's `f_x` and `error` columns are all
       // null, so the renderer must never populate those keys on chart
       // entries. This guards against accidental client-side fallbacks
@@ -193,5 +198,41 @@ describe("GraphCard cubic-spline pass-through", () => {
       expect(entry.f_x).toBeUndefined()
       expect(entry.error).toBeUndefined()
     })
+  })
+
+  it("plots exact rational node coordinates as numeric graph coordinates", () => {
+    const reciprocalGraphData = {
+      x: ["0", "0.5", "1", "1.5", "2"],
+      f_x: [null, null, null, null, null],
+      P_x: ["1", "0.6666666666666666", "0.5", "0.4", "0.3333333333333333"],
+      error: [null, null, null, null, null],
+      source_method: "barycentric",
+      method_graphs: null,
+    }
+
+    const reciprocalNodes = [
+      { index: 0, x: "0", y: "1" },
+      { index: 1, x: "1/2", y: "2/3" },
+      { index: 2, x: "1", y: "1/2" },
+      { index: 3, x: "3/2", y: "2/5" },
+      { index: 4, x: "2", y: "1/3" },
+    ]
+
+    renderWithDisplay(
+      <GraphCard graphData={reciprocalGraphData} nodes={reciprocalNodes} />,
+    )
+
+    expect(captured.Scatter.length).toBeGreaterThanOrEqual(1)
+    const scatterProps = captured.Scatter[captured.Scatter.length - 1] as {
+      data: Array<{ x: number; nodeY: number }>
+    }
+
+    expect(scatterProps.data).toEqual([
+      expect.objectContaining({ x: 0, nodeY: 1 }),
+      expect.objectContaining({ x: 0.5, nodeY: expect.closeTo(2 / 3, 12) }),
+      expect.objectContaining({ x: 1, nodeY: 0.5 }),
+      expect.objectContaining({ x: 1.5, nodeY: 0.4 }),
+      expect.objectContaining({ x: 2, nodeY: expect.closeTo(1 / 3, 12) }),
+    ])
   })
 })

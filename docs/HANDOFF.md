@@ -1,6 +1,49 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Reciprocal interpolation graph node plotting bug fix (2026-05-26). Root cause was frontend-only: `GraphCard` converted backend numeric strings with `parseFloat`, so exact rational node strings such as `"1/2"`, `"2/3"`, and `"3/2"` were partially parsed as `1`, `2`, and `3`. Backend normalization and graph-data generation were checked; the reciprocal payload returns the correct exact node strings, correct evaluation table, no `f_x`/`error` arrays for point-only input, and `P_x` samples through the five nodes.
+
+Files changed:
+
+- `frontend/src/components/results/GraphCard.tsx`
+  - Replaced permissive `parseFloat` chart conversion with strict `parseGraphNumber`.
+  - Supports integer, decimal, scientific-notation, and exact rational `a/b` numeric strings.
+  - Applies the same parser to graph samples, node scatter points, tooltips, brush coordinate data, and optional `f_x` / `error` series.
+- `frontend/src/components/results/methods/CubicSplineGraphPassthrough.test.tsx`
+  - Updated old parseFloat-based pass-through assumptions.
+  - Added regression for the reciprocal node series: `(0,1)`, `(0.5,2/3)`, `(1,0.5)`, `(1.5,0.4)`, `(2,1/3)`.
+- `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/FRONTEND_HANDOFF.md`
+  - Recorded root cause, verification, and frontend behavior change.
+
+Commands run:
+
+| Command / Check | Result |
+|---|---|
+| `npm test -- --run src/components/results/methods/CubicSplineGraphPassthrough.test.tsx` before fix | FAIL as expected. Regression showed nodes parsed as `(1,2)`, `(1,1)`, `(3,2)`, `(2,1)` instead of rational coordinates. |
+| `npm test -- --run src/components/results/methods/CubicSplineGraphPassthrough.test.tsx` after fix | PASS - 1 file / 4 tests. |
+| `npm run build` initial after code edit | FAIL - TypeScript caught a too-wide type predicate and readonly test fixture arrays. Fixed before final verification. |
+| Backend reciprocal smoke via `app.core.service.interpolate` | PASS - nodes preserved as `0`, `1/2`, `1`, `3/2`, `2`; evaluations match `1543/1920`, `73/128`, `57/128`, `139/384`; `graph_data.f_x` and `graph_data.error` are all null; `P_x` at node samples equals `1`, `0.6666...`, `0.5`, `0.4`, `0.3333...`. |
+| `npm run lint` from `frontend/` | PASS. |
+| `npm run build` from `frontend/` | PASS - Vite build completed; existing large chunk sizes remain. |
+| `npm test` from `frontend/` | PASS - 12 files / 58 tests. |
+| Browser plugin QA at `http://127.0.0.1:5173/` with backend `127.0.0.1:8000` | PASS with DOM/SVG evidence. Graph legend contains `Nodes` and `P(x)` only; no `f(x)` legend and no approximation-error chart for point-only input. Scatter marker SVG positions are five evenly spaced x locations: `70`, `173.5`, `277`, `380.5`, `484`, corresponding to `x=0,0.5,1,1.5,2`. Screenshot capture via Browser timed out twice, so no screenshot artifact was recorded. |
+| Browser console check via `tab.dev.logs({ levels: ["error","warn"] })` | PASS - returned `[]`; separate Browser-runtime Statsig network messages were emitted by the automation plugin, not by the app page console. |
+
+API contract status: no endpoint paths, request shape, response shape, validation errors, or backend math changed. `docs/API_CONTRACT.md` intentionally unchanged.
+
+Local servers started for browser QA and left running for immediate retest:
+
+- Backend: `http://127.0.0.1:8000`
+- Frontend: `http://127.0.0.1:5173`
+
+Current git hygiene:
+
+- Modified: `frontend/src/components/results/GraphCard.tsx`
+- Modified: `frontend/src/components/results/methods/CubicSplineGraphPassthrough.test.tsx`
+- Modified docs: `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/FRONTEND_HANDOFF.md`
+- Pre-existing untracked file left untouched: `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`
+
+## Previous Current Task
 Post-audit preview deploy from committed release-train state (2026-05-26). Committed the Vercel preview plumbing, backend graph-data reliability fixes, numeric-mode tolerance hardening, repo hygiene cleanup, and documentation evidence. Pushed `codex/interpolation-backend-v1` and deployed a new Vercel preview from the pushed branch. Production was not promoted.
 
 Preview URL: `https://interpolation-workbench-bnuyc0i94-marvillarq20-3593s-projects.vercel.app`
