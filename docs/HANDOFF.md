@@ -56,6 +56,21 @@ Frontend polish verification and review:
 
 No endpoint paths, request shapes, response shapes, warning codes, or error codes changed in the frontend polish batch.
 
+Release notes / repo audit batch (2026-05-27):
+
+- Added `RELEASE_NOTES.md` with implemented features, exact/numeric mode behavior, deferred items, current preview/prod status, access-mode decision point, and known caveats.
+- Repo-weight inspection:
+  - `.impeccable/critique/screens/`: 63 tracked files.
+  - `.kiro/`: 165 tracked files.
+  - No broad asset deletion or untracking was performed; cleanup remains an explicit owner decision.
+- Fresh full local verification after RC + polish:
+  - `.\.venv\Scripts\python.exe -m pytest` from `backend/`: PASS - 100 passed in 5.60s.
+  - `.\.venv\Scripts\python.exe -m pytest -W error::DeprecationWarning` from `backend/`: PASS - 100 passed in 5.52s.
+  - `.\.venv\Scripts\python.exe -m ruff check .` from `backend/`: PASS - `All checks passed!`.
+  - `npm run lint` from `frontend/`: PASS.
+  - `npm run build` from `frontend/`: PASS with existing Vite large-chunk warning. Bundle evidence: main JS 725.00 kB / 211.84 kB gzip, GraphCard 378.60 kB / 109.73 kB gzip, PolynomialCard 6.55 kB / 2.30 kB gzip, CSS 92.11 kB / 19.37 kB gzip.
+  - `npm test` from `frontend/`: PASS - 14 files / 62 tests.
+
 ## Previous Current Task
 Reciprocal interpolation graph node plotting bug fix (2026-05-26). Root cause was frontend-only: `GraphCard` converted backend numeric strings with `parseFloat`, so exact rational node strings such as `"1/2"`, `"2/3"`, and `"3/2"` were partially parsed as `1`, `2`, and `3`. Backend normalization and graph-data generation were checked; the reciprocal payload returns the correct exact node strings, correct evaluation table, no `f_x`/`error` arrays for point-only input, and `P_x` samples through the five nodes.
 
