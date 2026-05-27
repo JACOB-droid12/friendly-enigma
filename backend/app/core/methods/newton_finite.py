@@ -28,6 +28,20 @@ def _rising_product(s: sp.Expr, order: int) -> sp.Expr:
     return sp.simplify(product)
 
 
+def _stirling_even_product(s: sp.Expr, k: int) -> sp.Expr:
+    product = s**2
+    for index in range(1, k):
+        product *= s**2 - index**2
+    return sp.simplify(product)
+
+
+def _stirling_odd_product(s: sp.Expr, k: int) -> sp.Expr:
+    product = s
+    for index in range(1, k + 1):
+        product *= s**2 - index**2
+    return sp.simplify(product)
+
+
 def _render_table(table: list[list[sp.Expr | None]], *, precision: int) -> list[list[str | None]]:
     return [
         [format_value(value, precision=precision) if value is not None else None for value in row]
@@ -154,12 +168,15 @@ def build_stirling(
                     "details": guidance,
                 }
             )
-        value = _lagrange_reference_value(nodes, target_value)
+        value, terms = _stirling_value_and_terms(
+            nodes, forward_table, center=center, s=s, precision=precision
+        )
         evaluations.append(
             {
                 "x": target,
                 "s": format_value(s, precision=precision),
                 "value": format_value(value, precision=precision),
+                "terms": terms,
                 "target_guidance": guidance,
             }
         )
@@ -178,13 +195,41 @@ def build_stirling(
     }
 
 
-def _lagrange_reference_value(nodes: list[Node], target: sp.Expr) -> sp.Expr:
-    value = sp.Integer(0)
-    for i, node in enumerate(nodes):
-        basis = sp.Integer(1)
-        for j, other in enumerate(nodes):
-            if i == j:
-                continue
-            basis *= (target - other.x) / (node.x - other.x)
-        value += node.y * basis
-    return sp.simplify(value)
+def _stirling_value_and_terms(
+    nodes: list[Node],
+    forward_table: list[list[sp.Expr | None]],
+    *,
+    center: int,
+    s: sp.Expr,
+    precision: int,
+) -> tuple[sp.Expr, list[dict[str, Any]]]:
+    value = nodes[center].y
+    terms = [{"order": 0, "value": format_value(value, precision=precision)}]
+    for order in range(1, len(nodes)):
+        if order % 2 == 0:
+            k = order // 2
+            difference = _required_difference(forward_table, center - k, order)
+            product = _stirling_even_product(s, k)
+        else:
+            k = (order - 1) // 2
+            left = _required_difference(forward_table, center - k - 1, order)
+            right = _required_difference(forward_table, center - k, order)
+            difference = sp.simplify((left + right) / 2)
+            product = _stirling_odd_product(s, k)
+        term = sp.simplify(product * difference / math.factorial(order))
+        value += term
+        terms.append({"order": order, "value": format_value(term, precision=precision)})
+    return sp.simplify(value), terms
+
+
+def _required_difference(
+    table: list[list[sp.Expr | None]], row: int, order: int
+) -> sp.Expr:
+    value = table[row][order] if row >= 0 and row < len(table) else None
+    if value is None:
+        raise InterpolationError(
+            "stirling_requires_centered_nodes",
+            "Stirling's method could not build a centered difference term from the nodes.",
+            {"row": row, "order": order},
+        )
+    return value

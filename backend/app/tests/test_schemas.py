@@ -53,3 +53,54 @@ def test_method_literal_contains_required_methods() -> None:
     methods: set[MethodName] = {"lagrange", "newton", "barycentric", "neville"}
 
     assert methods == {"lagrange", "newton", "barycentric", "neville"}
+
+
+def test_method_options_accept_supported_shapes() -> None:
+    request = InterpolateRequest(
+        mode="x_values_with_function",
+        function="cos(x)",
+        x_values=["0", "1"],
+        methods=["taylor", "cubic_spline"],
+        method_options={
+            "taylor": {"center": "0", "order": 3},
+            "cubic_spline": {"boundary_condition": "natural"},
+        },
+    )
+
+    assert request.method_options.taylor is not None
+    assert request.method_options.taylor.center == "0"
+    assert request.method_options.taylor.order == 3
+    assert request.method_options.cubic_spline is not None
+    assert request.method_options.cubic_spline.boundary_condition == "natural"
+
+
+def test_method_options_reject_unknown_method_block() -> None:
+    with pytest.raises(ValidationError):
+        InterpolateRequest(
+            mode="points",
+            points=[["0", "0"], ["1", "1"]],
+            method_options={"lagrange": {}},
+        )
+
+
+def test_taylor_center_must_be_numeric_string_not_number() -> None:
+    with pytest.raises(ValidationError):
+        InterpolateRequest(
+            mode="x_values_with_function",
+            function="cos(x)",
+            x_values=["0", "1"],
+            methods=["taylor"],
+            method_options={"taylor": {"center": 0, "order": 3}},
+        )
+
+
+@pytest.mark.parametrize("bad_order", [True, 3.0, "3.0"])
+def test_taylor_order_must_be_strict_integer(bad_order: object) -> None:
+    with pytest.raises(ValidationError):
+        InterpolateRequest(
+            mode="x_values_with_function",
+            function="cos(x)",
+            x_values=["0", "1"],
+            methods=["taylor"],
+            method_options={"taylor": {"center": "0", "order": bad_order}},
+        )

@@ -1,6 +1,6 @@
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr
 
 InputMode = Literal["points", "x_values_with_function", "function_interval"]
 MethodName = Literal[
@@ -22,14 +22,27 @@ ResponseStatus = Literal["ok", "partial", "error"]
 
 
 class StrictModel(BaseModel):
-    class Config:
-        extra = "forbid"
+    model_config = ConfigDict(extra="forbid")
 
 
 class DerivativeData(StrictModel):
     x: str
     order: int = Field(ge=1, le=10)
     value: str
+
+
+class TaylorMethodOptions(StrictModel):
+    center: StrictStr
+    order: StrictInt = Field(ge=0, le=20)
+
+
+class CubicSplineMethodOptions(StrictModel):
+    boundary_condition: StrictStr = "natural"
+
+
+class MethodOptions(StrictModel):
+    taylor: TaylorMethodOptions | None = None
+    cubic_spline: CubicSplineMethodOptions | None = None
 
 
 class InterpolateRequest(StrictModel):
@@ -45,7 +58,7 @@ class InterpolateRequest(StrictModel):
     exact: bool | None = None
     evaluation_x: list[str] = Field(default_factory=list)
     graph: bool = False
-    method_options: dict[str, dict[str, Any]] = Field(default_factory=dict)
+    method_options: MethodOptions = Field(default_factory=MethodOptions)
     derivatives: list[DerivativeData] = Field(default_factory=list)
 
 

@@ -143,6 +143,13 @@ Optional request blocks now documented in `docs/API_CONTRACT.md`:
 - `method_options`: method-specific config keyed by method name.
 - `derivatives`: string-valued derivative data objects with `x`, `order`, and `value`.
 
+2026-05-27 RC update:
+
+- `method_options` is now schema-hardened. Accepted blocks are `taylor` and `cubic_spline`; unknown option blocks return FastAPI HTTP `422`.
+- `method_options.taylor.center` is a strict numeric string. Send `"0"`, not `0`.
+- `input_summary.sorted_nodes` is now live. It becomes `true` when a supported backend method reorders nodes; current case is natural `cubic_spline`, while the existing method-level `nodes_reordered` warning remains present.
+- `methods.stirling.evaluations[].terms` is now populated from direct centered Stirling finite-difference summation, not a Lagrange fallback.
+
 Frontend ownership rule remains unchanged:
 
 - React may render method cards, config controls, derivative input tables, finite-difference tables, Hermite repeated-node tables, Taylor terms, spline segments, warnings, and backend graph arrays.

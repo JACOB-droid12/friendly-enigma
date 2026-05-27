@@ -144,9 +144,10 @@ P2.0 accepts the Phase 2 method names to stabilize the contract. P2.1 implements
 Rules:
 
 - `taylor.center` must be a numeric string and is required when `taylor` is selected.
-- `taylor.order` must be an integer from 0 through 20 and is required when `taylor` is selected.
+- `taylor.order` must be a JSON integer from 0 through 20 and is required when `taylor` is selected. Booleans, floats, and stringified floats are rejected by schema validation.
 - `cubic_spline.boundary_condition` supports only `natural` until a later explicit boundary-condition expansion.
-- Unknown method option keys are accepted at P2.0 schema level but should not be treated as implemented behavior unless documented by a later milestone.
+- Unknown method option blocks are rejected by schema validation. Current accepted blocks are `taylor` and `cubic_spline`.
+- Numeric-string option fields are strict strings at the schema boundary; for example, `method_options.taylor.center: 0` is rejected with FastAPI HTTP `422`, while `"0"` is accepted.
 
 `derivatives` supplies derivative data for Hermite and osculating methods:
 
@@ -227,7 +228,14 @@ In numeric mode (`exact: false`), equal-spacing eligibility is checked with the 
     {
       "x": "1.5",
       "s": "-1/3",
-      "value": "51181999459876543/100000000000000000",
+      "value": "621861293/1215000000",
+      "terms": [
+        {"order": 0, "value": "2277011/5000000"},
+        {"order": 1, "value": "563779/10000000"},
+        {"order": 2, "value": "-14833/30000000"},
+        {"order": 3, "value": "108497/202500000"},
+        {"order": 4, "value": "-887/607500000"}
+      ],
       "target_guidance": {
         "recommended": "stirling",
         "target": "3/2",
@@ -243,7 +251,7 @@ In numeric mode (`exact: false`), equal-spacing eligibility is checked with the 
 }
 ```
 
-Target guidance is advisory only. The backend does not silently replace the selected method.
+Stirling `evaluations[].value` is computed directly from the centered Stirling finite-difference formula. `evaluations[].terms` lists the rendered formula contribution for each order. Target guidance is advisory only. The backend does not silently replace the selected method.
 
 ## P2.2 Derivative-Data Methods
 
@@ -666,6 +674,8 @@ Validation:
 - `ok`: normalization and selected methods succeeded.
 - `partial`: normalization succeeded but a method failed or returned a structured method problem.
 - `error`: validation or normalization failed before method execution.
+
+`input_summary.sorted_nodes` is `true` when at least one successful method reorders input nodes for computation. In the current method set, natural `cubic_spline` sorts nodes by increasing x-value and also preserves the existing method-level `nodes_reordered` warning with ordered input indices.
 
 ## Graph Data
 When `graph: true`, `graph_data` is:

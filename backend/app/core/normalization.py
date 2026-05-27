@@ -61,7 +61,7 @@ def normalize_request(request: InterpolateRequest) -> InterpolationProblem:
         node_strategy=node_strategy,
         sorted_nodes=False,
         warnings=warnings,
-        method_options=dict(request.method_options),
+        method_options=request.method_options.model_dump(exclude_none=True),
         derivatives=_normalize_derivatives(request, exact=exact),
     )
 

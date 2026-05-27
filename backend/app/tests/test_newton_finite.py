@@ -67,4 +67,13 @@ def test_stirling_returns_centered_payload_for_lecture_nodes() -> None:
     assert result["center_x"] == "8/5"
     assert result["evaluations"][0]["x"] == "1.5"
     assert result["evaluations"][0]["target_guidance"]["recommended"] == "stirling"
+    assert (
+        sp.Abs(
+            sp.Rational(result["evaluations"][0]["value"]) - sp.Rational("0.5118200")
+        )
+        < sp.Rational("1e-7")
+    )
+    assert [term["order"] for term in result["evaluations"][0]["terms"]] == [0, 1, 2, 3, 4]
+    term_sum = sum(sp.Rational(term["value"]) for term in result["evaluations"][0]["terms"])
+    assert sp.simplify(term_sum - sp.Rational(result["evaluations"][0]["value"])) == 0
     assert result["centered_difference_table"]

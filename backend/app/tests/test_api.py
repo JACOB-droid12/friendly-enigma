@@ -239,6 +239,112 @@ def test_interpolate_cubic_spline_method_contract() -> None:
     assert body["graph_data"]["P_x"]
 
 
+def test_interpolate_cubic_spline_unsorted_nodes_sets_summary_flag() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "points",
+            "points": [["3", "5"], ["1", "2"], ["2", "3"]],
+            "methods": ["cubic_spline"],
+            "method_options": {"cubic_spline": {"boundary_condition": "natural"}},
+            "evaluation_x": ["5/2"],
+            "precision": 50,
+            "exact": True,
+        },
+    )
+
+    body = response.json()
+    spline = body["methods"]["cubic_spline"]
+
+    assert response.status_code == 200
+    assert body["input_summary"]["sorted_nodes"] is True
+    assert spline["warnings"][0]["code"] == "nodes_reordered"
+    assert spline["ordered_nodes"] == [
+        {"index": 1, "x": "1", "y": "2"},
+        {"index": 2, "x": "2", "y": "3"},
+        {"index": 0, "x": "3", "y": "5"},
+    ]
+
+
+def test_interpolate_method_options_unknown_block_rejected_by_schema() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "points",
+            "points": [["0", "0"], ["1", "1"]],
+            "method_options": {"lagrange": {}},
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_interpolate_taylor_center_number_rejected_by_schema() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "x_values_with_function",
+            "function": "cos(x)",
+            "x_values": ["0", "1"],
+            "methods": ["taylor"],
+            "method_options": {"taylor": {"center": 0, "order": 3}},
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_interpolate_method_disagreement_warning() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "x_values_with_function",
+            "function": "cos(x)",
+            "x_values": ["0", "1"],
+            "methods": ["lagrange", "taylor"],
+            "method_options": {"taylor": {"center": "0", "order": 0}},
+            "evaluation_x": ["1/2"],
+            "precision": 50,
+            "exact": True,
+        },
+    )
+
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["status"] == "ok"
+    assert any(warning["code"] == "method_disagreement_warning" for warning in body["warnings"])
+
+
+def test_interpolate_high_degree_warning_surfaces_with_multiple_methods() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "points",
+            "points": [[str(index), str(index * index)] for index in range(11)],
+            "methods": ["lagrange", "cubic_spline"],
+            "method_options": {"cubic_spline": {"boundary_condition": "natural"}},
+            "precision": 50,
+            "exact": True,
+        },
+    )
+
+    body = response.json()
+
+    assert response.status_code == 200
+    assert any(warning["code"] == "high_degree_warning" for warning in body["warnings"])
+
+
 def _numeric_equal_spacing_payload(methods: list[str]) -> dict[str, object]:
     return {
         "mode": "x_values_with_function",

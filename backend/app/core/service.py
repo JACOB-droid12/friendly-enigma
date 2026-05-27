@@ -32,6 +32,7 @@ def interpolate(request: InterpolateRequest) -> dict[str, object]:
         "ok" if all(result["status"] == "ok" for result in method_results.values()) else "partial"
     )
     polynomial_source = _polynomial_source(raw_results)
+    sorted_nodes = problem.sorted_nodes or _nodes_reordered(method_results)
     response = {
         "status": status,
         "response_version": "1.0",
@@ -45,7 +46,7 @@ def interpolate(request: InterpolateRequest) -> dict[str, object]:
             "exact": problem.exact,
             "function_known": problem.original_function is not None,
             "graph_requested": problem.graph,
-            "sorted_nodes": problem.sorted_nodes,
+            "sorted_nodes": sorted_nodes,
         },
         "nodes": [
             {"index": node.index, "x": node.x_text, "y": node.y_text} for node in problem.nodes
@@ -59,6 +60,14 @@ def interpolate(request: InterpolateRequest) -> dict[str, object]:
         "educational_notes": educational_notes(),
     }
     return response
+
+
+def _nodes_reordered(methods: dict[str, dict[str, Any]]) -> bool:
+    for result in methods.values():
+        for warning in result.get("warnings", []):
+            if warning.get("code") == "nodes_reordered":
+                return True
+    return False
 
 
 def _run_methods(problem) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:

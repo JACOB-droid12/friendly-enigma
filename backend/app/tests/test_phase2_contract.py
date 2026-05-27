@@ -61,7 +61,8 @@ def test_phase2_optional_blocks_keep_numeric_values_as_strings() -> None:
         ],
     )
 
-    assert request.method_options["taylor"]["center"] == "0"
+    assert request.method_options.taylor is not None
+    assert request.method_options.taylor.center == "0"
     assert request.derivatives[0].value == "0"
 
 

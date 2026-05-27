@@ -1,6 +1,37 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+V2 Release Train RC backend correctness and API hardening (2026-05-27). Implementing the remaining RC gate items after the Preview Gate, graph reliability fixes, repo hygiene, and Candidate A numeric-mode tolerance hardening were already committed.
+
+Files changed so far:
+
+- `backend/app/core/methods/newton_finite.py`
+  - Replaced Stirling's Lagrange-reference evaluation fallback with direct centered Stirling finite-difference term summation.
+  - `methods.stirling.evaluations[].terms` now lists formula contributions by order for educational display.
+- `backend/app/core/service.py`
+  - `input_summary.sorted_nodes` now becomes `true` when a method returns a `nodes_reordered` warning; current supported case is natural cubic spline reordering.
+- `backend/app/schemas.py`, `backend/app/core/normalization.py`
+  - Migrated strict base models from legacy `class Config` to Pydantic v2 `model_config`.
+  - Hardened `method_options` to accepted structured blocks (`taylor`, `cubic_spline`) and strict string handling for `taylor.center`.
+- `backend/app/tests/test_newton_finite.py`, `backend/app/tests/test_api.py`, `backend/app/tests/test_schemas.py`, `backend/app/tests/test_phase2_contract.py`
+  - Added regressions for Stirling terms, sorted-node summary, schema rejection of unknown option blocks / numeric Taylor center / non-strict Taylor order values, method disagreement warnings, and high-degree warning propagation.
+- `docs/API_CONTRACT.md`
+  - Documented strict method option blocks, live `input_summary.sorted_nodes`, and Stirling terms.
+
+Commands run so far:
+
+| Command / Check | Result |
+|---|---|
+| Targeted pre-implementation RC regressions | FAIL as expected - missing Stirling `terms`, loose `method_options`, and dead `sorted_nodes`. |
+| Targeted post-implementation RC regressions | PASS - 10 passed in 2.30s. |
+| `.\.venv\Scripts\python.exe -m pytest` from `backend/` | PASS - 97 passed in 5.99s. |
+| `.\.venv\Scripts\python.exe -m pytest -W error::DeprecationWarning` from `backend/` | PASS - 97 passed in 5.81s. |
+| `.\.venv\Scripts\python.exe -m ruff check .` from `backend/` | PASS - `All checks passed!`. |
+| Code-quality subagent review | ISSUE - `method_options.taylor.order` still allowed Pydantic coercion for booleans/floats/stringified floats. Fixed by using `StrictInt` and adding schema regressions. |
+
+Production is not promoted. Vercel access/protection mode is unchanged.
+
+## Previous Current Task
 Reciprocal interpolation graph node plotting bug fix (2026-05-26). Root cause was frontend-only: `GraphCard` converted backend numeric strings with `parseFloat`, so exact rational node strings such as `"1/2"`, `"2/3"`, and `"3/2"` were partially parsed as `1`, `2`, and `3`. Backend normalization and graph-data generation were checked; the reciprocal payload returns the correct exact node strings, correct evaluation table, no `f_x`/`error` arrays for point-only input, and `P_x` samples through the five nodes.
 
 Files changed:
