@@ -5,6 +5,10 @@ For the remaining Claude Opus Phase 2 React workbench implementation checklist, 
 ## Status
 Frontend v1.5 with critique-driven refactors. Builds, lints, type-checks, and tests clean (12 test files, 57 tests). Live-tested against backend.
 
+## Task 2 Backend Helper Note (2026-05-28)
+
+Generalized confluent divided-difference support now exists only as a backend helper in `backend/app/core/methods/repeated_nodes.py`. The API still intentionally leaves `osculating` deferred until Task 3 routes the helper through method/service orchestration, so Claude Opus does not need to change frontend request handling or result rendering for this task.
+
 ## Reciprocal Graph Node Plotting Fix (2026-05-26)
 
 `GraphCard` now parses backend numeric strings with a strict graph parser instead of `parseFloat`. This matters for exact-mode point inputs because the backend returns rational node strings such as `"1/2"` and `"2/3"`; `parseFloat` partially parsed those as `1` and `2`, which made the red node series appear at stale-looking integer coordinates while the orange `P(x)` curve was sampled from correct decimal `graph_data`.

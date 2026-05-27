@@ -1,6 +1,37 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Task 2: Generalized Confluent Divided Differences is complete locally on `codex/interpolation-backend-v1`. This task added helper-level backend support only; `osculating` is not routed through the service yet.
+
+Files changed in this task:
+
+- `backend/app/core/methods/repeated_nodes.py`
+  - Added `ConfluentNodeResult`.
+  - Added `build_confluent_repeated_nodes(...)` for repeated-node expansion with per-node maximum derivative orders.
+  - Added `_confluent_divided_difference_table(...)` to fill confluent same-x table entries with `f^(k)(x_i) / k!` and ordinary divided differences otherwise.
+  - Preserved `RepeatedNodeResult` and `build_first_derivative_repeated_nodes(...)`.
+- `backend/app/tests/test_osculating.py`
+  - Added helper-level coverage for mixed derivative orders `{0: 2, 1: 1}` with derivative values `{(0, 1): 2, (0, 2): 6, (1, 1): 5}`.
+  - Covered repeated nodes `[0, 0, 0, 1, 1]`, first derivative table fill, factorial-scaled second derivative fill, and second node first derivative fill.
+- `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/API_CONTRACT.md`, `docs/FRONTEND_HANDOFF.md`
+  - Recorded Task 2 scope, verification, and the no-service-routing boundary.
+
+Commands run in this task:
+
+| Command / Check | Result |
+|---|---|
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_osculating.py -q` before implementation | FAIL as expected - import failed because `build_confluent_repeated_nodes` did not exist. |
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_osculating.py app/tests/test_repeated_nodes.py -q` after implementation | PASS - 4 passed in 0.85s. |
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_repeated_nodes.py app/tests/test_osculating.py -q` required verification | PASS - 4 passed in 0.68s. |
+| `.\.venv\Scripts\python.exe -m ruff check app/core/methods/repeated_nodes.py app/tests/test_osculating.py app/tests/test_repeated_nodes.py` | PASS - `All checks passed!`. |
+
+Notes and risks:
+
+- This is a pure helper-layer change. No endpoint path, request JSON, response JSON, validation behavior, or frontend route changed.
+- `osculating` should still return the existing deferred service response until Task 3 wires this helper into method/service orchestration.
+- The new helper assumes upstream validation has already rejected duplicate x-values between distinct source nodes.
+
+## Previous Current Task
 Task 1: Backend Schema And Validation Contract from `docs/superpowers/plans/2026-05-27-rc-blocker-resolution.md` is complete on the current branch.
 
 Files changed in this task:

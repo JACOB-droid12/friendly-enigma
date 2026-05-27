@@ -19,6 +19,16 @@ class RepeatedNodeResult:
     rendered_table: list[list[str | None]]
 
 
+@dataclass(slots=True)
+class ConfluentNodeResult:
+    repeated_x: list[sp.Expr]
+    repeated_y: list[sp.Expr]
+    table: list[list[sp.Expr | None]]
+    coefficients: list[sp.Expr]
+    rendered_repeated_nodes: list[dict[str, Any]]
+    rendered_table: list[list[str | None]]
+
+
 def build_first_derivative_repeated_nodes(
     nodes: list[Node],
     derivatives: list[DerivativeDatum],
@@ -77,6 +87,69 @@ def build_first_derivative_repeated_nodes(
     )
 
 
+def build_confluent_repeated_nodes(
+    nodes: list[Node],
+    *,
+    orders_by_node_index: dict[int, int],
+    derivative_values: dict[tuple[int, int], sp.Expr],
+    precision: int,
+    method_name: str,
+) -> ConfluentNodeResult:
+    repeated_x: list[sp.Expr] = []
+    repeated_y: list[sp.Expr] = []
+    repeated_source_node_indices: list[int] = []
+    rendered_repeated_nodes: list[dict[str, Any]] = []
+
+    for node in nodes:
+        max_order = orders_by_node_index.get(node.index, 0)
+        for derivative_order in range(max_order + 1):
+            derivative_value = (
+                node.y
+                if derivative_order == 0
+                else _required_derivative_value(
+                    derivative_values,
+                    node_index=node.index,
+                    order=derivative_order,
+                    method_name=method_name,
+                )
+            )
+            repeated_x.append(node.x)
+            repeated_y.append(node.y)
+            repeated_source_node_indices.append(node.index)
+            rendered_repeated_nodes.append(
+                {
+                    "index": len(rendered_repeated_nodes),
+                    "source_node_index": node.index,
+                    "x": format_value(node.x, precision=precision),
+                    "y": format_value(node.y, precision=precision),
+                    "derivative_order": derivative_order,
+                    "derivative_value": format_value(derivative_value, precision=precision),
+                }
+            )
+
+    table = _confluent_divided_difference_table(
+        repeated_x,
+        repeated_y,
+        repeated_source_node_indices,
+        derivative_values,
+        method_name=method_name,
+    )
+    coefficients = [table[0][index] for index in range(len(repeated_x))]
+    rendered_table = [
+        [format_value(value, precision=precision) if value is not None else None for value in row]
+        for row in table
+    ]
+
+    return ConfluentNodeResult(
+        repeated_x=repeated_x,
+        repeated_y=repeated_y,
+        table=table,
+        coefficients=coefficients,
+        rendered_repeated_nodes=rendered_repeated_nodes,
+        rendered_table=rendered_table,
+    )
+
+
 def _reject_unsupported_orders(
     derivatives: list[DerivativeDatum], *, method_name: str
 ) -> None:
@@ -109,6 +182,54 @@ def _first_derivatives_by_node(
             {"method": method_name, "node_x": [node.x_text for node in nodes]},
         )
     return result
+
+
+def _required_derivative_value(
+    derivative_values: dict[tuple[int, int], sp.Expr],
+    *,
+    node_index: int,
+    order: int,
+    method_name: str,
+) -> sp.Expr:
+    try:
+        return derivative_values[(node_index, order)]
+    except KeyError as exc:
+        raise InterpolationError(
+            "missing_derivative_data",
+            f"{method_name} requires derivative data through the requested node order.",
+            {"method": method_name, "node_index": node_index, "required_order": order},
+        ) from exc
+
+
+def _confluent_divided_difference_table(
+    repeated_x: list[sp.Expr],
+    repeated_y: list[sp.Expr],
+    repeated_source_node_indices: list[int],
+    derivative_values: dict[tuple[int, int], sp.Expr],
+    *,
+    method_name: str,
+) -> list[list[sp.Expr | None]]:
+    n = len(repeated_x)
+    table: list[list[sp.Expr | None]] = [[None for _ in range(n)] for _ in range(n)]
+    for row, value in enumerate(repeated_y):
+        table[row][0] = value
+
+    for order in range(1, n):
+        for row in range(n - order):
+            if sp.simplify(repeated_x[row + order] - repeated_x[row]) == 0:
+                derivative_value = _required_derivative_value(
+                    derivative_values,
+                    node_index=repeated_source_node_indices[row],
+                    order=order,
+                    method_name=method_name,
+                )
+                table[row][order] = sp.simplify(derivative_value / sp.factorial(order))
+            else:
+                table[row][order] = sp.simplify(
+                    (table[row + 1][order - 1] - table[row][order - 1])
+                    / (repeated_x[row + order] - repeated_x[row])
+                )
+    return table
 
 
 def _hermite_divided_difference_table(

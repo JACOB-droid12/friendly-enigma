@@ -1,7 +1,9 @@
 # API Contract — Interpolating Polynomial Program Backend
 
 ## Status
-Implemented v1 backend contract plus Phase 2 P2.1/P2.2/P2.3/P2.4 backend method expansion, with P2.5 final audit complete. The backend owns parsing, validation, numerical precision, interpolation, Taylor approximation, natural cubic spline generation, evaluations, warnings, derivative-data handling, and graph-ready arrays. `osculating` remains accepted but intentionally deferred.
+Implemented v1 backend contract plus Phase 2 P2.1/P2.2/P2.3/P2.4 backend method expansion, with P2.5 final audit complete. The backend owns parsing, validation, numerical precision, interpolation, Taylor approximation, natural cubic spline generation, evaluations, warnings, derivative-data handling, and graph-ready arrays. `osculating` remains accepted but intentionally deferred at the API/service layer.
+
+Task 2 generalized confluent divided-difference support is currently helper-only inside `backend/app/core/methods/repeated_nodes.py`. It does not change endpoint paths, request JSON, response JSON, validation errors, warnings, or the public `osculating` response. Service routing is deferred to Task 3.
 
 ## Base URL
 Development default:
