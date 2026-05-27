@@ -74,6 +74,48 @@ def test_method_options_accept_supported_shapes() -> None:
     assert request.method_options.cubic_spline.boundary_condition == "natural"
 
 
+def test_method_options_accept_osculating_orders_and_spline_boundaries() -> None:
+    request = InterpolateRequest(
+        mode="points",
+        points=[["0", "1"], ["1", "2"]],
+        methods=["osculating", "cubic_spline"],
+        method_options={
+            "osculating": {"orders": [{"x": "0", "order": 2}, {"x": "1", "order": 1}]},
+            "cubic_spline": {
+                "boundary_condition": "clamped",
+                "left_derivative": "0",
+                "right_derivative": "3",
+            },
+        },
+    )
+
+    assert request.method_options.osculating is not None
+    assert request.method_options.osculating.orders[0].x == "0"
+    assert request.method_options.osculating.orders[0].order == 2
+    assert request.method_options.cubic_spline is not None
+    assert request.method_options.cubic_spline.boundary_condition == "clamped"
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        {"osculating": {"orders": [{"x": "0", "order": -1}]}},
+        {"osculating": {"orders": [{"x": 0, "order": 1}]}},
+        {"osculating": {"orders": [{"x": "0", "order": 1, "extra": "x"}]}},
+        {"cubic_spline": {"boundary_condition": "unsupported"}},
+        {"cubic_spline": {"boundary_condition": "clamped", "left_derivative": 0}},
+    ],
+)
+def test_method_options_reject_invalid_osculating_and_spline_shapes(options) -> None:
+    with pytest.raises(ValidationError):
+        InterpolateRequest(
+            mode="points",
+            points=[["0", "1"], ["1", "2"]],
+            methods=["osculating"],
+            method_options=options,
+        )
+
+
 def test_method_options_reject_unknown_method_block() -> None:
     with pytest.raises(ValidationError):
         InterpolateRequest(

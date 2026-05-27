@@ -135,7 +135,14 @@ P2.0 accepts the Phase 2 method names to stabilize the contract. P2.1 implements
       "order": 3
     },
     "cubic_spline": {
-      "boundary_condition": "natural"
+      "boundary_condition": "natural",
+      "left_derivative": null,
+      "right_derivative": null
+    },
+    "osculating": {
+      "orders": [
+        {"x": "0", "order": 2}
+      ]
     }
   }
 }
@@ -145,8 +152,10 @@ Rules:
 
 - `taylor.center` must be a numeric string and is required when `taylor` is selected.
 - `taylor.order` must be a JSON integer from 0 through 20 and is required when `taylor` is selected. Booleans, floats, and stringified floats are rejected by schema validation.
-- `cubic_spline.boundary_condition` supports only `natural` until a later explicit boundary-condition expansion.
-- Unknown method option blocks are rejected by schema validation. Current accepted blocks are `taylor` and `cubic_spline`.
+- `cubic_spline.boundary_condition` is schema-limited to `natural`, `clamped`, `not-a-knot`, or `periodic`. Current spline computation still supports only `natural`; other accepted literals return method-level error code `unsupported_boundary_condition`.
+- `cubic_spline.left_derivative` and `cubic_spline.right_derivative` are optional strict strings for the clamped-boundary contract. They are preserved at the schema boundary but are not used until clamped spline computation is implemented.
+- `osculating.orders` is an optional list of strict objects with string `x` and integer `order` from 0 through 10. This stabilizes the request shape while `osculating` remains deferred.
+- Unknown method option blocks are rejected by schema validation. Current accepted blocks are `taylor`, `cubic_spline`, and `osculating`.
 - Numeric-string option fields are strict strings at the schema boundary; for example, `method_options.taylor.center: 0` is rejected with FastAPI HTTP `422`, while `"0"` is accepted.
 
 `derivatives` supplies derivative data for Hermite and osculating methods:
@@ -166,6 +175,7 @@ Rules:
 - `x` and `value` are strings at the API boundary.
 - `order` is an integer from 1 through 10.
 - Derivative values are normalized through the same precision path as point values.
+- Duplicate derivative entries for the same normalized `x` and `order` are rejected before method execution with HTTP `400` and error code `duplicate_derivative_data`.
 - `hermite_divided_difference` and `hermite` currently support first-derivative data only (`order = 1`).
 - Hermite methods require first-derivative data at every interpolation node.
 - Missing derivative data returns method-level error code `missing_derivative_data`.
@@ -734,6 +744,7 @@ Implemented error codes:
 - `unequal_spacing`
 - `stirling_requires_centered_nodes`
 - `missing_derivative_data`
+- `duplicate_derivative_data`
 - `invalid_derivative_order`
 - `unsupported_taylor_function`
 - `unsupported_boundary_condition`

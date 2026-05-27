@@ -1,6 +1,46 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Task 1: Backend Schema And Validation Contract from `docs/superpowers/plans/2026-05-27-rc-blocker-resolution.md` is complete on the current branch.
+
+Files changed in this task:
+
+- `backend/app/schemas.py`
+  - Added strict `OsculatingOrderOption` / `OsculatingMethodOptions`.
+  - Added spline boundary literal contract: `natural`, `clamped`, `not-a-knot`, `periodic`.
+  - Added optional strict string `left_derivative` and `right_derivative` fields to cubic spline options.
+  - Extended `MethodOptions` to accept `osculating`.
+- `backend/app/core/normalization.py`
+  - Added duplicate derivative entry rejection after precision-aware x normalization, keyed by normalized x text plus derivative order.
+  - Duplicate entries now raise `duplicate_derivative_data` with details `{ "x": <input>, "order": <order> }`.
+- `backend/app/tests/test_schemas.py`
+  - Added accepted/rejected schema tests for osculating orders and spline boundary fields.
+- `backend/app/tests/test_api.py`
+  - Added API guardrail proving duplicate derivative entries return HTTP `400`.
+- `docs/API_CONTRACT.md`
+  - Documented the stricter `method_options` blocks and duplicate derivative error.
+- `docs/FRONTEND_HANDOFF.md`
+  - Documented frontend-relevant request validation behavior.
+- `docs/PLAN.md`
+  - Recorded Task 1 completion and validation command.
+
+Commands run in this task:
+
+| Command / Check | Result |
+|---|---|
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_schemas.py -q` before implementation | FAIL as expected - osculating option block was rejected as extra, spline derivative fields were rejected as extra, and unsupported spline boundary literal was accepted. |
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_api.py::test_interpolate_duplicate_derivative_data_rejected -q` before implementation | FAIL as expected - duplicate derivative data returned HTTP `200` instead of `400`. |
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_schemas.py -q` after implementation | PASS - 16 passed in 0.21s. |
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_api.py::test_interpolate_duplicate_derivative_data_rejected -q` after implementation | PASS - 1 passed in 1.28s. |
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_schemas.py app/tests/test_api.py -q` | PASS - 38 passed in 2.76s. |
+
+Notes and risks:
+
+- `osculating` request options are now schema-valid, but the method remains deferred and should still return `method_not_implemented` until generalized repeated-node derivative support is implemented.
+- Non-natural spline boundary literals are schema-valid for the frontend contract, but current computation still supports only natural cubic splines; non-natural boundary conditions should continue to surface method-level `unsupported_boundary_condition`.
+- No frontend files were edited.
+
+## Previous Current Task
 V2 Release Train RC backend correctness and API hardening (2026-05-27). Implementing the remaining RC gate items after the Preview Gate, graph reliability fixes, repo hygiene, and Candidate A numeric-mode tolerance hardening were already committed.
 
 Files changed so far:

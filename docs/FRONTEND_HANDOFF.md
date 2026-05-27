@@ -145,8 +145,12 @@ Optional request blocks now documented in `docs/API_CONTRACT.md`:
 
 2026-05-27 RC update:
 
-- `method_options` is now schema-hardened. Accepted blocks are `taylor` and `cubic_spline`; unknown option blocks return FastAPI HTTP `422`.
+- `method_options` is now schema-hardened. Accepted blocks are `taylor`, `cubic_spline`, and `osculating`; unknown option blocks return FastAPI HTTP `422`.
 - `method_options.taylor.center` is a strict numeric string. Send `"0"`, not `0`.
+- `method_options.cubic_spline.boundary_condition` is limited to `"natural"`, `"clamped"`, `"not-a-knot"`, or `"periodic"` at the schema boundary. Only `"natural"` is implemented today; non-natural literals remain method-level `unsupported_boundary_condition`.
+- `method_options.cubic_spline.left_derivative` and `right_derivative` are optional strict strings for the future clamped-boundary contract.
+- `method_options.osculating.orders[]` accepts strict `{ "x": string, "order": integer }` entries with `order` from 0 through 10 while `osculating` remains deferred.
+- Duplicate `derivatives[]` entries with the same normalized `x` and `order` now fail before method execution with HTTP `400` and error code `duplicate_derivative_data`.
 - `input_summary.sorted_nodes` is now live. It becomes `true` when a supported backend method reorders nodes; current case is natural `cubic_spline`, while the existing method-level `nodes_reordered` warning remains present.
 - `methods.stirling.evaluations[].terms` is now populated from direct centered Stirling finite-difference summation, not a Lagrange fallback.
 - Display precision radio controls use explicit per-instance label ids for Base UI group/options.

@@ -80,8 +80,17 @@ def _required_function(function: str | None) -> str:
 
 def _normalize_derivatives(request: InterpolateRequest, *, exact: bool) -> list[DerivativeDatum]:
     derivatives: list[DerivativeDatum] = []
+    seen: set[tuple[str, int]] = set()
     for item in request.derivatives:
         x_value = to_sympy(item.x, exact=exact, precision=request.precision)
+        key = (format_value(x_value, precision=request.precision) or item.x, item.order)
+        if key in seen:
+            raise InterpolationError(
+                "duplicate_derivative_data",
+                "Derivative data contains duplicate entries for the same x-value and order.",
+                {"x": item.x, "order": item.order},
+            )
+        seen.add(key)
         derivative_value = to_sympy(item.value, exact=exact, precision=request.precision)
         derivatives.append(
             DerivativeDatum(

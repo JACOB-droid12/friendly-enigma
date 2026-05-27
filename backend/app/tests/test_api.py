@@ -178,6 +178,32 @@ def test_interpolate_hermite_missing_derivative_returns_method_error() -> None:
     assert body["methods"]["hermite"]["error"]["code"] == "missing_derivative_data"
 
 
+def test_interpolate_duplicate_derivative_data_rejected() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "points",
+            "points": [["0", "1"], ["1", "4"]],
+            "derivatives": [
+                {"x": "0", "order": 1, "value": "2"},
+                {"x": "0", "order": 1, "value": "3"},
+            ],
+            "methods": ["hermite"],
+            "precision": 50,
+            "exact": True,
+        },
+    )
+
+    body = response.json()
+
+    assert response.status_code == 400
+    assert body["status"] == "error"
+    assert body["error"]["code"] == "duplicate_derivative_data"
+    assert body["error"]["details"] == {"x": "0", "order": 1}
+
+
 def test_interpolate_taylor_method_contract() -> None:
     client = TestClient(app)
 

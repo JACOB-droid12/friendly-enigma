@@ -19,6 +19,7 @@ MethodName = Literal[
 ]
 NodeStrategy = Literal["equally_spaced", "chebyshev_nodes", "custom_nodes"]
 ResponseStatus = Literal["ok", "partial", "error"]
+SplineBoundaryCondition = Literal["natural", "clamped", "not-a-knot", "periodic"]
 
 
 class StrictModel(BaseModel):
@@ -36,13 +37,25 @@ class TaylorMethodOptions(StrictModel):
     order: StrictInt = Field(ge=0, le=20)
 
 
+class OsculatingOrderOption(StrictModel):
+    x: StrictStr
+    order: StrictInt = Field(ge=0, le=10)
+
+
+class OsculatingMethodOptions(StrictModel):
+    orders: list[OsculatingOrderOption] = Field(default_factory=list)
+
+
 class CubicSplineMethodOptions(StrictModel):
-    boundary_condition: StrictStr = "natural"
+    boundary_condition: SplineBoundaryCondition = "natural"
+    left_derivative: StrictStr | None = None
+    right_derivative: StrictStr | None = None
 
 
 class MethodOptions(StrictModel):
     taylor: TaylorMethodOptions | None = None
     cubic_spline: CubicSplineMethodOptions | None = None
+    osculating: OsculatingMethodOptions | None = None
 
 
 class InterpolateRequest(StrictModel):
