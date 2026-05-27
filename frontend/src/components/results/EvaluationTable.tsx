@@ -18,6 +18,7 @@ interface FormattedRow {
   x: string
   bestPx: string
   bestMethod: string
+  bestMethodRationale: string
   methodValues: Record<string, string | null>
   fx: string | null
   absoluteError: string | null
@@ -40,6 +41,7 @@ export function EvaluationTable({ evaluations, methodsRequested }: EvaluationTab
         x: format(ev.x),
         bestPx: format(ev.best_P_x),
         bestMethod: ev.best_method,
+        bestMethodRationale: bestMethodRationale(ev.best_method),
         methodValues,
         fx: ev.f_x != null ? format(ev.f_x) : null,
         absoluteError: ev.absolute_error != null ? format(ev.absolute_error) : null,
@@ -97,6 +99,8 @@ export function EvaluationTable({ evaluations, methodsRequested }: EvaluationTab
                     <Badge
                       variant={methodBadgeVariant(row.bestMethod)}
                       className="text-[10px]"
+                      title={row.bestMethodRationale}
+                      aria-label={`${methodLabel(row.bestMethod)}. ${row.bestMethodRationale}`}
                     >
                       {methodLabel(row.bestMethod)}
                     </Badge>
@@ -128,4 +132,32 @@ export function EvaluationTable({ evaluations, methodsRequested }: EvaluationTab
       </div>
     </div>
   )
+}
+
+function bestMethodRationale(method: string): string {
+  switch (method) {
+    case "barycentric":
+      return "Stable evaluator; avoids rebuilding the polynomial at each x."
+    case "neville":
+      return "Target-specific table; useful when only this x is needed."
+    case "newton":
+      return "Nested divided differences; efficient once coefficients are known."
+    case "lagrange":
+      return "Direct basis form; clear construction from the supplied nodes."
+    case "newton_forward":
+      return "Forward differences fit equally spaced nodes near the first node."
+    case "newton_backward":
+      return "Backward differences fit equally spaced nodes near the last node."
+    case "stirling":
+      return "Centered differences fit equally spaced nodes near the midpoint."
+    case "hermite_divided_difference":
+    case "hermite":
+      return "Uses derivative data to match both values and slopes."
+    case "taylor":
+      return "Local series method; best near the expansion center."
+    case "cubic_spline":
+      return "Piecewise cubic; smooth between neighboring knots."
+    default:
+      return "Selected by the backend as the preferred value for this x."
+  }
 }

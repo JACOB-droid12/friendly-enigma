@@ -149,6 +149,9 @@ Optional request blocks now documented in `docs/API_CONTRACT.md`:
 - `method_options.taylor.center` is a strict numeric string. Send `"0"`, not `0`.
 - `input_summary.sorted_nodes` is now live. It becomes `true` when a supported backend method reorders nodes; current case is natural `cubic_spline`, while the existing method-level `nodes_reordered` warning remains present.
 - `methods.stirling.evaluations[].terms` is now populated from direct centered Stirling finite-difference summation, not a Lagrange fallback.
+- Display precision radio controls use explicit per-instance label ids for Base UI group/options.
+- Graph rendering differentiates `f(x)` and `P(x)` by style as well as color: `f(x)` is dashed and `P(x)` remains solid.
+- Evaluation comparison best-method badges expose a short backend-priority rationale through compact help text (`title` / accessible label) without adding repeated visible row copy.
 
 Frontend ownership rule remains unchanged:
 

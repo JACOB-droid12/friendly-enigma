@@ -31,6 +31,31 @@ Commands run so far:
 
 Production is not promoted. Vercel access/protection mode is unchanged.
 
+Frontend polish batch (2026-05-27):
+
+- `frontend/src/components/DisplayDigitsControl.tsx`
+  - Replaced static radio label ids with `useId`-derived ids so multiple controls can mount without duplicate `aria-labelledby` targets.
+  - Added explicit visible/screen-reader label relationships for the Base UI radio group and options.
+- `frontend/src/components/results/GraphCard.tsx`
+  - Added dashed `f(x)` line styling while keeping `P(x)` solid so graph series are not color-only.
+- `frontend/src/components/results/EvaluationTable.tsx`
+  - Added compact best-method rationale as a badge `title` and accessible `aria-label`, without adding repeated visible row copy.
+- Frontend tests:
+  - Added `DisplayDigitsControl.test.tsx`.
+  - Added `EvaluationTable.test.tsx`.
+  - Extended graph passthrough tests for dashed/solid line props.
+
+Frontend polish verification and review:
+
+| Command / Check | Result |
+|---|---|
+| Frontend worker targeted test run | PASS - 3 files / 13 tests. |
+| Frontend targeted test run after quality fixes | PASS - 4 files / 15 tests. |
+| Frontend polish spec subagent review | APPROVED after re-review. |
+| Frontend polish code-quality subagent review | ISSUE - static duplicate ids and noisy repeated best-method copy. Fixed with `useId`, compact badge help, and focused tests. Re-review APPROVED. |
+
+No endpoint paths, request shapes, response shapes, warning codes, or error codes changed in the frontend polish batch.
+
 ## Previous Current Task
 Reciprocal interpolation graph node plotting bug fix (2026-05-26). Root cause was frontend-only: `GraphCard` converted backend numeric strings with `parseFloat`, so exact rational node strings such as `"1/2"`, `"2/3"`, and `"3/2"` were partially parsed as `1`, `2`, and `3`. Backend normalization and graph-data generation were checked; the reciprocal payload returns the correct exact node strings, correct evaluation table, no `f_x`/`error` arrays for point-only input, and `P_x` samples through the five nodes.
 

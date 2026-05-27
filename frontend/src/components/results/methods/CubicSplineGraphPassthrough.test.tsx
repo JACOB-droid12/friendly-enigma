@@ -235,4 +235,30 @@ describe("GraphCard cubic-spline pass-through", () => {
       expect.objectContaining({ x: 2, nodeY: expect.closeTo(1 / 3, 12) }),
     ])
   })
+
+  it("differentiates f(x) and P(x) with dashed and solid line styles", () => {
+    const graphData = {
+      x: ["0", "1", "2"],
+      f_x: ["1", "2", "3"],
+      P_x: ["1", "2", "3"],
+      error: [null, null, null],
+      source_method: "barycentric",
+      method_graphs: null,
+    }
+
+    renderWithDisplay(
+      <GraphCard graphData={graphData} nodes={cubicSplineResponse.nodes} />,
+    )
+
+    const lineProps = captured.Line as Array<{
+      dataKey: string
+      strokeDasharray?: string
+    }>
+    const fxLine = lineProps.find((props) => props.dataKey === "f_x")
+    const pxLine = lineProps.find((props) => props.dataKey === "P_x")
+
+    expect(fxLine).toEqual(expect.objectContaining({ strokeDasharray: "6 4" }))
+    expect(pxLine).toBeDefined()
+    expect(pxLine?.strokeDasharray).toBeUndefined()
+  })
 })

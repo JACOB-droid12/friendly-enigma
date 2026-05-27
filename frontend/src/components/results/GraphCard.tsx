@@ -253,6 +253,7 @@ export function GraphCard({ graphData, nodes }: GraphCardProps) {
                   name="f(x)"
                   stroke={tokens["--graph-fx"]}
                   strokeWidth={2}
+                  strokeDasharray="6 4"
                   dot={false}
                   connectNulls={false}
                 />

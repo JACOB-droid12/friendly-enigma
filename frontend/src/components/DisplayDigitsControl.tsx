@@ -1,5 +1,6 @@
 import { RadioGroup } from "@base-ui/react/radio-group"
 import { Radio } from "@base-ui/react/radio"
+import { useId } from "react"
 import { DISPLAY_DIGITS_OPTIONS } from "@/lib/format-numeric"
 import { useDisplayDigits } from "@/lib/display-digits"
 import type { DisplayDigits } from "@/lib/format-numeric"
@@ -19,10 +20,13 @@ interface DisplayDigitsControlProps {
  */
 export function DisplayDigitsControl({ className }: DisplayDigitsControlProps) {
   const { digits, setDigits } = useDisplayDigits()
+  const baseId = useId()
+  const groupLabelId = `${baseId}-display-digits-label`
+  const groupQualifierId = `${baseId}-display-digits-qualifier`
 
   return (
     <RadioGroup
-      aria-label="Display precision"
+      aria-labelledby={`${groupLabelId} ${groupQualifierId}`}
       value={String(digits)}
       onValueChange={(v) => setDigits(deserialize(v as string))}
       className={
@@ -30,19 +34,21 @@ export function DisplayDigitsControl({ className }: DisplayDigitsControlProps) {
         (className ?? "")
       }
     >
-      <span className="font-label px-2 text-muted-foreground" aria-hidden="true">
+      <span id={groupLabelId} className="font-label px-2 text-muted-foreground">
         Display
+      </span>
+      <span id={groupQualifierId} className="sr-only">
+        precision
       </span>
       {DISPLAY_DIGITS_OPTIONS.map((opt) => {
         const active = digits === opt
         const label = opt === "full" ? "Full" : String(opt)
-        const accessibleLabel =
-          opt === "full" ? "Full backend precision" : `${opt} significant digits`
+        const optionLabelId = `${baseId}-display-digits-option-${String(opt)}`
         return (
           <Radio.Root
             key={String(opt)}
             value={String(opt)}
-            aria-label={accessibleLabel}
+            aria-labelledby={optionLabelId}
             className={
               "h-6 px-2 rounded-md text-[11px] font-medium transition-subtle outline-none cursor-pointer " +
               "focus-visible:ring-3 focus-visible:ring-ring/50 " +
@@ -51,7 +57,7 @@ export function DisplayDigitsControl({ className }: DisplayDigitsControlProps) {
                 : "text-muted-foreground hover:text-foreground")
             }
           >
-            {label}
+            <span id={optionLabelId}>{label}</span>
           </Radio.Root>
         )
       })}
