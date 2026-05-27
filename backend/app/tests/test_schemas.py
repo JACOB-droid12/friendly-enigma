@@ -146,3 +146,14 @@ def test_taylor_order_must_be_strict_integer(bad_order: object) -> None:
             methods=["taylor"],
             method_options={"taylor": {"center": "0", "order": bad_order}},
         )
+
+
+@pytest.mark.parametrize("bad_order", [True, 1.0, "1"])
+def test_derivative_order_must_be_strict_integer(bad_order: object) -> None:
+    with pytest.raises(ValidationError):
+        InterpolateRequest(
+            mode="points",
+            points=[["0", "1"], ["1", "4"]],
+            methods=["hermite"],
+            derivatives=[{"x": "0", "order": bad_order, "value": "2"}],
+        )

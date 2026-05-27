@@ -28,7 +28,7 @@ class StrictModel(BaseModel):
 
 class DerivativeData(StrictModel):
     x: str
-    order: int = Field(ge=1, le=10)
+    order: StrictInt = Field(ge=1, le=10)
     value: str
 
 

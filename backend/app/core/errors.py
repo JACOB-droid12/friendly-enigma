@@ -14,6 +14,7 @@ ERROR_CODES = {
     "unequal_spacing",
     "stirling_requires_centered_nodes",
     "missing_derivative_data",
+    "duplicate_derivative_data",
     "invalid_derivative_order",
     "unsupported_taylor_function",
     "unsupported_boundary_condition",
