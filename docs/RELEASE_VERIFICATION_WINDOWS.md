@@ -1,7 +1,7 @@
 # Windows Release Verification
 
 Use these commands from the repository root on Windows. They avoid the broken
-`py -3.13` launcher and use the verified Python 3.12.13 virtual environment.
+WindowsApps Python launcher and use the verified Python 3.12.13 virtual environment.
 
 ```powershell
 .\scripts\bootstrap-release-env.ps1

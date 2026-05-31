@@ -1,12 +1,13 @@
 # V2 Release Candidate Notes
 
-Date: 2026-05-27
+Date: 2026-06-01
 
 ## Implemented
 
 - V1 interpolation methods: Lagrange, Newton divided differences, Barycentric Lagrange, and Neville.
-- Phase 2 lecture methods: Newton Forward, Newton Backward, Stirling, Hermite divided difference, Hermite basis, Taylor/Maclaurin, and natural cubic spline.
-- Backend-owned graph data generation for standard interpolation, Taylor, Hermite, and cubic spline.
+- Phase 2 lecture methods: Newton Forward, Newton Backward, Stirling, Hermite divided difference, Hermite basis, generalized Osculating, Taylor/Maclaurin, and cubic spline.
+- Cubic spline boundary modes: `natural`, `clamped`, `not-a-knot`, and `periodic`.
+- Backend-owned graph data generation for standard interpolation, Osculating, Taylor, Hermite, and cubic spline.
 - Exact mode uses SymPy rational values where possible.
 - Numeric mode parses numeric strings through the high-precision path and uses backend precision-aware comparisons for finite-difference spacing, spline continuity, and Hermite consistency checks.
 - Vercel preview plumbing uses a single Vite static frontend plus FastAPI serverless adapter project.
@@ -15,13 +16,15 @@ Date: 2026-05-27
   - `input_summary.sorted_nodes` is live for supported methods that reorder input nodes.
   - `method_options` schema validation rejects unknown option blocks and non-strict Taylor option types.
   - Display precision controls, graph line differentiation, and evaluation best-method help were polished.
+  - Osculating now uses generalized confluent divided differences with per-node derivative orders.
+  - Frontend controls send Osculating derivative orders/data and all implemented cubic spline boundary modes.
+  - Chrome DevTools MCP accessibility verification reports Lighthouse Accessibility 100.
+  - Windows release verification uses `backend\.venv\Scripts\python.exe` / Python 3.12.13 and a path-safe local Vercel build.
 
-## Deferred
+## Release Access
 
-- `osculating` remains accepted by the API but not implemented; it returns method-level `method_not_implemented`.
-- Cubic spline boundary conditions other than `natural` remain deferred and return `unsupported_boundary_condition`.
 - Production promotion requires explicit approval.
-- Preview access mode remains a decision point. The current safe default is to keep existing Vercel Deployment Protection/SSO unchanged unless explicitly approved.
+- Current preview access is protected by Vercel Authentication. Do not describe the preview as public.
 
 ## Verification
 
@@ -50,8 +53,23 @@ Fresh post-RC preview deployment on 2026-05-27:
 - Smoke checks through authenticated `vercel curl`: `/health`, `/api/validate-function`, Linear Lagrange, Newton Forward cos(x), corrected Stirling, and unsorted-node cubic spline all returned HTTP 200 with expected contract fields.
 - Direct unauthenticated request to `/health` returned HTTP 401 Vercel Authentication, so Deployment Protection remains enabled.
 
+RC blocker preview deployment on 2026-06-01:
+
+- Preview URL: `https://interpolation-workbench-731dpy4tj-marvillarq20-3593s-projects.vercel.app`
+- Deployment id: `dpl_7dpxuQtN7s8MaVReKG39yhxXkdrb`
+- Vercel target/status: `preview` / `Ready`
+- Production: not promoted or touched.
+- Direct unauthenticated Node `fetch` to `/` and `/health` returned HTTP 401 Vercel Authentication.
+
+RC blocker local verification completed so far on 2026-06-01:
+
+- Frontend focused accessibility/control tests: 5 files / 35 tests passed.
+- Frontend lint/build: passed; Vite emitted the existing large-chunk advisory.
+- Chrome DevTools MCP: no console form-label issues, no unlabeled form fields, Lighthouse Accessibility 100.
+- Local Vercel build: `npx vercel build --yes` passed from `W:\` after `.\scripts\bootstrap-release-env.ps1`.
+
 ## Known Caveats
 
-- Preview may remain protected by Vercel Deployment Protection/SSO. Public/professor access needs an explicit access-mode decision.
+- Preview is currently protected by Vercel Authentication. Public/professor access needs protection disabled by an authorized account owner or a separate approved access path.
 - `.impeccable/critique/screens/` and `.kiro/` contain tracked tooling/audit assets. They were inspected but not broadly removed in this RC pass.
 - The frontend bundle still carries Vite large-chunk warnings because the graph and polynomial renderers depend on heavier visualization/math display libraries. Current build output: main JS 725.00 kB / 211.84 kB gzip, GraphCard chunk 378.60 kB / 109.73 kB gzip, PolynomialCard chunk 6.55 kB / 2.30 kB gzip, CSS 92.11 kB / 19.37 kB gzip.

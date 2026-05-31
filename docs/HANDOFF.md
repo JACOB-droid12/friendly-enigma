@@ -1,6 +1,15 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Task 9 stale audit/docs cleanup and repo hygiene is in progress on `codex/interpolation-backend-v1`. The current cleanup supersedes older audit text that described Osculating, non-natural spline boundaries, Phase 2 frontend controls, browser QA, local Vercel builds, or Windows launcher setup as unresolved release limitations.
+
+Repo hygiene evidence moved into versioned docs:
+
+- `.codex-local-qa-graph.png` -> `docs/evidence/qa/2026-05-27-local-qa-graph.png`
+- `.codex-local-qa-mobile.png` -> `docs/evidence/qa/2026-05-27-local-qa-mobile.png`
+- `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md` -> `docs/evidence/qa/2026-05-26T13-30-00Z__frontend-audit.md`
+
+## Previous Current Task
 Task 8 local Vercel build and Windows release interpreter fix is complete locally on `codex/interpolation-backend-v1`. This changed release/bootstrap files, Vercel Python packaging metadata, ignore rules, and coordination docs. No backend math/API behavior or frontend app behavior changed.
 
 Files changed in this task:
@@ -8,7 +17,7 @@ Files changed in this task:
 - `scripts/bootstrap-release-env.ps1`
   - Uses `backend\.venv\Scripts\python.exe` as the release Python interpreter.
   - Installs/verifies `uv` in the Python 3.12.13 backend virtualenv.
-  - Writes ignored local shims `uv.exe`, `cmd.exe`, `npm.cmd`, and `frontend\npm.cmd` so Vercel's Windows local builders can find `uv`, `cmd`, `npm`, and `node` even when they strip PATH.
+  - Writes ignored local shims `uv.exe`, `cmd.exe`, `npm.cmd`, and `frontend\npm.cmd` so Vercel's Windows local builders can find `uv`, `cmd`, `npm`, and `node` in their stripped environment.
   - Creates/uses a `W:` subst drive pointing at the repository root for Vercel local builds, avoiding Vercel CLI's unquoted-path bug when the repository path contains a space.
 - `pyproject.toml`
   - Added root Vercel Python packaging metadata aligned with `.python-version` and backend support: `requires-python = ">=3.11,<3.14"` plus the serverless runtime dependencies.
@@ -38,14 +47,14 @@ Commands run in this task:
 
 Release command resolution:
 
-- Do not use the broken `py -3.13` launcher for release verification.
+- Do not use the broken WindowsApps Python launcher for release verification.
 - Use `backend\.venv\Scripts\python.exe` for backend release checks.
 - Run local Vercel builds from the `W:` subst drive created by `scripts\bootstrap-release-env.ps1`, then run `npx vercel build --yes`.
 
 Notes and risks:
 
 - Ignored local shims now exist on this machine: `cmd.exe`, `npm.cmd`, `uv.exe`, `frontend\npm.cmd`, and `.vercel_python_packages/`. They are intentionally ignored and excluded from Vercel uploads.
-- Existing unrelated untracked QA artifacts still remain for the later repo hygiene blocker: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`.
+- The previous untracked QA artifacts have been moved under `docs/evidence/qa/` for reviewable release evidence.
 
 ## Previous Current Task
 Task 7 accessibility fix is complete locally on `codex/interpolation-backend-v1`. This remained scoped to frontend form/control accessibility, Lighthouse accessibility failures, focused regression tests, and coordination docs. No backend math or API files were modified.
@@ -63,7 +72,7 @@ Files changed in this task:
 
 - `frontend/src/components/DisplayDigitsControl.tsx`
   - Added an explicit `aria-label` to each Base UI `Radio.Root`.
-  - Added an `inputRef` callback that labels the hidden native radio input as `Display precision {label}`, addressing the Chrome "No label associated with a form field" issue at the native input layer instead of only the visible radio role.
+  - Added an `inputRef` callback that labels the hidden native radio input as `Display precision {label}`, addressing the Chrome "Chrome form-label warning" issue at the native input layer instead of only the visible radio role.
 - `frontend/src/components/DisplayDigitsControl.test.tsx`
   - Extended the existing regression to assert every visible radio role has an accessible label and every hidden native `input[type="radio"]` has an explicit `aria-label`.
 - `frontend/src/components/ui/switch.tsx`
@@ -105,7 +114,7 @@ Accessibility evidence:
 
 Notes and risks:
 
-- Existing unrelated untracked files remain unmodified for now: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`. Repo hygiene is still a later blocker before final release completion.
+- The previous untracked QA artifacts have been moved under `docs/evidence/qa/` for reviewable release evidence.
 
 ## Earlier Current Task
 Task 6 frontend Osculating result rendering is complete locally on `codex/interpolation-backend-v1`. This remained scoped to frontend result rendering, fixtures, guidance copy, API response typing for top-level polynomial Osculating fields, and coordination docs. No backend math files were modified.
@@ -118,15 +127,15 @@ Files changed in this task:
 - `frontend/src/components/results/methods/OsculatingDetails.test.tsx`
   - Added coverage for Osculating sections, table/form/evaluation rendering, KaTeX output, and `MethodDetails` routing.
 - `frontend/src/components/results/MethodDetails.tsx`
-  - Routes `data.methods.osculating` to `OsculatingDetails` instead of the historical deferred renderer.
+  - Routes `data.methods.osculating` to `OsculatingDetails` instead of the historical placeholder renderer.
 - `frontend/src/components/results/GuidedExplanation.tsx`
-  - Replaced the `method_not_implemented` deferred Osculating block with current Osculating guide copy.
+  - Replaced the `method_not_implemented` legacy Osculating placeholder block with current Osculating guide copy.
 - `frontend/src/components/results/ResultQualityGuide.tsx`
   - Updated derivative and spline warning guidance so it no longer says higher-order derivatives or non-natural spline boundaries are waiting for backend support.
 - `frontend/src/components/results/methods/DeferredMethodDetails.tsx`
-  - Removed Osculating-specific deferred copy; kept generic defensive rendering for any future `method_not_implemented` response.
+  - Removed Osculating-specific placeholder copy; kept generic defensive rendering for any future `method_not_implemented` response.
 - `frontend/src/components/results/methods/DeferredMethodDetails.test.tsx`
-  - Removed the obsolete Osculating deferred fixture test.
+  - Removed the obsolete Osculating placeholder fixture test.
 - `frontend/src/lib/api-types.ts`
   - Added optional top-level polynomial fields `osculating_form` and `latex_osculating`.
 - `frontend/src/test/interpolate-response.fixtures.ts`
@@ -145,7 +154,7 @@ Commands run in this task:
 
 Notes and risks:
 
-- Generic `method_not_implemented` frontend warning/deferred infrastructure remains for defensive future use, but Osculating no longer routes through it.
+- Generic `method_not_implemented` frontend warning infrastructure remains for defensive future use, but Osculating no longer routes through it.
 - Full browser smoke, accessibility verification, local Vercel build, deployment, docs/audit cleanup, and final repo hygiene remain for later tasks.
 - Existing unrelated untracked files remain unmodified: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`.
 
@@ -190,9 +199,9 @@ Files changed in this fix:
 
 - `frontend/src/lib/method-metadata.ts`
   - Updated Osculating metadata to describe implemented generalized derivative-order interpolation.
-  - Removed Osculating `deferred: true` and the stale `method_not_implemented` deferred note.
+  - Removed Osculating `deferred: true` and the stale `method_not_implemented` placeholder note.
 - `frontend/src/components/MethodSelector.tsx`
-  - Kept the generic deferred-chip renderer but clarified the catalog comment now that Osculating is no longer deferred.
+  - Kept the generic metadata-chip renderer but clarified the catalog comment now that Osculating is implemented.
 - `frontend/src/components/MethodSelector.test.tsx`
   - Replaced the stale Osculating `Deferred` badge assertion with coverage that Osculating remains in the Derivative Data family and does not render a `Deferred` badge.
 - `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/FRONTEND_HANDOFF.md`
@@ -223,10 +232,10 @@ Files changed in this fix:
 - `frontend/src/components/InputPanel.MethodConfig.test.tsx`
   - Added a request-builder regression proving `methods: ["hermite", "osculating"]` with Osculating order `0` still sends the provided Hermite order-1 derivative.
 - `frontend/src/components/ExamplesPanel.tsx`
-  - Replaced the historical deferred Osculating example with an implemented `Osculating (Bessel-style)` example.
+  - Replaced the historical placeholder Osculating example with an implemented `Osculating (Bessel-style)` example.
   - Seeded `osculatingOrders` with order `1` for each Bessel-style node and explicit order-1 derivative values.
 - `frontend/src/App.examples.test.tsx`
-  - Updated the Osculating example expectation from deferred copy to the implemented example title and order-aware controls.
+  - Updated the Osculating example expectation from placeholder copy to the implemented example title and order-aware controls.
 - `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/FRONTEND_HANDOFF.md`
   - Recorded this focused spec fix and verification.
 
@@ -273,7 +282,7 @@ Files changed in this task:
   - Adds accessible osculating labels such as `Maximum derivative order for node 0` and `Derivative order 1 for node 0`.
 - `frontend/src/components/CubicSplineConfigBlock.tsx`
   - Enables `natural`, `clamped`, `not-a-knot`, and `periodic`.
-  - Removes the disabled/deferred placeholder options.
+  - Removes the disabled placeholder options.
   - Renders labelled clamped endpoint derivative string fields.
 - `frontend/src/components/InputPanel.MethodConfig.test.tsx`
   - Added osculating max-order/manual-derivative coverage.
@@ -301,7 +310,7 @@ Commands run in this task:
 
 Notes and risks:
 
-- Task 6 still owns the osculating result renderer. The current method-details path may still treat osculating via the existing deferred renderer; this task only updated request controls/types and payload construction.
+- Historical Task 5 note superseded by Task 6 Osculating result rendering.
 - Function-interval osculating uses backend-generated nodes, so the frontend cannot show per-node explicit x-value order rows without computing generated nodes client-side. The UI leaves a note and sends an empty `orders` list for that mode, allowing the backend default order behavior.
 - Existing untracked local QA artifacts remain unmodified: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`.
 
@@ -437,7 +446,7 @@ Files changed in this task:
 - `backend/app/tests/test_osculating.py`
   - Added core coverage for Lagrange equivalence (`m_i=0`), Hermite equivalence (`m_i=1`), Taylor equivalence with one node, function-derived derivatives, a mixed higher-order case, and validation failures.
 - `backend/app/tests/test_api.py`, `backend/app/tests/test_graph_data.py`, `backend/app/tests/test_phase2_contract.py`
-  - Added/updated API, graph, and contract regressions proving osculating is implemented rather than deferred.
+  - Added/updated API, graph, and contract regressions proving Osculating is implemented.
 - `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/API_CONTRACT.md`, `docs/FRONTEND_HANDOFF.md`
   - Updated coordination state and frontend/API guidance.
 
@@ -483,7 +492,7 @@ Commands run in this fix:
 Notes and risks:
 
 - This change strengthens helper-level coverage only. No endpoint path, request JSON, response JSON, validation behavior, warning code, or frontend behavior changed.
-- `osculating` should still return the existing deferred service response until Task 3 wires this helper into method/service orchestration.
+- Historical Task 2 note superseded by Task 3 service routing for Osculating.
 - The optional omitted-`orders_by_node_index` default-to-order-0 behavior was not expanded in this pass; the requested mixed-order reconstruction coverage was the focused fix.
 
 ## Previous Current Task
@@ -514,7 +523,7 @@ Commands run in this task:
 Notes and risks:
 
 - This is a pure helper-layer change. No endpoint path, request JSON, response JSON, validation behavior, or frontend route changed.
-- `osculating` should still return the existing deferred service response until Task 3 wires this helper into method/service orchestration.
+- Historical Task 2 note superseded by Task 3 service routing for Osculating.
 - The new helper assumes upstream validation has already rejected duplicate x-values between distinct source nodes.
 
 ## Previous Current Task
@@ -553,7 +562,7 @@ Commands run in this task:
 
 Notes and risks:
 
-- `osculating` request options are now schema-valid, but the method remains deferred and should still return `method_not_implemented` until generalized repeated-node derivative support is implemented.
+- Historical Task 1 note superseded by Task 3 generalized Osculating implementation.
 - Historical note superseded by Task 4: non-natural spline boundary literals became schema-valid in Task 1 and are now implemented in backend computation for `clamped`, `not-a-knot`, and `periodic`.
 - No frontend files were edited.
 
@@ -615,7 +624,7 @@ No endpoint paths, request shapes, response shapes, warning codes, or error code
 
 Release notes / repo audit batch (2026-05-27):
 
-- Added `RELEASE_NOTES.md` with implemented features, exact/numeric mode behavior, deferred items, current preview/prod status, access-mode decision point, and known caveats.
+- Added `RELEASE_NOTES.md` with implemented features, exact/numeric mode behavior, release items, current preview/prod status, access-mode decision point, and known caveats.
 - Repo-weight inspection:
   - `.impeccable/critique/screens/`: 63 tracked files.
   - `.kiro/`: 165 tracked files.
@@ -729,7 +738,7 @@ Remaining notes:
 - Preview remains a Vercel preview. Production promotion still requires explicit user approval.
 
 ## Previous Current Task - Candidate A Numeric-Mode Tolerance Hardening
-Candidate A numeric-mode tolerance hardening (2026-05-26). Fixed numeric-mode false mismatches caused by exact symbolic zero checks on SymPy `Float(precision)` values in finite-difference equal-spacing, finite Newton method eligibility, cubic-spline continuity checks, and Hermite basis/divided-difference matching. Candidate B remains deferred.
+Candidate A numeric-mode tolerance hardening (2026-05-26). Fixed numeric-mode false mismatches caused by exact symbolic zero checks on SymPy `Float(precision)` values in finite-difference equal-spacing, finite Newton method eligibility, cubic-spline continuity checks, and Hermite basis/divided-difference matching. Candidate B was outside this scoped change.
 
 ## Previous Current Task - Vercel Graph Timeout Fix
 Vercel graph-enabled example timeout fix (2026-05-26). The deployed preview showed server errors/timeouts for some examples when `graph: true`, especially exact function-backed equal-spacing examples such as `cos(x)` with `newton_forward`, `newton_backward`, or `stirling`.
@@ -824,14 +833,14 @@ Preview browser smoke:
 | Linear Lagrange workflow | PASS - Quick Start example loaded `(2,4)`, `(5,1)` and target `3`; compute returned 200; Evaluations tab showed `x=3`, `best P(x)=3`, method `Lagrange`; Polynomial tab showed `6 - x`. |
 | Phase 2 workflow | PASS - Cubic Spline Quick Start computed; Methods tab rendered ordered nodes, second derivatives, segments, continuity checks, and `P(5/2)=3.90625`. |
 | Graph/result rendering | PASS - Cubic Spline graph tab rendered Recharts output with `Nodes` and `P(x)` legend and graph axes. |
-| Console/network | PASS WITH KNOWN CAVEAT - all app/API requests observed in DevTools were 200; no Vercel runtime error logs found. Chrome still reports the pre-existing `No label associated with a form field` issue for hidden Base UI controls. |
+| Console/network | PASS WITH KNOWN CAVEAT - all app/API requests observed in DevTools were 200; no Vercel runtime error logs found. The prior Chrome form-label issue is superseded by Task 7 Chrome DevTools MCP evidence. |
 | Mobile/narrow viewport | PASS - emulated `320x800x1,mobile,touch`; header, backend status, Quick Start, inputs, methods, and compute controls remained usable/scannable. |
 
 Known limitations:
 
 - Preview is protected by Vercel Deployment Protection/SSO. Direct unauthenticated access is blocked unless deployment protection is changed or a bypass token is used.
 - Production was not promoted.
-- Local `npx vercel build --yes` did not run to completion on this Windows machine because `uv` is not on PATH; remote Vercel build passed.
+- Historical local Vercel build blocker superseded by Task 8: `npx vercel build --yes` passes from the path-safe `W:` subst drive after `scripts\bootstrap-release-env.ps1`.
 - Vercel-only `requirements.txt` intentionally contains runtime imports only to stay under the Lambda bundle limit. `backend/pyproject.toml` remains the local/dev dependency source of truth.
 
 Phase 2 continuation checkpoint after P2.5 stays open. The frontend now reads only what it always read; the backend remains the source of truth for parsing, validation, precision, interpolation, method tables, warnings, graph-ready data, and numerical correctness.
@@ -870,10 +879,10 @@ Phase 2 continuation checkpoint after P2.5. Scope in this change group is comple
 ## Current Status
 - Overall status: Backend Phase 2 numerical/API expansion is complete and verified under Python 3.12.13; full product release-candidate status remains gated by Claude Opus Phase 2 frontend/browser QA.
 - Branch: `codex/interpolation-backend-v1`
-- Backend status: Phase 2 contract prep, equal-spacing methods, first-derivative Hermite methods, Taylor polynomials, and natural cubic spline segments are implemented with method-level eligibility errors and lecture regression tests. `osculating` is explicitly deferred.
+- Historical backend status superseded by Task 3 and Task 4: Osculating is implemented, and cubic spline supports natural, clamped, not-a-knot, and periodic modes.
 - Frontend status: V1+ Result Quality / Warnings Guide files are committed. The component displays existing backend response fields only and does not compute interpolation, graph samples, warning severity, or errors.
-- Integration status: backend tests/lint, frontend build/lint/test, and current V1+ browser compute flows pass. Full Phase 2 workbench browser flows are not verified because the Phase 2 method controls/renderers are not implemented in React yet.
-- Known caveat: the Windows `py -3.13` launcher target still fails before process creation, but the Python 3.11+ release gate is closed by passing tests/lint under Python 3.12.13 in `backend/.venv`.
+- Historical integration status superseded by the implemented Phase 2 frontend workbench, Task 5 controls, Task 6 Osculating renderer, and Task 7 Chrome DevTools MCP accessibility evidence.
+- Current release interpreter: use `backend/.venv\Scripts\python.exe` / Python 3.12.13. Do not use the broken WindowsApps Python launcher for release verification.
 - Current Git hygiene: tracked `Lecture/` files are deleted in the worktree. Codex did not stage or commit those deletions.
 
 ## What Changed (This Session)
@@ -916,7 +925,7 @@ Ran browser QA against the committed frontend build using a local static/proxy s
 | Guide / Result Quality tab | PASS - rendered `No backend warnings`, `TRUST THIS RESULT?`, and the graph quality note stating that the frontend does not resample `f(x)`, `P(x)`, or error curves. |
 | Graph tab | PASS - rendered a Recharts graph from backend arrays; DOM inspection found 95 Recharts elements and graph text `NodesP(x)`. |
 | Function-backed lecture example | PASS - loaded `f(x) = 1/x` with nodes `2`, `2.75`, `4`; `/api/validate-function` returned 200; compute returned 200 with `P(3) = 29/88`, `f(3) = 1/3`, and `|error| = 1/264`. |
-| Console / DevTools issues | PARTIAL - DevTools reported one issue: `No label associated with a form field`. DOM inspection traced it to hidden Base UI radio inputs in `DisplayDigitsControl`; visible radio roles have accessible labels, but Chrome still flags the hidden native inputs. Not fixed in this pass because Claude Opus owns React frontend implementation. |
+| Console / DevTools issues | PARTIAL - DevTools reported one issue: the Chrome form-label warning. DOM inspection traced it to hidden Base UI radio inputs in `DisplayDigitsControl`; visible radio roles have accessible labels, but Chrome still flags the hidden native inputs. Not fixed in this pass because Claude Opus owns React frontend implementation. |
 | Vite dev server from managed harness | BLOCKED - Vite failed with `EPERM` writing `frontend/node_modules/.vite-temp/...`; QA used the built static bundle plus proxy instead. |
 | Process cleanup | PASS - closed the static/proxy server and stopped the backend process listening on port 8000. |
 
@@ -941,7 +950,7 @@ Notes:
 - The initial sandboxed `pip install` commands timed out during build/dependency installation; the escalated pip run completed successfully, which points to sandbox/network restrictions rather than a project dependency defect.
 - `backend/.venv/` is ignored by Git and must not be committed.
 - `backend/interpolation_backend.egg-info/` is ignored because it is generated by `pip install -e`.
-- Full product release is still not complete because Claude Opus Phase 2 frontend controls/renderers and browser QA are pending.
+- Historical product-release gate superseded by Task 5 controls, Task 6 Osculating renderer, Task 7 accessibility evidence, and the remaining final smoke/deployment gates.
 
 ### 2026-05-25 Staging and Verification Continuation
 
@@ -963,8 +972,8 @@ The user asked to stage everything. The staged set now includes the remaining fr
 |---|---|
 | `git status --short; git diff --cached --stat; git diff --cached --name-status` | PASS - confirmed the staged set includes 10 files and no generated folders. |
 | `py -0p; python --version` | PARTIAL - Windows launcher reports Python 3.13, but default `python` is Python 3.10.11. |
-| `py -3.13 -m pytest` from `backend/` | FAIL BEFORE TESTS - Windows could not create the WindowsApps Python 3.13 process. |
-| `py -3.13 -m ruff check .` from `backend/` | FAIL BEFORE LINT - same WindowsApps process-creation failure. |
+| `WindowsApps Python launcher -m pytest` from `backend/` | FAIL BEFORE TESTS - Windows could not create the WindowsApps Python 3.13 process. |
+| `WindowsApps Python launcher -m ruff check .` from `backend/` | FAIL BEFORE LINT - same WindowsApps process-creation failure. |
 | `npm test` from `frontend/` | PASS - 4 test files, 17 tests passed. |
 | `npm run build` from `frontend/` during an initial parallel verification batch | FAIL - Vite/Rolldown reported an emitted `index.html` fileName/name path error. |
 | `npm run build` from `frontend/` rerun alone | PASS - TypeScript build and Vite production build completed. |
@@ -986,10 +995,10 @@ Completed the Phase 2 backend final audit without adding endpoints, implementing
 
 | File | What changed |
 |---|---|
-| `docs/PHASE_2_FINAL_AUDIT.md` | Added the final Phase 2 audit verdict, method status table, verification evidence, ownership checks, release caveats, and final release gates. |
-| `docs/FRONTEND_HANDOFF.md` | Added P2.5 guidance that backend Phase 2 payloads are ready for Claude Opus frontend integration, with `osculating` deferred and no frontend math allowed. |
+| `docs/PHASE_2_FINAL_AUDIT.md` | Added the final Phase 2 audit verdict, method status table, verification evidence, ownership checks, release gates, and final release gates. |
+| `docs/FRONTEND_HANDOFF.md` | Added P2.5 guidance that backend Phase 2 payloads are ready for Claude Opus frontend integration, with Osculating implemented and no frontend math allowed. |
 | `docs/HANDOFF.md` | Recorded P2.5 status, commands, browser-QA caveats, and final audit outcome. |
-| `docs/PLAN.md` | Marked P2.5 as completed with release caveats and updated remaining work. |
+| `docs/PLAN.md` | Marked P2.5 as completed with release gates and updated remaining work. |
 | `docs/API_CONTRACT.md` | Clarified final Phase 2 backend status and `osculating` deferral. |
 
 ### P2.5 Commands Run
@@ -1007,14 +1016,14 @@ Completed the Phase 2 backend final audit without adding endpoints, implementing
 | DevTools static frontend smoke at `http://127.0.0.1:4174/` | LIMITED PASS - page loaded as `Interpolating Polynomial Calculator`; screenshot saved to `C:\tmp\phase2-frontend-smoke.png`. |
 | Full browser compute flow | NOT VERIFIED - backend child processes started with health 200 but did not persist for the frontend health-poll/compute flow. |
 | `py -0p; python --version` from repo root | PARTIAL - Windows launcher reports Python 3.13, but the default `python` is Python 3.10.11. |
-| `py -3.13 -m pytest` from `backend/` | FAIL BEFORE TESTS - `Unable to create process using '"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\python3.13.exe" -m pytest'`. |
-| `py -3.13 -m ruff check .` from `backend/` | FAIL BEFORE LINT - same WindowsApps process-creation failure. |
+| `WindowsApps Python launcher -m pytest` from `backend/` | FAIL BEFORE TESTS - `Unable to create process using '"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\python3.13.exe" -m pytest'`. |
+| `WindowsApps Python launcher -m ruff check .` from `backend/` | FAIL BEFORE LINT - same WindowsApps process-creation failure. |
 
 ### P2.5 Verification Notes
 
 - Backend verification passed under the local `python` runtime, which pytest reports as Python 3.10.11.
 - `backend/pyproject.toml` still declares Python 3.11+ as the intended runtime.
-- Python 3.11+ verification was later closed with `backend/.venv` running Python 3.12.13. The available `py -3.13` launcher target still fails before pytest or Ruff can start.
+- Python 3.11+ verification was later closed with `backend/.venv` running Python 3.12.13. The available the WindowsApps Python launcher launcher target still fails before pytest or Ruff can start.
 - Frontend build/lint/test were run even though Codex did not implement frontend Phase 2 code in this milestone.
 - Browser QA is not a full Phase 2 pass. It only confirms that the built frontend can load in a browser fallback surface; the Phase 2 method controls/renderers still belong to Claude Opus.
 
@@ -1118,7 +1127,7 @@ Implemented the first derivative-data milestone without adding endpoints and wit
 | `backend/app/tests/test_repeated_nodes.py` | Added repeated-node helper tests for node duplication, derivative table entries, missing derivative errors, and unsupported higher derivative orders. |
 | `backend/app/tests/test_hermite.py` | Added lecture-regression coverage for the Bessel-style Hermite example at `x = 1.5` and low-degree Hermite basis output. |
 | `backend/app/tests/test_api.py` | Added stable-endpoint API coverage for Hermite success and missing-derivative method errors. |
-| `backend/app/tests/test_phase2_contract.py` | Moved the deferred-method scaffold test from `hermite` to `osculating` now that Hermite is implemented. |
+| `backend/app/tests/test_phase2_contract.py` | Historical scaffold-test note superseded by Task 3 Osculating implementation. |
 | `docs/API_CONTRACT.md` | Documented P2.2 request rules, Hermite payload fields, basis-form behavior, top-level Hermite polynomial fields, and `osculating` deferral. |
 | `docs/FRONTEND_HANDOFF.md` | Documented frontend rendering rules for derivative input, Hermite repeated-node tables, basis output, and no-frontend-math boundaries. |
 | `docs/HANDOFF.md` | Recorded P2.2 status and verification. |
@@ -1148,7 +1157,7 @@ Implemented the first derivative-data milestone without adding endpoints and wit
 - Historical note: Python 3.11+ verification was not run in this milestone. It was later closed on 2026-05-25 under Python 3.12.13 in `backend/.venv`.
 - Frontend build/lint/test were NOT RUN because no frontend source code changed in P2.2.
 - Browser QA was NOT RUN because no frontend behavior changed in P2.2.
-- `osculating` is deferred because P2.2 now has tested first-derivative Hermite repeated nodes only. Generalized derivative-order repeated nodes need their own tests before the backend can implement osculating safely.
+- Historical Osculating limitation superseded by Task 3 generalized derivative-order implementation and tests.
 
 ### P2.2 Next Step
 
@@ -1162,11 +1171,11 @@ Implemented the first Phase 2 numerical milestone without adding endpoints and w
 |---|---|
 | `backend/app/core/methods/finite_differences.py` | Added equal-spacing validation, forward/backward difference table helpers, and target-location guidance. |
 | `backend/app/core/methods/newton_finite.py` | Added backend-owned `newton_forward`, `newton_backward`, and `stirling` method builders with tables, spacing metadata, terms, evaluations, LaTeX, steps, warnings, and method-level eligibility errors. |
-| `backend/app/core/service.py` | Routed the three P2.1 methods through the existing `POST /api/interpolate` orchestration and left deferred Phase 2 methods on explicit `method_not_implemented` behavior. |
+| `backend/app/core/service.py` | Routed the three P2.1 methods through the existing `POST /api/interpolate` orchestration and left then-unimplemented Phase 2 methods on explicit `method_not_implemented` behavior. |
 | `backend/app/tests/test_finite_differences.py` | Added helper tests for equal spacing, unequal spacing, difference tables, and target guidance. |
 | `backend/app/tests/test_newton_finite.py` | Added lecture-example regression tests for Newton forward/backward, Stirling, unequal spacing, and Stirling centered-node requirements. |
 | `backend/app/tests/test_api.py` | Added API contract coverage for requesting all three equal-spacing methods through the stable interpolate endpoint. |
-| `backend/app/tests/test_phase2_contract.py` | Kept the deferred-method scaffold test pointed at `hermite` now that `newton_forward` is implemented. |
+| `backend/app/tests/test_phase2_contract.py` | Kept the then-unimplemented-method scaffold test pointed at `hermite` now that `newton_forward` is implemented. |
 | `docs/API_CONTRACT.md` | Documented P2.1 method names, equal-spacing errors, and returned finite-difference payload fields. |
 | `docs/FRONTEND_HANDOFF.md` | Documented frontend rendering rules for finite-difference tables and target guidance. |
 | `docs/HANDOFF.md` | Recorded P2.1 status and verification. |
@@ -2281,7 +2290,7 @@ To perform the Live Visual Check in a follow-up session, start the backend (`pyt
 
 ### 8. Remaining UI Issues and Risks
 
-- **Live Visual Check pending.** The seven scenarios in Section 7 above are unverified by direct browser observation. The smoke-test backstop covers the result-rendering contract but not the polish register.
+- **Live Visual Check was superseded by later browser smoke requirements.** The seven scenarios in Section 7 above are unverified by direct browser observation. The smoke-test backstop covers the result-rendering contract but not the polish register.
 - **Bundle size.** The main chunk is ~394 kB (~120 kB gzipped) plus lazy-loaded `PolynomialCard` (~264 kB / ~79 kB gz) and `GraphCard` (~378 kB / ~110 kB gz). Already lazy-loaded; further code-splitting is out of scope for this pass.
 - **Pre-existing accepted lint configuration.** `react-refresh/only-export-components` is silent in this pass; the lint exit was clean. If a future maintainer adds new exports to shadcn primitive files, that warning may resurface.
 - **`prefers-reduced-motion` reliance.** The five motion handles are neutralized under `prefers-reduced-motion: reduce` in `index.css`; the loader spinner is intentionally left running because removing it would imply computation has stopped.
@@ -2412,7 +2421,7 @@ under the stable `POST /api/interpolate` endpoint:
 - Equal-Spacing Family — `newton_forward`, `newton_backward`,
   `stirling`.
 - Derivative-Data Family — `hermite_divided_difference`, `hermite`,
-  and the deferred `osculating` (rendered from its
+  and the historical Osculating path (then rendered from its
   `method_not_implemented` response).
 - Function-Derivative Family — `taylor`.
 - Piecewise Family — natural `cubic_spline`.
@@ -2477,7 +2486,7 @@ on 2026-05-26. Total: **32 files** under `frontend/src/` —
 | `frontend/src/components/results/methods/CubicSplineDetails.tsx` | new | Renderer for `cubic_spline` (boundary_condition, ordered_nodes, second_derivatives, segments, continuity_checks, evaluations). Surfaces the piecewise notice when `polynomial.expanded_omitted_reason === "piecewise_method_no_global_polynomial"`. |
 | `frontend/src/components/results/methods/CubicSplineDetails.test.tsx` | new | Vitest coverage including the `unsupported_boundary_condition` inline error path (this test covers the renderer error-path that PHASE2-SPLINE-02 cannot exercise through the UI per locked decision #5). |
 | `frontend/src/components/results/methods/CubicSplineGraphPassthrough.test.tsx` | new | Vitest coverage that `GraphCard` surfaces `graph_data.source_method === "cubic_spline"` correctly (R9.4). |
-| `frontend/src/components/results/methods/DeferredMethodDetails.tsx` | new | Renderer for any method-level `method_not_implemented` response. Used for `osculating`. |
+| `frontend/src/components/results/methods/DeferredMethodDetails.tsx` | new | Renderer for any method-level `method_not_implemented` response. No longer used for Osculating. |
 | `frontend/src/components/results/methods/DeferredMethodDetails.test.tsx` | new | Vitest coverage. |
 | `frontend/src/components/results/PolynomialCard.tsx` | modified | Added Hermite and Taylor polynomial-form tabs. Surfaces the piecewise notice when `expanded_omitted_reason === "piecewise_method_no_global_polynomial"`. Replaced a setState-in-effect tab-pruning pattern with a `useMemo`-derived `visibleTab` to satisfy the `react-hooks` ESLint rule. |
 | `frontend/src/components/results/SummaryCard.tsx` | modified | Grouped methods by family in the methods row (R11.3). Preserves the Barycentric "Stable Evaluator" tag voice and Neville "Target-Specific" tag voice (R12.1, R13). |
@@ -2488,7 +2497,7 @@ on 2026-05-26. Total: **32 files** under `frontend/src/` —
 
 | Path | Status | Purpose |
 |---|---|---|
-| `frontend/src/components/ExamplesPanel.tsx` | modified | Added Phase 2 lecture examples (at least one per implemented Phase 2 method plus a deferred-labelled `osculating` entry, R11.4 / R11.5). The three Equal-Spacing examples were switched to `exact: true` after browser QA revealed `exact: false` (mpmath mode) makes the backend return `unequal_spacing` errors for genuinely equal nodes due to float representation. |
+| `frontend/src/components/ExamplesPanel.tsx` | modified | Added Phase 2 lecture examples (at least one per implemented Phase 2 method plus a legacy-labelled Osculating entry, R11.4 / R11.5). The three Equal-Spacing examples were switched to `exact: true` after browser QA revealed `exact: false` (mpmath mode) makes the backend return `unequal_spacing` errors for genuinely equal nodes due to float representation. |
 | `frontend/src/test/interpolate-response.fixtures.ts` | modified | Added one fixture per Phase 2 method response plus the four error-path fixtures (`unequalSpacingErrorResponse`, `hermiteMissingDerivativeErrorResponse`, `taylorUnsupportedFunctionResponse`, `splineUnsupportedBoundaryResponse`). The four error fixtures were trimmed during browser QA to match the live wire shape (collection fields omitted on method-level error). |
 
 ### Verification Commands (G1, G2, G3)
@@ -2526,7 +2535,7 @@ scenario is marked PASS unless it was directly observed.
 | G6 | PHASE2-TAYLOR-02 — Taylor unsupported function | PASS | `screenshots/phase2-taylor-02-unsupported.png` | Trigger was `sqrt(x)` at `center = 0`. Backend returned `unsupported_taylor_function` with `details.value: "zoo"`; renderer surfaced the inline `ErrorNotice`. **Honest deviation:** design.md §13 phrases this as "unsafe or unsupported function expression"; a truly unsafe expression like `gamma(x)` would be rejected earlier by the parser whitelist with the different `unsafe_expression` code. `sqrt(x)` parses cleanly through the whitelist but its derivative at the chosen Taylor center is `zoo` (complex infinity), which is the documented `unsupported_taylor_function` path. |
 | G7 | PHASE2-SPLINE-01 — Cubic spline happy path | PASS | `screenshots/phase2-spline-01-happy.png` | Lecture three-point example, `boundary_condition: "natural"`, `evaluation_x = ["5/2"]`, `graph: true`, `exact: true`. Boundary-condition badge, ordered nodes, second-derivative chips, segments table, continuity checks, evaluation chip `P(5/2) = 125/32 (segment 1)`, and the piecewise notice all rendered. **`graph_data.source_method` observed: `"cubic_spline"`** (R9.4 / R17.5). |
 | G7 | PHASE2-SPLINE-02 — Cubic spline unsupported boundary | HISTORICAL PARTIAL | `screenshots/phase2-spline-02-unsupported-boundary.png` | Superseded by Task 4 backend boundary support. At the time, the network expectation and backend error contract were exercised end-to-end: `methods.cubic_spline.error.code: "unsupported_boundary_condition"`, `error.details: { boundary_condition: "clamped", supported: ["natural"] }`. **Honest deviation:** the request was driven via a direct in-page `fetch("/api/interpolate", ...)` from the DevTools console because locked decision #5 kept the boundary-condition `<select>` non-natural options as `disabled` `<option>` placeholders, so the UI could not send a non-natural value. Future QA should cover clamped, not-a-knot, and periodic success paths. |
-| G8 | PHASE2-OSCULATING-01 — Deferred Osculating | PASS | `screenshots/phase2-osculating-01-deferred.png`, `screenshots/phase2-osculating-01-with-sibling.png` | Two passes. Pass A: `osculating` alone — backend returned `method_not_implemented`; renderer surfaced the `Deferred` badge, the `ErrorNotice`, and the lecture-aware copy. Pass B: `osculating` alongside `hermite_divided_difference` — sibling renderer rendered the full happy-path output (R10.4). |
+| G8 | PHASE2-OSCULATING-01 — Historical Osculating QA | PASS | `screenshots/phase2-osculating-01-legacy-placeholder.png`, `screenshots/phase2-osculating-01-with-sibling.png` | Two passes. Pass A: `osculating` alone — backend then returned a legacy placeholder response; this is superseded by Task 3 and Task 6. Pass B: `osculating` alongside `hermite_divided_difference` — sibling renderer rendered the full happy-path output (R10.4). |
 | G9 | PHASE2-V1-01 — V1 Linear Lagrange regression | PASS | `screenshots/phase2-v1-01-linear-lagrange.png` | Lagrange basis polynomials, summation form, expanded `6 - x`, LaTeX, and steps all rendered. SummaryCard family grouping preserved. |
 | G9 | PHASE2-V1-02 — V1+ `1/x` regression (function-backed) | PASS | `screenshots/phase2-v1-02-one-over-x.png` | `f(x) = 1/x` at `2, 2.75, 4`. `POST /api/validate-function` returned 200 (debounced); compute returned `P(3) = 29/88`, `f(3) = 1/3`, `\|error\| = 1/264`. |
 | G9 | PHASE2-V1-03 — V1+ Neville Table regression | PASS | `screenshots/phase2-v1-03-neville.png` | Triangular Neville table for `x = 1.5` with all five `P0..P4` columns. SummaryCard family grouping shows CONSTRUCTION → Lagrange + Newton, TARGET-SPECIFIC → Neville. |
@@ -2620,7 +2629,7 @@ corresponding per-task results file under
 - **SPLINE-02 PARTIAL.** Driven through a direct in-page
   `fetch("/api/interpolate", ...)` rather than the UI selector,
   because locked decision #5 keeps the boundary-condition `<select>`
-  non-natural options as `disabled` placeholders. The renderer's
+  historical non-natural placeholder options before Task 4/5 enabled implemented boundary modes. The renderer's
   inline `ErrorNotice` for `unsupported_boundary_condition` is
   covered by `CubicSplineDetails.test.tsx`.
 - **MOBILE-01 viewport tooling.** The 320×800 mobile viewport was
@@ -2672,7 +2681,7 @@ zero `backend/` paths.
 
 Implemented Candidate A only: numeric-mode tolerance hardening for
 exact symbolic zero checks that were incorrectly used on SymPy
-`Float(precision)` values. Candidate B remains deferred; Chebyshev
+`Float(precision)` values. Candidate B was outside this scoped change; Chebyshev
 exact-mode behavior and graph-data exact-mode sampling were not
 changed.
 

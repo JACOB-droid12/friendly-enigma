@@ -11,7 +11,7 @@ Frontend v1.5 with critique-driven refactors. Builds, lints, type-checks, and te
 
 Frontend-relevant contract changes:
 
-- Stop treating valid osculating responses as deferred `method_not_implemented` results.
+- Treat valid osculating responses as implemented method payloads, not placeholder responses.
 - Render `polynomial.osculating_form` and `polynomial.latex_osculating` when present.
 - Render `graph_data.source_method === "osculating"` as a method-owned polynomial sample, like Taylor/Hermite.
 - When osculating is the selected polynomial source, `degree`, `input_summary.degree`, and `methods.osculating.degree` reflect the osculating polynomial degree from repeated derivative constraints, not just distinct node count.
@@ -38,12 +38,12 @@ Focused Task 5 spec fix, also completed 2026-06-01:
 - Hermite and Osculating derivative payload requirements are now unioned per visible node without duplicate `(x, order)` entries.
 - Hermite methods keep provided order-1 derivative entries even when Osculating is also selected and a node has max order `0`.
 - Osculating point mode still emits derivative entries only for orders `1..max_order`.
-- The catalog example now loads `Osculating (Bessel-style)` as an implemented request with `osculatingOrders` and order-1 derivative values, instead of historical deferred copy.
+- The catalog example now loads `Osculating (Bessel-style)` as an implemented request with `osculatingOrders` and order-1 derivative values, instead of historical placeholder copy.
 
 Focused Task 5 metadata/spec fix, also completed 2026-06-01:
 
 - `frontend/src/lib/method-metadata.ts` now describes Osculating as implemented generalized derivative-order interpolation.
-- Osculating no longer has `deferred: true` or the stale deferred note saying the backend returns `method_not_implemented`.
+- Osculating no longer has `deferred: true` or the stale placeholder note saying the backend returns `method_not_implemented`.
 - `MethodSelector` still supports generic deferred metadata, but the Osculating card now renders as an implemented Derivative Data method without a `Deferred` badge.
 - No Osculating result renderer, result types, backend math, or `MethodDetails` routing changed; those remain Task 6 scope.
 
@@ -57,21 +57,21 @@ Focused Task 5 UI-state fix, also completed 2026-06-01:
 
 Focused Task 5 type-safety fix, also completed 2026-06-01:
 
-- `frontend/src/lib/api-types.ts` now models the implemented backend `OsculatingResult` payload instead of the old deferred-only shape.
+- `frontend/src/lib/api-types.ts` now models the implemented backend `OsculatingResult` payload instead of the old legacy-placeholder-only shape.
 - The type includes optional `orders`, generalized `repeated_nodes`, `confluent_divided_difference_table`, `coefficients`, `nested_form`, `expanded`, `degree`, `latex_expanded`, `latex_osculating`, `evaluations`, and `steps`, while preserving `status`, `warnings`, and `error`.
 - Stale comments saying the backend had not implemented Osculating were removed from the API type file.
 - `MethodDetails` and renderer files remain intentionally untouched; Task 6 still owns visual rendering and routing.
 
 ## Task 6 Frontend Osculating Result Rendering (2026-06-01)
 
-Task 6 replaces the historical Osculating deferred result path with real rendering for the implemented backend payload.
+Task 6 replaces the historical Osculating placeholder result path with real rendering for the implemented backend payload.
 
 Frontend result behavior now implemented:
 
 - `frontend/src/components/results/MethodDetails.tsx` routes `data.methods.osculating` to `OsculatingDetails`.
 - `frontend/src/components/results/methods/OsculatingDetails.tsx` renders `orders`, generalized `repeated_nodes`, `confluent_divided_difference_table`, `coefficients`, `nested_form`, `expanded`, `latex_expanded`, `latex_osculating`, `evaluations`, `steps`, method-level warnings, and method-level errors.
 - `frontend/src/test/interpolate-response.fixtures.ts` now exports `osculatingSuccessResponse` instead of the obsolete `osculatingDeferredResponse`.
-- `GuidedExplanation` now describes implemented Osculating output instead of a deferred method.
+- `GuidedExplanation` now describes implemented Osculating output instead of a placeholder method.
 - `ResultQualityGuide` warning guidance now reflects implemented higher-order Osculating and implemented spline boundary modes.
 - `DeferredMethodDetails` remains only as generic defensive UI for future `method_not_implemented` responses; Osculating no longer uses it.
 
@@ -91,7 +91,7 @@ Additional accessibility fixes landed in the same task:
 - Example buttons now include visible text in their accessible names (`Load Example - Load ... example`) to satisfy label/name matching.
 - Method-card captions now use full-contrast text tokens instead of lower-opacity variants that failed Lighthouse color contrast.
 
-This is a real code fix for the prior Chrome "No label associated with a form field" report, not a documentation-only waiver. Chrome DevTools MCP direct JSON-RPC verification on `http://127.0.0.1:5173/` found no console `issue` messages, no unlabeled form fields, and Lighthouse Accessibility `100`. Reports were generated at `.codex/evidence/chrome-a11y/report.json` and `.codex/evidence/chrome-a11y/report.html`.
+This is a real code fix for the prior Chrome "Chrome form-label warning" report, not a documentation-only waiver. Chrome DevTools MCP direct JSON-RPC verification on `http://127.0.0.1:5173/` found no console `issue` messages, no unlabeled form fields, and Lighthouse Accessibility `100`. Reports were generated at `.codex/evidence/chrome-a11y/report.json` and `.codex/evidence/chrome-a11y/report.html`.
 
 Verification from `frontend/`:
 
@@ -232,7 +232,7 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 ## Phase 2 Backend Expansion
 
-P2.0 backend contract prep accepts Phase 2 method names under the stable `POST /api/interpolate` endpoint. P2.1 implements equal-spacing methods. P2.2 implements first-derivative Hermite methods. P2.3 implements Taylor polynomials. P2.4 implements cubic spline segments with natural, clamped, not-a-knot, and periodic boundary conditions. P2.5 audit is complete with release caveats documented in `docs/PHASE_2_FINAL_AUDIT.md`. Backend tests and Ruff now pass under Python 3.12.13, satisfying the Python 3.11+ backend runtime gate. If Claude Opus exposes a deferred or ineligible Phase 2 method, the frontend must render the method-level error returned under `methods.<method>.error` and must not simulate the method client-side.
+P2.0 backend contract prep accepts Phase 2 method names under the stable `POST /api/interpolate` endpoint. P2.1 implements equal-spacing methods. P2.2 implements first-derivative Hermite methods. P2.3 implements Taylor polynomials. P2.4 implements cubic spline segments with natural, clamped, not-a-knot, and periodic boundary conditions. P2.5 audit is complete with release gates documented in `docs/PHASE_2_FINAL_AUDIT.md`. Backend tests and Ruff now pass under Python 3.12.13, satisfying the Python 3.11+ backend runtime gate. If Claude Opus exposes a deferred or ineligible Phase 2 method, the frontend must render the method-level error returned under `methods.<method>.error` and must not simulate the method client-side.
 
 P2.5 frontend integration status:
 
@@ -241,8 +241,8 @@ P2.5 frontend integration status:
 - Codex did not implement Phase 2 React controls/renderers during P2.5.
 - Backend verification passed under Python 3.12.13 with `.\.venv\Scripts\python.exe -m pytest` and `.\.venv\Scripts\python.exe -m ruff check .`.
 - `npm run build`, `npm run lint`, and `npm test` passed during P2.5 verification.
-- Browser QA for the current V1+ frontend guide/result-quality flows passed through a built static/proxy server: linear Lagrange graph compute and the `f(x) = 1/x` function-backed lecture example both returned backend 200 responses and rendered Guide output. Browser QA for actual Phase 2 method flows is still pending because those frontend flows are not implemented yet.
-- Chrome DevTools reports one `No label associated with a form field` issue for hidden Base UI display-precision radio inputs. The visible radio roles are labelled, but Claude Opus should review the hidden native input behavior when touching the result display-precision control.
+- Browser QA for the current V1+ frontend guide/result-quality flows passed through a built static/proxy server: linear Lagrange graph compute and the `f(x) = 1/x` function-backed lecture example both returned backend 200 responses and rendered Guide output. Historical browser-QA note superseded by the implemented Phase 2 frontend workbench, Task 5 controls, Task 6 Osculating renderer, and Task 7 Chrome DevTools MCP evidence.
+- Historical Chrome form-label issue superseded by Task 7: hidden native display-precision inputs and switches are labelled, and Chrome DevTools MCP reports no console form-label issues.
 
 Accepted Phase 2 method names:
 
@@ -1141,7 +1141,7 @@ the live response under the stable `POST /api/interpolate` endpoint:
 - Natural Cubic Spline (Piecewise Family).
 - Osculating (Derivative-Data Family) is implemented by the backend as
   of 2026-05-31. The 2026-05-26 frontend workbench originally rendered
-  it as deferred; that path is now historical for osculating.
+  it through a placeholder path; that path is now historical for Osculating.
 
 ### Method Selector catalog
 
@@ -1165,7 +1165,7 @@ design system):
 Catalog entries carry `value`, `label`, `family`, `role`, optional
 `highlight` (Barycentric only), `description`, optional
 `eligibilityHint` (Equal-Spacing family only), `deferred`, and
-`deferredNote`. The `osculating` card should no longer render a
+`deferredNote`. The Osculating card no longer renders a
 Deferred badge for valid backend Task 3 behavior; Barycentric retains
 its primary-tinted role tag.
 
@@ -1298,7 +1298,7 @@ methods, but valid osculating input should no longer hit it.
   Divided Difference, Hermite Basis Form, Taylor / Maclaurin, Cubic
   Spline). With Task 3, add/update an Osculating block that reads
   `data.methods.osculating` successful payload fields instead of the
-  old deferred-method condition. Each block reads only
+  old placeholder-method condition. Each block reads only
   `data.methods[<name>]` and the input summary.
 - **`ResultQualityGuide.tsx`** adds `WARNING_GUIDANCE` rows for the
   Phase 2 codes named in R11.2 plus `nodes_reordered`. Severity
@@ -1386,7 +1386,7 @@ below traces back to a per-scenario results file under
 | Taylor | PHASE2-TAYLOR-02 unsupported function | PASS | `phase2-taylor-02-unsupported.png` | `phase2-taylor-results.md` |
 | Cubic Spline | PHASE2-SPLINE-01 happy path with graph | PASS | `phase2-spline-01-happy.png` | `phase2-spline-results.md` |
 | Cubic Spline | PHASE2-SPLINE-02 unsupported boundary | HISTORICAL PARTIAL | `phase2-spline-02-unsupported-boundary.png` | Superseded by Task 4 backend boundary support; future QA should cover clamped, not-a-knot, and periodic success plus periodic endpoint validation. |
-| Osculating historical QA | PHASE2-OSCULATING-01 deferred + sibling | HISTORICAL PASS | `phase2-osculating-01-deferred.png`, `phase2-osculating-01-with-sibling.png` | `phase2-osculating-results.md`; superseded by backend Task 3, so future QA should cover successful osculating rendering. |
+| Osculating historical QA | PHASE2-OSCULATING-01 legacy placeholder + sibling | HISTORICAL PASS | `phase2-osculating-01-legacy-placeholder.png`, `phase2-osculating-01-with-sibling.png` | `phase2-osculating-results.md`; superseded by backend Task 3, so future QA should cover successful osculating rendering. |
 | V1 / V1+ regressions | PHASE2-V1-01..04 | PASS | `phase2-v1-01-linear-lagrange.png`, `phase2-v1-02-one-over-x.png`, `phase2-v1-03-neville.png`, `phase2-v1-04-newton-dd.png` | `phase2-v1-results.md` |
 | Mobile | PHASE2-MOBILE-01 320px overflow | PASS | `phase2-mobile-01-320px.png`, `phase2-mobile-01-320px-hermite.png` | `phase2-mobile-results.md` |
 
@@ -1424,7 +1424,7 @@ Frontend-relevant details:
 - **SPLINE-02 historical note.** Driven through a direct in-page
   `fetch("/api/interpolate", ...)` from the DevTools console because
   locked decision #5 keeps the boundary-condition `<select>`
-  non-natural options as `disabled` placeholders, so the UI cannot
+  historical non-natural placeholder options before Task 4/5 enabled implemented boundary modes, so the UI cannot
   send a non-natural value. The renderer's inline `ErrorNotice` for
   `unsupported_boundary_condition` is covered by
   `frontend/src/components/results/methods/CubicSplineDetails.test.tsx`.
