@@ -854,6 +854,7 @@ Implemented warning codes:
 - Display polynomial strings and LaTeX exactly as returned.
 - Display digits are frontend-only formatting and do not affect backend numeric eligibility, continuity, or equality checks.
 - Show method sections independently.
+- Frontend TypeScript should model `methods.osculating` as the implemented Task 3 payload, not as deferred-only. Successful responses may include optional `orders`, generalized `repeated_nodes`, `confluent_divided_difference_table`, `coefficients`, `nested_form`, `expanded`, `degree`, `latex_expanded`, `latex_osculating`, `evaluations`, and `steps` fields in addition to `status`, `warnings`, and `error`.
 - Render Lagrange basis polynomials from `methods.lagrange.basis_polynomials[].basis` as a list or table. `basis` is the backend wire field; do not expect or invent an `expression` alias.
 - Render Newton divided differences as a triangular table.
 - Render Hermite repeated-node divided differences as a triangular table.

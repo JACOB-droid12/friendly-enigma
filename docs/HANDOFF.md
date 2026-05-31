@@ -1,6 +1,32 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Focused Task 5 type-safety fix is complete locally on `codex/interpolation-backend-v1`. This remained scoped to frontend API response types plus coordination docs, did not create a worktree, did not touch backend math, and did not implement or route the Osculating result renderer.
+
+Files changed in this fix:
+
+- `frontend/src/lib/api-types.ts`
+  - Updated `OsculatingResult` from the historical deferred-only shape to the implemented backend result contract needed by Task 6 renderer work.
+  - Added optional fields for `orders`, generalized `repeated_nodes`, `confluent_divided_difference_table`, `coefficients`, `nested_form`, `expanded`, `degree`, `latex_expanded`, `latex_osculating`, `evaluations`, and `steps`.
+  - Preserved `status`, `warnings`, and `error`.
+  - Removed the stale comment saying Osculating was deferred / `method_not_implemented` only.
+- `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/API_CONTRACT.md`, `docs/FRONTEND_HANDOFF.md`
+  - Recorded this focused type-safety update and verification.
+
+Commands run in this fix:
+
+| Command / Check | Result |
+|---|---|
+| `npm run lint` from `frontend/` | PASS - no ESLint errors. |
+| `npm run build` from `frontend/` | PASS - `tsc -b && vite build`; Vite emitted the existing large-chunk advisory. |
+
+Notes and risks:
+
+- Task 6 still owns the Osculating result renderer and any `MethodDetails` routing changes.
+- No backend files were modified.
+- Existing unrelated untracked files remain unmodified: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`.
+
+## Previous Current Task
 Focused Task 5 UI-state fix is complete locally on `codex/interpolation-backend-v1`. This remained scoped to frontend request controls/state only, did not create a worktree, did not touch backend math, and did not implement or route the Osculating result renderer.
 
 Files changed in this fix:

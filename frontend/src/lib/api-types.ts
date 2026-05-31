@@ -320,11 +320,24 @@ export interface HermiteResult extends HermiteDividedDifferenceResult {
 
 export interface OsculatingResult {
   status: string
+  orders?: Array<{ node_index: number; x: string; max_order: number }>
+  repeated_nodes?: Array<
+    RepeatedNode & {
+      derivative_order?: number
+      derivative_value?: string
+    }
+  >
+  confluent_divided_difference_table?: Array<Array<string | null>>
+  coefficients?: string[]
+  nested_form?: string
+  expanded?: string | null
+  degree?: number
+  latex_expanded?: string | null
+  latex_osculating?: string | null
+  evaluations?: Array<{ x: string; value: string }>
+  steps?: string[]
   warnings: WarningBody[]
   error: ErrorBody | null
-  // Deferred per docs/API_CONTRACT.md. The renderer relies on
-  // `error.code === "method_not_implemented"`. No additional fields
-  // are read from this method until the backend implements it.
 }
 
 // Phase 2 Function-Derivative Family response types

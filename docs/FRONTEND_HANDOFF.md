@@ -55,6 +55,13 @@ Focused Task 5 UI-state fix, also completed 2026-06-01:
 - Emitted derivative state is deduplicated by `(x, order)` and sorted deterministically by visible node order, x string, and derivative order.
 - Osculating max-order edits emit `derivatives` and `osculatingOrders` together from `InputPanel`, avoiding sibling state clobbering from sequential partial updates.
 
+Focused Task 5 type-safety fix, also completed 2026-06-01:
+
+- `frontend/src/lib/api-types.ts` now models the implemented backend `OsculatingResult` payload instead of the old deferred-only shape.
+- The type includes optional `orders`, generalized `repeated_nodes`, `confluent_divided_difference_table`, `coefficients`, `nested_form`, `expanded`, `degree`, `latex_expanded`, `latex_osculating`, `evaluations`, and `steps`, while preserving `status`, `warnings`, and `error`.
+- Stale comments saying the backend had not implemented Osculating were removed from the API type file.
+- `MethodDetails` and renderer files remain intentionally untouched; Task 6 still owns visual rendering and routing.
+
 Verification from `frontend/`:
 
 | Command | Result |
@@ -65,7 +72,7 @@ Verification from `frontend/`:
 | `npm test -- MethodSelector.test.tsx InputPanel.MethodConfig.test.tsx App.examples.test.tsx` | PASS - 30 tests after the metadata/spec fix. |
 | `npm test -- InputPanel.MethodConfig.test.tsx` | PASS - 17 tests after the UI-state fix regressions. |
 | `npm run lint` | PASS. |
-| `npm run build` | Not run for the focused spec/UI-state fixes because no broad TypeScript types changed. The original Task 5 build passed with the existing Vite large-chunk advisory. |
+| `npm run build` | PASS after the focused type-safety fix; Vite emitted the existing large-chunk advisory. |
 
 Remaining frontend work:
 
