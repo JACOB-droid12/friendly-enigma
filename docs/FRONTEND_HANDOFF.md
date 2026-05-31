@@ -5,9 +5,18 @@ For the remaining Claude Opus Phase 2 React workbench implementation checklist, 
 ## Status
 Frontend v1.5 with critique-driven refactors. Builds, lints, type-checks, and tests clean (12 test files, 57 tests). Live-tested against backend.
 
-## Task 2 Backend Helper Note (2026-05-28)
+## Task 3 Backend Osculating Update (2026-05-31)
 
-Generalized confluent divided-difference support now exists only as a backend helper in `backend/app/core/methods/repeated_nodes.py`. Focused helper-level tests now reconstruct the Newton polynomial and verify mixed osculating constraints, but the API still intentionally leaves `osculating` deferred until Task 3 routes the helper through method/service orchestration. Claude Opus does not need to change frontend request handling or result rendering for this task.
+`osculating` is now implemented by the backend. Valid `methods: ["osculating"]` requests return `methods.osculating.status === "ok"` with `orders`, `repeated_nodes`, `confluent_divided_difference_table`, `coefficients`, `nested_form`, `expanded`, `latex_expanded`, `latex_osculating`, `evaluations`, `steps`, and `warnings`.
+
+Frontend-relevant contract changes:
+
+- Stop treating valid osculating responses as deferred `method_not_implemented` results.
+- Render `polynomial.osculating_form` and `polynomial.latex_osculating` when present.
+- Render `graph_data.source_method === "osculating"` as a method-owned polynomial sample, like Taylor/Hermite.
+- Point/data mode must send derivative values for every requested order `1..m_i`; function-backed modes can omit derivative values because the backend derives them safely from the parsed function.
+- `method_options.osculating.orders[]` is the maximum derivative order per node. If omitted, the backend defaults to first-derivative constraints at every node.
+- A single function node is accepted only for the narrow Taylor-equivalent osculating case: `methods` exactly `["osculating"]` and at least one explicit positive order.
 
 ## Reciprocal Graph Node Plotting Fix (2026-05-26)
 
@@ -122,7 +131,7 @@ P2.0 backend contract prep accepts Phase 2 method names under the stable `POST /
 P2.5 frontend integration status:
 
 - Backend payloads for `newton_forward`, `newton_backward`, `stirling`, `hermite_divided_difference`, `hermite`, `taylor`, and natural `cubic_spline` are ready for Claude Opus rendering work.
-- `osculating` remains accepted by schema but deferred; render its `method_not_implemented` method-level error until the backend implements generalized derivative-order repeated nodes.
+- `osculating` is implemented and should render from the successful backend payload when valid.
 - Codex did not implement Phase 2 React controls/renderers during P2.5.
 - Backend verification passed under Python 3.12.13 with `.\.venv\Scripts\python.exe -m pytest` and `.\.venv\Scripts\python.exe -m ruff check .`.
 - `npm run build`, `npm run lint`, and `npm test` passed during P2.5 verification.
@@ -138,7 +147,7 @@ Accepted Phase 2 method names:
 | `stirling` | Equal spacing | Centered finite-difference construction |
 | `hermite_divided_difference` | Derivative data | Repeated-node divided-difference construction |
 | `hermite` | Derivative data | Hermite basis / derivative-matching construction when backend supports it |
-| `osculating` | Derivative data | Generalized derivative matching after Hermite is stable |
+| `osculating` | Derivative data | Generalized derivative matching through confluent repeated nodes |
 | `taylor` | Function derivative | Local polynomial approximation from safe symbolic derivatives |
 | `cubic_spline` | Piecewise | Natural cubic spline segments and backend graph samples |
 
@@ -153,7 +162,7 @@ Optional request blocks now documented in `docs/API_CONTRACT.md`:
 - `method_options.taylor.center` is a strict numeric string. Send `"0"`, not `0`.
 - `method_options.cubic_spline.boundary_condition` is limited to `"natural"`, `"clamped"`, `"not-a-knot"`, or `"periodic"` at the schema boundary. Only `"natural"` is implemented today; non-natural literals remain method-level `unsupported_boundary_condition`.
 - `method_options.cubic_spline.left_derivative` and `right_derivative` are optional strict strings for the future clamped-boundary contract.
-- `method_options.osculating.orders[]` accepts strict `{ "x": string, "order": integer }` entries with `order` from 0 through 10 while `osculating` remains deferred.
+- `method_options.osculating.orders[]` accepts strict `{ "x": string, "order": integer }` entries with `order` from 0 through 10 and drives real backend osculating output.
 - Duplicate `derivatives[]` entries with the same normalized `x` and `order` now fail before method execution with HTTP `400` and error code `duplicate_derivative_data`.
 - `input_summary.sorted_nodes` is now live. It becomes `true` when a supported backend method reorders nodes; current case is natural `cubic_spline`, while the existing method-level `nodes_reordered` warning remains present.
 - `methods.stirling.evaluations[].terms` is now populated from direct centered Stirling finite-difference summation, not a Lagrange fallback.
@@ -192,9 +201,9 @@ Backend P2.2 implements:
 - `hermite_divided_difference`
 - `hermite`
 
-Backend P2.2 explicitly defers:
+Task 3 implements:
 
-- `osculating` — still accepted by schema, but returns `method_not_implemented` because the backend helper currently supports first-derivative Hermite only, not generalized derivative orders.
+- `osculating` — generalized derivative-order interpolation through confluent repeated nodes.
 
 Request rules:
 
@@ -212,6 +221,21 @@ Frontend rendering rules:
 - If `basis_form.status === "omitted"`, show the backend reason/warning rather than reconstructing the basis.
 - The top-level `polynomial.hermite_form` and `polynomial.latex_hermite` may be present when Hermite is the selected polynomial source.
 - Do not calculate repeated nodes, divided differences, Hermite basis terms, derivative matches, evaluations, graph samples, or errors in React.
+
+### Task 3 Osculating Payloads
+
+Backend Task 3 implements:
+
+- `osculating`
+
+Frontend rendering rules:
+
+- Render `methods.osculating.orders` as the per-node maximum derivative orders used by the backend.
+- Render `methods.osculating.repeated_nodes` and `methods.osculating.confluent_divided_difference_table` exactly as returned.
+- Render `coefficients`, `nested_form`, `expanded`, `latex_expanded`, `latex_osculating`, `evaluations`, `steps`, `warnings`, and `error` exactly as returned.
+- Render `polynomial.osculating_form` and `polynomial.latex_osculating` when present.
+- If `graph_data.source_method === "osculating"`, show that `P_x` came from the backend-owned osculating polynomial.
+- For method-level errors such as `missing_derivative_data`, `duplicate_derivative_order`, `derivative_node_not_found`, and `function_domain_error`, show the backend message/code. Do not estimate missing derivatives or recompute symbolic derivatives in React.
 
 Recommended Phase 2 UI additions for Claude Opus:
 
@@ -1005,10 +1029,9 @@ the live response under the stable `POST /api/interpolate` endpoint:
   Family).
 - Taylor / Maclaurin (Function-Derivative Family).
 - Natural Cubic Spline (Piecewise Family).
-
-The deferred `osculating` method stays visible in the catalog and
-renders cleanly from the backend's `method_not_implemented`
-method-level response, per locked decision #3 of the spec.
+- Osculating (Derivative-Data Family) is implemented by the backend as
+  of 2026-05-31. The 2026-05-26 frontend workbench originally rendered
+  it as deferred; that path is now historical for osculating.
 
 ### Method Selector catalog
 
@@ -1032,9 +1055,9 @@ design system):
 Catalog entries carry `value`, `label`, `family`, `role`, optional
 `highlight` (Barycentric only), `description`, optional
 `eligibilityHint` (Equal-Spacing family only), `deferred`, and
-`deferredNote`. The `osculating` card renders the `Deferred` badge
-with its `deferredNote` line; Barycentric retains its
-primary-tinted role tag.
+`deferredNote`. The `osculating` card should no longer render a
+Deferred badge for valid backend Task 3 behavior; Barycentric retains
+its primary-tinted role tag.
 
 ### Adaptive Input Panel
 
@@ -1121,19 +1144,15 @@ manipulation, and no client-side resampling.
   "piecewise_method_no_global_polynomial"`. Inline `ErrorNotice` for
   `unsupported_boundary_condition`.
 
-### Deferred renderer
+### Osculating renderer update
 
-`frontend/src/components/results/methods/DeferredMethodDetails.tsx`
-renders any method whose response carries
-`error.code === "method_not_implemented"`. Used by the `osculating`
-tab today; structurally available for any future deferred method the
-backend exposes the same way. Layout: `Deferred` badge, body-voice
-paragraph carrying the backend `message`, the literal
-`Code: method_not_implemented` in numeric voice via the shared
-`ErrorNotice` (severity `warning`), and lecture-aware copy explaining
-the deferral. No tables, no terms, no simulated values. Sibling
-renderers in the same response remain operational, verified directly
-in PHASE2-OSCULATING-01 Pass B.
+The previous `DeferredMethodDetails.tsx` path is historical for
+`osculating`. A current osculating tab should render the Task 3
+payload: orders, repeated nodes, confluent divided-difference table,
+coefficients, nested form, expanded form, LaTeX, evaluations, steps,
+warnings, and method-level errors. `DeferredMethodDetails.tsx` can
+remain structurally available for future `method_not_implemented`
+methods, but valid osculating input should no longer hit it.
 
 ### Cross-cutting updates
 
@@ -1162,9 +1181,10 @@ in PHASE2-OSCULATING-01 Pass B.
 - **`GuidedExplanation.tsx`** adds a `MethodBlock` per implemented
   Phase 2 method (Newton Forward, Newton Backward, Stirling, Hermite
   Divided Difference, Hermite Basis Form, Taylor / Maclaurin, Cubic
-  Spline) plus a "Deferred methods" block that fires when
-  `data.methods.osculating?.error?.code === "method_not_implemented"`.
-  Each block reads only `data.methods[<name>]` and the input summary.
+  Spline). With Task 3, add/update an Osculating block that reads
+  `data.methods.osculating` successful payload fields instead of the
+  old deferred-method condition. Each block reads only
+  `data.methods[<name>]` and the input summary.
 - **`ResultQualityGuide.tsx`** adds `WARNING_GUIDANCE` rows for the
   Phase 2 codes named in R11.2 plus `nodes_reordered`. Severity
   continues to come from `getWarningMeta` in
@@ -1187,7 +1207,7 @@ fields, including the new Phase 2 `FormState` fields, and never calls
 | `Hermite (Basis Form)` | `["hermite"]` | Same three Bessel-style points; surfaces the basis-form output |
 | `Taylor (cos x, order 3)` | `["taylor"]` | `taylorCenter = "0"`, `taylorOrder = 3`, `evaluation_x = ["1/2"]` |
 | `Cubic Spline (lecture three-point)` | `["cubic_spline"]` | `splineBoundaryCondition = "natural"`, `evaluation_x = ["5/2"]`, `graph = true` |
-| `Deferred — Osculating (Bessel-style)` | `["osculating"]` | Same Bessel-style points and derivatives as Hermite; loadable per locked decision #4 |
+| `Osculating (Bessel-style)` | `["osculating"]` | Same Bessel-style points and derivatives as Hermite; should render the backend Task 3 osculating payload |
 
 The three Equal-Spacing examples currently seed `exact: true` for
 lecture-style exact arithmetic. Backend Candidate A hardening on
@@ -1206,12 +1226,12 @@ addition above:
    `POST /api/interpolate`, and `POST /api/validate-function`. No
    other endpoint paths are introduced. (R1.2)
 2. The request and response shapes documented in
-   `docs/API_CONTRACT.md` are unchanged. The new
+   `docs/API_CONTRACT.md` are the source of truth. The
    `InterpolateRequest.method_options` and
    `InterpolateRequest.derivatives` fields are optional and additive
-   per the existing contract; the eight Phase 2 method response
-   keys under `InterpolateResponse.methods` are likewise optional
-   and additive. TypeScript types in
+   per the existing contract; the Phase 2 method response keys under
+   `InterpolateResponse.methods` are likewise optional and additive.
+   TypeScript types in
    `frontend/src/lib/api-types.ts` mirror documented backend fields
    only — no field is invented. (R1.3 / R2.6)
 3. Every numeric field inside `points`, `x_values`, `interval`,
@@ -1251,7 +1271,7 @@ below traces back to a per-scenario results file under
 | Taylor | PHASE2-TAYLOR-02 unsupported function | PASS | `phase2-taylor-02-unsupported.png` | `phase2-taylor-results.md` |
 | Cubic Spline | PHASE2-SPLINE-01 happy path with graph | PASS | `phase2-spline-01-happy.png` | `phase2-spline-results.md` |
 | Cubic Spline | PHASE2-SPLINE-02 unsupported boundary | PARTIAL | `phase2-spline-02-unsupported-boundary.png` | `phase2-spline-results.md` |
-| Deferred | PHASE2-OSCULATING-01 deferred + sibling | PASS | `phase2-osculating-01-deferred.png`, `phase2-osculating-01-with-sibling.png` | `phase2-osculating-results.md` |
+| Osculating historical QA | PHASE2-OSCULATING-01 deferred + sibling | HISTORICAL PASS | `phase2-osculating-01-deferred.png`, `phase2-osculating-01-with-sibling.png` | `phase2-osculating-results.md`; superseded by backend Task 3, so future QA should cover successful osculating rendering. |
 | V1 / V1+ regressions | PHASE2-V1-01..04 | PASS | `phase2-v1-01-linear-lagrange.png`, `phase2-v1-02-one-over-x.png`, `phase2-v1-03-neville.png`, `phase2-v1-04-newton-dd.png` | `phase2-v1-results.md` |
 | Mobile | PHASE2-MOBILE-01 320px overflow | PASS | `phase2-mobile-01-320px.png`, `phase2-mobile-01-320px-hermite.png` | `phase2-mobile-results.md` |
 

@@ -178,6 +178,71 @@ def test_interpolate_hermite_missing_derivative_returns_method_error() -> None:
     assert body["methods"]["hermite"]["error"]["code"] == "missing_derivative_data"
 
 
+def test_interpolate_osculating_methods_contract() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "points",
+            "points": [["0", "1"], ["1", "4"]],
+            "derivatives": [
+                {"x": "0", "order": 1, "value": "2"},
+                {"x": "1", "order": 1, "value": "4"},
+            ],
+            "methods": ["osculating"],
+            "method_options": {
+                "osculating": {"orders": [{"x": "0", "order": 1}, {"x": "1", "order": 1}]}
+            },
+            "evaluation_x": ["1/2"],
+            "precision": 50,
+            "exact": True,
+        },
+    )
+
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["status"] == "ok"
+    assert body["methods"]["osculating"]["status"] == "ok"
+    assert body["methods"]["osculating"]["error"] is None
+    assert body["methods"]["osculating"]["evaluations"][0]["value"] == "9/4"
+    assert body["methods"]["osculating"]["confluent_divided_difference_table"]
+    assert body["methods"]["osculating"]["expanded"] == "x**2 + 2*x + 1"
+    assert body["evaluations"][0]["best_method"] == "osculating"
+    assert body["polynomial"]["osculating_form"]
+    assert body["polynomial"]["latex_osculating"]
+
+
+def test_interpolate_osculating_function_mode_derives_derivatives() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "x_values_with_function",
+            "x_values": ["0"],
+            "function": "exp(x)",
+            "methods": ["osculating"],
+            "method_options": {"osculating": {"orders": [{"x": "0", "order": 2}]}},
+            "evaluation_x": ["1"],
+            "graph": True,
+            "exact": True,
+            "precision": 50,
+        },
+    )
+
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["status"] == "ok"
+    assert body["methods"]["osculating"]["status"] == "ok"
+    assert body["methods"]["osculating"]["expanded"] == "x**2/2 + x + 1"
+    assert body["methods"]["osculating"]["evaluations"][0]["value"] == "5/2"
+    assert body["evaluations"][0]["best_method"] == "osculating"
+    assert body["graph_data"]["source_method"] == "osculating"
+
+
 def test_interpolate_duplicate_derivative_data_rejected() -> None:
     client = TestClient(app)
 

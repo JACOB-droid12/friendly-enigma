@@ -82,7 +82,7 @@ def build_graph_data(
 def _method_polynomial_source(
     raw_results: dict[str, dict[str, object]],
 ) -> tuple[str, sp.Expr] | None:
-    for method in ("taylor", "hermite", "hermite_divided_difference"):
+    for method in ("osculating", "taylor", "hermite", "hermite_divided_difference"):
         result = raw_results.get(method)
         polynomial = result.get("polynomial") if result else None
         if polynomial is not None:

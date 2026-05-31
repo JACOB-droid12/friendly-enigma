@@ -66,19 +66,26 @@ def test_phase2_optional_blocks_keep_numeric_values_as_strings() -> None:
     assert request.derivatives[0].value == "0"
 
 
-def test_unimplemented_phase2_method_returns_method_error_not_400() -> None:
+def test_osculating_phase2_method_is_routed_not_deferred() -> None:
     request = InterpolateRequest(
         mode="points",
-        points=[["1.0", "0.7651977"], ["1.3", "0.6200860"], ["1.6", "0.4554022"]],
+        points=[["0", "1"], ["1", "4"]],
         methods=["osculating"],
-        evaluation_x=["1.5"],
+        method_options={
+            "osculating": {"orders": [{"x": "0", "order": 1}, {"x": "1", "order": 1}]}
+        },
+        derivatives=[
+            {"x": "0", "order": 1, "value": "2"},
+            {"x": "1", "order": 1, "value": "4"},
+        ],
+        evaluation_x=["1/2"],
     )
 
     response = interpolate(request)
 
-    assert response["status"] == "partial"
-    assert response["methods"]["osculating"]["status"] == "error"
-    assert response["methods"]["osculating"]["error"]["code"] == "method_not_implemented"
+    assert response["status"] == "ok"
+    assert response["methods"]["osculating"]["status"] == "ok"
+    assert response["methods"]["osculating"]["evaluations"][0]["value"] == "9/4"
 
 
 def test_phase2_method_metadata_marks_barycentric_as_support_method() -> None:

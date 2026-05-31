@@ -17,6 +17,7 @@ from app.core.methods.newton_finite import (
     build_newton_forward,
     build_stirling,
 )
+from app.core.methods.osculating import build_osculating
 from app.core.methods.taylor import build_taylor
 from app.core.normalization import normalize_request
 from app.core.parser import X
@@ -81,11 +82,12 @@ def _run_methods(problem) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str
         "stirling": build_stirling,
         "hermite_divided_difference": build_hermite_divided_difference,
         "hermite": build_hermite,
+        "osculating": build_osculating,
         "taylor": build_taylor,
         "cubic_spline": build_cubic_spline,
     }
-    derivative_methods = {"hermite_divided_difference", "hermite"}
-    function_methods = {"taylor"}
+    derivative_methods = {"hermite_divided_difference", "hermite", "osculating"}
+    function_methods = {"taylor", "osculating"}
     raw_results: dict[str, dict[str, Any]] = {}
     api_results: dict[str, dict[str, Any]] = {}
     for method in problem.methods:
@@ -167,7 +169,14 @@ def _json_ready(value: Any) -> Any:
 
 
 def _polynomial_source(raw_results: dict[str, dict[str, Any]]) -> dict[str, Any] | None:
-    for method in ("taylor", "hermite", "hermite_divided_difference", "lagrange", "newton"):
+    for method in (
+        "osculating",
+        "taylor",
+        "hermite",
+        "hermite_divided_difference",
+        "lagrange",
+        "newton",
+    ):
         result = raw_results.get(method)
         if result and result.get("polynomial") is not None:
             return result
@@ -184,12 +193,14 @@ def _polynomial_block(
         "factored": str(sp.factor(polynomial)) if polynomial is not None else None,
         "lagrange_form": raw_results.get("lagrange", {}).get("summation_form"),
         "newton_form": raw_results.get("newton", {}).get("nested_form"),
+        "osculating_form": raw_results.get("osculating", {}).get("nested_form"),
         "hermite_form": raw_results.get("hermite", {}).get("basis_form")
         or raw_results.get("hermite_divided_difference", {}).get("nested_form"),
         "taylor_form": raw_results.get("taylor", {}).get("taylor_form"),
         "latex_expanded": polynomial_source.get("latex_expanded") if polynomial_source else None,
         "latex_lagrange": raw_results.get("lagrange", {}).get("latex_lagrange"),
         "latex_newton": raw_results.get("newton", {}).get("latex_newton"),
+        "latex_osculating": raw_results.get("osculating", {}).get("latex_osculating"),
         "latex_hermite": raw_results.get("hermite", {}).get("latex_hermite")
         or raw_results.get("hermite_divided_difference", {}).get("latex_hermite"),
         "latex_taylor": raw_results.get("taylor", {}).get("latex_taylor"),
@@ -231,6 +242,7 @@ def _top_level_evaluations(problem, methods: dict[str, dict[str, Any]]) -> list[
 
 def _best_method(method_values: dict[str, str | None]) -> str | None:
     for method in (
+        "osculating",
         "hermite",
         "hermite_divided_difference",
         "taylor",

@@ -1,6 +1,50 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Task 3: Backend Osculating Method is implemented locally on `codex/interpolation-backend-v1`. This task added the backend/core osculating method, routed it through service orchestration and graph sampling, and kept the frontend untouched.
+
+Files changed in this task:
+
+- `backend/app/core/methods/osculating.py`
+  - Added `build_osculating(...)` using `build_confluent_repeated_nodes(...)`.
+  - Supports explicit `method_options.osculating.orders[]`, default no-orders behavior of first derivative at every node, point-mode derivative lookup, safe function-mode derivative derivation, confluent table output, coefficients, nested/expanded forms, LaTeX, evaluations, steps, and warnings.
+  - Raises `missing_derivative_data`, `duplicate_derivative_order`, `derivative_node_not_found`, or `function_domain_error` for the covered invalid cases.
+- `backend/app/core/service.py`
+  - Routed `osculating`, included it in derivative/function method kwargs, made it the first top-level polynomial source, and put it first in best-method priority.
+  - Added top-level `polynomial.osculating_form` and `polynomial.latex_osculating`.
+- `backend/app/core/graph_data.py`
+  - Samples a successful osculating polynomial as `graph_data.source_method == "osculating"`.
+- `backend/app/core/normalization.py`, `backend/app/core/validation.py`
+  - Added a narrow single function-node allowance for `methods: ["osculating"]` when explicit positive osculating order options create repeated-node constraints.
+- `backend/app/core/errors.py`
+  - Registered `duplicate_derivative_order` and `derivative_node_not_found`.
+- `backend/app/tests/test_osculating.py`
+  - Added core coverage for Lagrange equivalence (`m_i=0`), Hermite equivalence (`m_i=1`), Taylor equivalence with one node, function-derived derivatives, a mixed higher-order case, and validation failures.
+- `backend/app/tests/test_api.py`, `backend/app/tests/test_graph_data.py`, `backend/app/tests/test_phase2_contract.py`
+  - Added/updated API, graph, and contract regressions proving osculating is implemented rather than deferred.
+- `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/API_CONTRACT.md`, `docs/FRONTEND_HANDOFF.md`
+  - Updated coordination state and frontend/API guidance.
+
+Commands run in this task:
+
+| Command / Check | Result |
+|---|---|
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_osculating.py -q` before implementation | FAIL as expected - import failed because `app.core.methods.osculating` did not exist. |
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_osculating.py -q` after implementation | PASS - 10 passed in 0.98s. |
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_api.py app/tests/test_graph_data.py app/tests/test_phase2_contract.py -q` | PASS - 37 passed in 6.56s. |
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_osculating.py app/tests/test_api.py app/tests/test_graph_data.py app/tests/test_hermite.py app/tests/test_taylor.py -q` | PASS - 50 passed in 4.85s. |
+| `.\.venv\Scripts\python.exe -m ruff check app/core/methods/osculating.py app/core/methods/repeated_nodes.py app/core/service.py app/core/graph_data.py app/tests/test_osculating.py app/tests/test_api.py app/tests/test_graph_data.py` | PASS - `All checks passed!`. |
+| `.\.venv\Scripts\python.exe -m pytest -q` | PASS - 125 passed in 4.97s. |
+| `.\.venv\Scripts\python.exe -m ruff check .` | PASS - `All checks passed!`. |
+
+Notes and risks:
+
+- No frontend files were edited.
+- Cubic spline boundary conditions remain untouched and are still outside Task 3.
+- Existing untracked local QA artifacts remain unmodified: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`.
+- The single-node API allowance is intentionally narrow: function-backed osculating only, exactly `methods: ["osculating"]`, with an explicit positive order in `method_options.osculating.orders`.
+
+## Previous Current Task
 Focused Task 2 quality fix is complete locally on `codex/interpolation-backend-v1`. This remained helper/test-only; `osculating` was not routed through service and no frontend files were touched.
 
 Files changed in this fix:

@@ -39,7 +39,7 @@ def normalize_request(request: InterpolateRequest) -> InterpolationProblem:
             "invalid_method", "Unsupported interpolation mode.", {"mode": request.mode}
         )
 
-    raise_for_invalid_nodes(nodes)
+    raise_for_invalid_nodes(nodes, min_count=1 if _allows_single_function_node(request) else 2)
     warnings = validation_warnings(nodes, node_strategy=node_strategy)
 
     return InterpolationProblem(
@@ -124,7 +124,9 @@ def _nodes_from_points(request: InterpolateRequest, *, exact: bool) -> list[Node
 def _nodes_from_x_values(
     request: InterpolateRequest, expression: sp.Expr, *, exact: bool
 ) -> list[Node]:
-    if request.x_values is None or len(request.x_values) < 2:
+    if request.x_values is None or (
+        len(request.x_values) < 2 and not _allows_single_function_node(request)
+    ):
         raise InterpolationError("too_few_nodes", "At least two x-values are required.")
     nodes: list[Node] = []
     for index, x_text in enumerate(request.x_values):
@@ -140,6 +142,17 @@ def _nodes_from_x_values(
             )
         )
     return nodes
+
+
+def _allows_single_function_node(request: InterpolateRequest) -> bool:
+    if request.x_values is None or len(request.x_values) != 1:
+        return False
+    if request.methods != ["osculating"]:
+        return False
+    osculating_options = request.method_options.osculating
+    if osculating_options is None:
+        return False
+    return any(item.order > 0 for item in osculating_options.orders)
 
 
 def _nodes_from_interval(

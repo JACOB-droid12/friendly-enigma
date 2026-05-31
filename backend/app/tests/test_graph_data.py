@@ -121,3 +121,27 @@ def test_hermite_graph_samples_hermite_polynomial() -> None:
 
     assert graph_data["source_method"] == "hermite"
     assert graph_data["P_x"][sample_index] == "2.25"
+
+
+def test_osculating_graph_samples_osculating_polynomial() -> None:
+    request = InterpolateRequest(
+        mode="points",
+        points=[["0", "1"], ["1", "4"]],
+        methods=["osculating"],
+        method_options={
+            "osculating": {"orders": [{"x": "0", "order": 1}, {"x": "1", "order": 1}]}
+        },
+        derivatives=[
+            {"x": "0", "order": 1, "value": "2"},
+            {"x": "1", "order": 1, "value": "4"},
+        ],
+        graph=True,
+        exact=True,
+    )
+
+    response = interpolate(request)
+    graph_data = response["graph_data"]
+    sample_index = graph_data["x"].index("0.5")
+
+    assert graph_data["source_method"] == "osculating"
+    assert graph_data["P_x"][sample_index] == "2.25"

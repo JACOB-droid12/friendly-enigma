@@ -14,8 +14,8 @@ def _is_real_expr(value: sp.Expr) -> bool:
     return value.is_real is not False
 
 
-def validate_nodes(nodes: list[Node]) -> InterpolationError | None:
-    if len(nodes) < 2:
+def validate_nodes(nodes: list[Node], *, min_count: int = 2) -> InterpolationError | None:
+    if len(nodes) < min_count:
         return InterpolationError("too_few_nodes", "At least two interpolation nodes are required.")
     duplicates: list[str] = []
     for index, node in enumerate(nodes):
@@ -37,8 +37,8 @@ def validate_nodes(nodes: list[Node]) -> InterpolationError | None:
     return None
 
 
-def raise_for_invalid_nodes(nodes: list[Node]) -> None:
-    error = validate_nodes(nodes)
+def raise_for_invalid_nodes(nodes: list[Node], *, min_count: int = 2) -> None:
+    error = validate_nodes(nodes, min_count=min_count)
     if error is not None:
         raise error
 

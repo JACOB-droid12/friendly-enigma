@@ -1,9 +1,9 @@
 # API Contract — Interpolating Polynomial Program Backend
 
 ## Status
-Implemented v1 backend contract plus Phase 2 P2.1/P2.2/P2.3/P2.4 backend method expansion, with P2.5 final audit complete. The backend owns parsing, validation, numerical precision, interpolation, Taylor approximation, natural cubic spline generation, evaluations, warnings, derivative-data handling, and graph-ready arrays. `osculating` remains accepted but intentionally deferred at the API/service layer.
+Implemented v1 backend contract plus Phase 2 P2.1/P2.2/P2.3/P2.4 backend method expansion, with P2.5 final audit complete. The backend owns parsing, validation, numerical precision, interpolation, osculating interpolation, Taylor approximation, natural cubic spline generation, evaluations, warnings, derivative-data handling, and graph-ready arrays.
 
-Task 2 generalized confluent divided-difference support is currently helper-only inside `backend/app/core/methods/repeated_nodes.py`. Focused quality coverage now reconstructs the helper Newton polynomial and checks mixed value/derivative constraints, but this does not change endpoint paths, request JSON, response JSON, validation errors, warnings, or the public `osculating` response. Service routing is deferred to Task 3.
+Task 3 backend osculating is implemented locally. Valid `osculating` requests now route through service orchestration, use generalized confluent repeated nodes, and return method-owned polynomial output instead of `method_not_implemented`.
 
 ## Base URL
 Development default:
@@ -123,7 +123,7 @@ Accepted Phase 2 method names:
 - `taylor`
 - `cubic_spline`
 
-P2.0 accepts the Phase 2 method names to stabilize the contract. P2.1 implements `newton_forward`, `newton_backward`, and `stirling`. P2.2 implements `hermite_divided_difference` and `hermite`. P2.3 implements `taylor`. P2.4 implements natural `cubic_spline`. P2.5 audits the implemented backend expansion. `osculating` is the only accepted Phase 2 method still intentionally deferred; selecting it returns a method-level error with code `method_not_implemented` and the top-level response status is `partial` when normalization succeeds.
+P2.0 accepts the Phase 2 method names to stabilize the contract. P2.1 implements `newton_forward`, `newton_backward`, and `stirling`. P2.2 implements `hermite_divided_difference` and `hermite`. P2.3 implements `taylor`. P2.4 implements natural `cubic_spline`. P2.5 audits the implemented backend expansion. Task 3 implements `osculating`.
 
 ### Phase 2 Optional Method Blocks
 
@@ -156,7 +156,7 @@ Rules:
 - `taylor.order` must be a JSON integer from 0 through 20 and is required when `taylor` is selected. Booleans, floats, and stringified floats are rejected by schema validation.
 - `cubic_spline.boundary_condition` is schema-limited to `natural`, `clamped`, `not-a-knot`, or `periodic`. Current spline computation still supports only `natural`; other accepted literals return method-level error code `unsupported_boundary_condition`.
 - `cubic_spline.left_derivative` and `cubic_spline.right_derivative` are optional strict strings for the clamped-boundary contract. They are preserved at the schema boundary but are not used until clamped spline computation is implemented.
-- `osculating.orders` is an optional list of strict objects with string `x` and integer `order` from 0 through 10. This stabilizes the request shape while `osculating` remains deferred.
+- `osculating.orders` is an optional list of strict objects with string `x` and integer `order` from 0 through 10. Each object declares the maximum derivative order used at that node. If omitted, backend osculating defaults to first-derivative Hermite-style constraints at every node.
 - Unknown method option blocks are rejected by schema validation. Current accepted blocks are `taylor`, `cubic_spline`, and `osculating`.
 - Numeric-string option fields are strict strings at the schema boundary; for example, `method_options.taylor.center: 0` is rejected with FastAPI HTTP `422`, while `"0"` is accepted.
 
@@ -182,7 +182,7 @@ Rules:
 - Hermite methods require first-derivative data at every interpolation node.
 - Missing derivative data returns method-level error code `missing_derivative_data`.
 - Higher derivative orders currently return method-level error code `invalid_derivative_order` for Hermite methods.
-- `osculating` remains accepted but not implemented in P2.2 because generalized repeated-node derivative orders are not yet supported by the tested helper.
+- `osculating` supports generalized derivative orders through the Task 2 confluent repeated-node helper.
 
 ## P2.1 Equal-Spacing Methods
 
@@ -272,10 +272,6 @@ Implemented P2.2 method names:
 - `hermite_divided_difference`
 - `hermite`
 
-Deferred P2.2 method name:
-
-- `osculating` returns method-level error code `method_not_implemented` until generalized derivative-order repeated-node support is implemented and tested.
-
 Hermite methods use the existing `POST /api/interpolate` endpoint. No per-method endpoint is introduced.
 
 Request example:
@@ -353,6 +349,75 @@ Request example:
 ```
 
 If the basis form is omitted for size, `basis_form.status` is `omitted` and the method includes warning code `expanded_polynomial_omitted` with `details.artifact = "hermite_basis_form"`.
+
+## Task 3 Osculating Method
+
+Implemented Task 3 method name:
+
+- `osculating`
+
+Osculating interpolation uses the existing `POST /api/interpolate` endpoint. No per-method endpoint is introduced. It generalizes ordinary interpolation, first-derivative Hermite interpolation, and single-center Taylor-style interpolation by matching derivative orders `0..m_i` at each selected base node.
+
+Request example:
+
+```json
+{
+  "mode": "points",
+  "points": [["0", "1"], ["1", "4"]],
+  "derivatives": [
+    {"x": "0", "order": 1, "value": "2"},
+    {"x": "1", "order": 1, "value": "4"}
+  ],
+  "methods": ["osculating"],
+  "method_options": {
+    "osculating": {
+      "orders": [
+        {"x": "0", "order": 1},
+        {"x": "1", "order": 1}
+      ]
+    }
+  },
+  "evaluation_x": ["1/2"],
+  "precision": 50,
+  "exact": true
+}
+```
+
+`osculating` method result fields:
+
+```json
+{
+  "status": "ok",
+  "orders": [{"node_index": 0, "x": "0", "max_order": 1}],
+  "repeated_nodes": [],
+  "confluent_divided_difference_table": [],
+  "coefficients": [],
+  "nested_form": "...",
+  "expanded": "x**2 + 2*x + 1",
+  "latex_expanded": "...",
+  "latex_osculating": "...",
+  "evaluations": [{"x": "1/2", "value": "9/4"}],
+  "steps": [],
+  "warnings": [],
+  "error": null
+}
+```
+
+Validation and safety:
+
+- `method_options.osculating.orders[].x` must match an interpolation node after numeric normalization; otherwise the method returns `derivative_node_not_found`.
+- Duplicate normalized `(x, order)` entries in `method_options.osculating.orders[]` return `duplicate_derivative_order`.
+- In point/data mode, derivative values for every requested order `1..m_i` must be supplied in `derivatives[]`; missing values return `missing_derivative_data`.
+- Duplicate `derivatives[]` entries for the same normalized `(x, order)` are rejected before method execution with HTTP `400` and `duplicate_derivative_data`.
+- In function-backed modes, required derivative values are derived from the already parsed safe SymPy expression. Non-real, infinite, undefined, or unevaluated derivative values return `function_domain_error`.
+- A narrow single-node function-backed osculating request is allowed only when `methods` is exactly `["osculating"]` and `method_options.osculating.orders[]` contains a positive order. This supports Taylor-equivalent osculating input such as `f(x)=exp(x)`, `x_values=["0"]`, order `2`.
+- If `orders` is omitted, the backend defaults to maximum order `1` at every node, matching first-derivative Hermite-style osculating behavior.
+
+Top-level response behavior:
+
+- `polynomial.osculating_form` and `polynomial.latex_osculating` are populated when osculating output is available.
+- Top-level `evaluations[].best_method` prefers `osculating` ahead of Hermite and Taylor when multiple selected methods produce values.
+- When `graph: true` and osculating succeeds, `graph_data.P_x` samples the osculating polynomial and `graph_data.source_method` is `"osculating"`.
 
 ## P2.3 Taylor Method
 
@@ -593,11 +658,13 @@ Validation:
     "factored": "6 - x",
     "lagrange_form": "20/3 - 4*x/3 + x/3 - 2/3",
     "newton_form": "6 - x",
+    "osculating_form": null,
     "hermite_form": null,
     "taylor_form": null,
     "latex_expanded": "6 - x",
     "latex_lagrange": "6 - x",
     "latex_newton": "6 - x",
+    "latex_osculating": null,
     "latex_hermite": null,
     "latex_taylor": null,
     "expanded_omitted_reason": null
@@ -710,7 +777,7 @@ Rules:
 - Values are strings or `null`.
 - `P_x` uses barycentric evaluation by default for standard interpolation graph sampling.
 - If `cubic_spline` is selected and succeeds, `P_x` uses backend-owned spline segment evaluation and `source_method` is `cubic_spline`.
-- If `taylor`, `hermite`, or `hermite_divided_difference` is selected and succeeds, `P_x` uses that method-owned polynomial and `source_method` is the selected method name.
+- If `osculating`, `taylor`, `hermite`, or `hermite_divided_difference` is selected and succeeds, `P_x` uses that method-owned polynomial and `source_method` is the selected method name.
 - Graph sample bounds and grid steps are generated in backend SymPy/high-precision space; exact decimal endpoints are not rounded through Python `float`.
 - The frontend renders arrays only and must not recompute interpolation.
 
@@ -747,6 +814,8 @@ Implemented error codes:
 - `stirling_requires_centered_nodes`
 - `missing_derivative_data`
 - `duplicate_derivative_data`
+- `duplicate_derivative_order`
+- `derivative_node_not_found`
 - `invalid_derivative_order`
 - `unsupported_taylor_function`
 - `unsupported_boundary_condition`
@@ -774,6 +843,7 @@ Implemented warning codes:
 - Render Newton divided differences as a triangular table.
 - Render Hermite repeated-node divided differences as a triangular table.
 - Render Hermite basis output from `methods.hermite.basis_form` only when returned by the backend.
+- Render Osculating repeated nodes, `orders`, `confluent_divided_difference_table`, coefficients, nested/expanded forms, `latex_osculating`, and evaluations exactly as returned by the backend.
 - Render Taylor terms from `methods.taylor.terms` and Taylor notes from backend text fields.
 - Render cubic spline segments from `methods.cubic_spline.segments` and continuity checks from `methods.cubic_spline.continuity_checks`.
 - Render Neville data as one triangular table per target x-value.

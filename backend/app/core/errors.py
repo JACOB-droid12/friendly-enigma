@@ -15,6 +15,8 @@ ERROR_CODES = {
     "stirling_requires_centered_nodes",
     "missing_derivative_data",
     "duplicate_derivative_data",
+    "duplicate_derivative_order",
+    "derivative_node_not_found",
     "invalid_derivative_order",
     "unsupported_taylor_function",
     "unsupported_boundary_condition",
