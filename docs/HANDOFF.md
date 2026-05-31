@@ -1,6 +1,34 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Focused Task 5 metadata/spec fix is complete locally on `codex/interpolation-backend-v1`. This remained scoped to frontend method metadata and selector tests, did not create a worktree, did not touch backend math, and did not implement or route the Osculating result renderer.
+
+Files changed in this fix:
+
+- `frontend/src/lib/method-metadata.ts`
+  - Updated Osculating metadata to describe implemented generalized derivative-order interpolation.
+  - Removed Osculating `deferred: true` and the stale `method_not_implemented` deferred note.
+- `frontend/src/components/MethodSelector.tsx`
+  - Kept the generic deferred-chip renderer but clarified the catalog comment now that Osculating is no longer deferred.
+- `frontend/src/components/MethodSelector.test.tsx`
+  - Replaced the stale Osculating `Deferred` badge assertion with coverage that Osculating remains in the Derivative Data family and does not render a `Deferred` badge.
+- `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/FRONTEND_HANDOFF.md`
+  - Recorded this focused metadata/spec fix and verification.
+
+Commands run in this fix:
+
+| Command / Check | Result |
+|---|---|
+| `npm test -- MethodSelector.test.tsx InputPanel.MethodConfig.test.tsx App.examples.test.tsx` from `frontend/` | PASS - 3 files, 30 tests. |
+| `npm run lint` from `frontend/` | PASS. |
+
+Notes and risks:
+
+- Task 6 still owns the Osculating result renderer and any `MethodDetails` routing changes.
+- `docs/API_CONTRACT.md` was not changed because endpoint paths, request/response shapes, and error shapes did not change.
+- Existing unrelated untracked files remain unmodified: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`.
+
+## Previous Current Task
 Focused Task 5 spec fix is complete locally on `codex/interpolation-backend-v1`. This remained scoped to frontend request controls/types/examples, did not create a worktree, did not touch backend math, and did not implement the Osculating result renderer.
 
 Files changed in this fix:
@@ -35,7 +63,7 @@ Notes and risks:
 - Task 6 still owns the Osculating result renderer; this fix only updates request construction and example loading.
 - Existing unrelated untracked files remain unmodified: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`.
 
-## Previous Current Task
+## Earlier Current Task
 Task 5: Frontend Request Controls And Types is implemented locally on `codex/interpolation-backend-v1`. This is frontend request/control work only, did not create a worktree, did not change backend math, and did not revert unrelated untracked changes.
 
 Files changed in this task:

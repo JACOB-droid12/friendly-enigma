@@ -16,10 +16,9 @@ import type { MethodName } from "@/lib/api-types"
  *      `Record<MethodName, MethodMetadata>` below.
  *
  *   2. The `family`, `role`, `badge`, `description`, and
- *      `eligibilityHint` / `deferredNote` fields preserve the wording
- *      already used by the legacy catalog at
- *      `MethodSelector.catalog.ts` so existing tests and screenshots
- *      continue to pass without copy churn.
+ *      `eligibilityHint` field preserves the wording already used by
+ *      the legacy catalog at `MethodSelector.catalog.ts` so existing
+ *      tests and screenshots continue to pass without copy churn.
  *
  *   3. Adding a method here is a backend-aligned schema change. Do not
  *      add UI-only methods. The order of `METHOD_ORDER` is the catalog
@@ -65,7 +64,7 @@ export interface MethodMetadata {
   badge: MethodBadgeVariant
   /** Set on Barycentric only: the unique source of graph data. */
   highlight?: boolean
-  /** Set on `osculating`: backend currently returns method_not_implemented. */
+  /** Set on methods intentionally exposed before their backend implementation. */
   deferred?: boolean
   /** One-sentence description rendered on the selector card. */
   description: string
@@ -79,9 +78,6 @@ export interface MethodMetadata {
 }
 
 const EQUAL_SPACING_HINT = "Requires equally spaced nodes."
-
-const OSCULATING_DEFERRED_NOTE =
-  "Backend currently returns a method-level error; see Methods tab for details."
 
 /**
  * Canonical catalog order for every method. Used wherever a list of
@@ -220,9 +216,7 @@ export const METHOD_METADATA: Record<MethodName, MethodMetadata> = {
     family: "derivative_data",
     role: "Derivative Data",
     badge: "secondary",
-    description: "Generalized derivative matching.",
-    deferred: true,
-    deferredNote: OSCULATING_DEFERRED_NOTE,
+    description: "Generalized interpolation matching selected derivative orders.",
   },
   taylor: {
     value: "taylor",

@@ -17,7 +17,7 @@ interface MethodSelectorProps {
  * Family-grouped method selector.
  *
  * Catalog content (labels, families, role tags, descriptions, eligibility
- * hints, and the deferred chip) is owned by `lib/method-metadata.ts`.
+ * hints, and any deferred chip) is owned by `lib/method-metadata.ts`.
  * This file is the renderer: it groups the catalog by family per
  * `FAMILY_ORDER` and renders one card per method.
  *

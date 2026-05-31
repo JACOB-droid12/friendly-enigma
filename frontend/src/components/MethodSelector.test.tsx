@@ -57,16 +57,26 @@ describe("MethodSelector", () => {
     }
   })
 
-  it("renders the Deferred badge on the osculating card", () => {
+  it("renders Osculating as implemented derivative-data metadata", () => {
     render(
       <MethodSelector selected={["lagrange"]} onChange={() => {}} />,
     )
 
-    // R4.4 / R10.1: osculating shows the "Deferred" badge inside its card.
+    const derivativeDataSection = screen
+      .getByRole("heading", { level: 3, name: "Derivative Data" })
+      .closest("section")
+    expect(derivativeDataSection).not.toBeNull()
+
     const osculatingInput = screen.getByLabelText("Osculating method")
     const card = osculatingInput.closest("label")
     expect(card).not.toBeNull()
-    expect(within(card as HTMLElement).getByText("Deferred")).toBeInTheDocument()
+    expect(derivativeDataSection).toContainElement(card as HTMLElement)
+    expect(
+      within(card as HTMLElement).queryByText("Deferred"),
+    ).not.toBeInTheDocument()
+    expect(
+      within(card as HTMLElement).getByText("Derivative Data"),
+    ).toBeInTheDocument()
   })
 
   it("renders the Equal-Spacing eligibility hint on each Equal-Spacing card", () => {

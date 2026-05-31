@@ -40,6 +40,13 @@ Focused Task 5 spec fix, also completed 2026-06-01:
 - Osculating point mode still emits derivative entries only for orders `1..max_order`.
 - The catalog example now loads `Osculating (Bessel-style)` as an implemented request with `osculatingOrders` and order-1 derivative values, instead of historical deferred copy.
 
+Focused Task 5 metadata/spec fix, also completed 2026-06-01:
+
+- `frontend/src/lib/method-metadata.ts` now describes Osculating as implemented generalized derivative-order interpolation.
+- Osculating no longer has `deferred: true` or the stale deferred note saying the backend returns `method_not_implemented`.
+- `MethodSelector` still supports generic deferred metadata, but the Osculating card now renders as an implemented Derivative Data method without a `Deferred` badge.
+- No Osculating result renderer, result types, backend math, or `MethodDetails` routing changed; those remain Task 6 scope.
+
 Verification from `frontend/`:
 
 | Command | Result |
@@ -47,13 +54,14 @@ Verification from `frontend/`:
 | `npm test -- InputPanel.MethodConfig.test.tsx` | PASS - 15 tests after the focused spec-fix regression. |
 | `npm test -- App.examples.test.tsx` | PASS - 11 tests after updating the Osculating example expectation. |
 | `npm test -- InputPanel.MethodConfig.test.tsx App.examples.test.tsx` | PASS - 26 tests. |
+| `npm test -- MethodSelector.test.tsx InputPanel.MethodConfig.test.tsx App.examples.test.tsx` | PASS - 30 tests after the metadata/spec fix. |
 | `npm run lint` | PASS. |
 | `npm run build` | Not run for the focused spec fix because no broad TypeScript types changed. The original Task 5 build passed with the existing Vite large-chunk advisory. |
 
 Remaining frontend work:
 
 - Task 6 must replace the historical osculating deferred renderer with a real renderer for `methods.osculating` fields.
-- Method renderer metadata may still contain historical deferred osculating copy until Task 6 updates renderer-facing language.
+- Historical deferred rendering code may still exist until Task 6 replaces the Osculating result details path.
 
 ## Reciprocal Graph Node Plotting Fix (2026-05-26)
 
