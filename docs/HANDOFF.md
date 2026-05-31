@@ -1,6 +1,41 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Focused Task 5 spec fix is complete locally on `codex/interpolation-backend-v1`. This remained scoped to frontend request controls/types/examples, did not create a worktree, did not touch backend math, and did not implement the Osculating result renderer.
+
+Files changed in this fix:
+
+- `frontend/src/lib/interpolate-request.ts`
+  - Fixed derivative payload construction so Hermite first-derivative requirements and Osculating point-mode derivative requirements are unioned per visible node.
+  - Hermite methods now keep provided order-1 derivative entries even when Osculating is also selected and an Osculating node has max order `0`.
+  - Osculating point mode still emits only orders `1..max_order`, and duplicate `(x, order)` entries are suppressed.
+- `frontend/src/components/InputPanel.MethodConfig.test.tsx`
+  - Added a request-builder regression proving `methods: ["hermite", "osculating"]` with Osculating order `0` still sends the provided Hermite order-1 derivative.
+- `frontend/src/components/ExamplesPanel.tsx`
+  - Replaced the historical deferred Osculating example with an implemented `Osculating (Bessel-style)` example.
+  - Seeded `osculatingOrders` with order `1` for each Bessel-style node and explicit order-1 derivative values.
+- `frontend/src/App.examples.test.tsx`
+  - Updated the Osculating example expectation from deferred copy to the implemented example title and order-aware controls.
+- `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/FRONTEND_HANDOFF.md`
+  - Recorded this focused spec fix and verification.
+
+Commands run in this fix:
+
+| Command / Check | Result |
+|---|---|
+| `npm test -- InputPanel.MethodConfig.test.tsx` from `frontend/` after adding the regression and before production changes | FAIL as expected - the new test showed `{ x: "0", order: 1, value: "2" }` was missing when Osculating order was `0`. |
+| `npm test -- InputPanel.MethodConfig.test.tsx` from `frontend/` after the request-builder fix | PASS - 15 tests. |
+| `npm test -- App.examples.test.tsx` from `frontend/` after updating the example | PASS - 11 tests. |
+| `npm test -- InputPanel.MethodConfig.test.tsx App.examples.test.tsx` from `frontend/` | PASS - 2 files, 26 tests. |
+| `npm run lint` from `frontend/` | PASS. |
+
+Notes and risks:
+
+- `npm run build` was not run because this fix did not change broad TypeScript types.
+- Task 6 still owns the Osculating result renderer; this fix only updates request construction and example loading.
+- Existing unrelated untracked files remain unmodified: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`.
+
+## Previous Current Task
 Task 5: Frontend Request Controls And Types is implemented locally on `codex/interpolation-backend-v1`. This is frontend request/control work only, did not create a worktree, did not change backend math, and did not revert unrelated untracked changes.
 
 Files changed in this task:

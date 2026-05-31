@@ -267,13 +267,13 @@ describe("lecture examples", () => {
     expect(fetchMock.mock.calls.some(([url]) => url === "/api/interpolate")).toBe(false)
   })
 
-  it("loads the deferred Osculating Bessel-style example with derivative rows", () => {
+  it("loads the implemented Osculating Bessel-style example with order-aware derivative rows", () => {
     const fetchMock = renderApp()
 
     openCatalog()
     fireEvent.click(
       screen.getByRole("button", {
-        name: /load deferred: osculating \(bessel-style\) example/i,
+        name: /load osculating \(bessel-style\) example/i,
       }),
     )
 
@@ -289,6 +289,9 @@ describe("lecture examples", () => {
     expect(screen.getByLabelText("Lagrange method")).not.toBeChecked()
     expect(screen.getByLabelText("Newton method")).not.toBeChecked()
 
+    expect(screen.getByLabelText("Maximum derivative order for node 0")).toHaveValue(1)
+    expect(screen.getByLabelText("Maximum derivative order for node 1")).toHaveValue(1)
+    expect(screen.getByLabelText("Maximum derivative order for node 2")).toHaveValue(1)
     expect(screen.getByLabelText("Derivative order 1 for node 0")).toHaveValue(
       "-0.52202324741466",
     )

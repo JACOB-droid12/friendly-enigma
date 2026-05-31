@@ -78,18 +78,30 @@ function buildDerivatives(form: FormState): DerivativeEntry[] | undefined {
 
   const xs = currentXValues(form)
   const out: DerivativeEntry[] = []
+  const emitted = new Set<string>()
 
   for (let index = 0; index < xs.length; index += 1) {
     const x = xs[index]
     if (x.trim() === "") continue
 
-    const maxOrder = needsOsculatingPointDerivatives
-      ? osculatingOrderForIndex(form, index)
-      : 1
-    for (let order = 1; order <= maxOrder; order += 1) {
+    const requiredOrders = new Set<number>()
+    if (needsHermiteDerivatives) {
+      requiredOrders.add(1)
+    }
+    if (needsOsculatingPointDerivatives) {
+      const maxOrder = osculatingOrderForIndex(form, index)
+      for (let order = 1; order <= maxOrder; order += 1) {
+        requiredOrders.add(order)
+      }
+    }
+
+    for (const order of [...requiredOrders].sort((a, b) => a - b)) {
+      const key = `${x}\u0000${order}`
+      if (emitted.has(key)) continue
       const value = derivativeValueFor(form, x, index, order)
       if (value.trim() !== "") {
         out.push({ x, order, value })
+        emitted.add(key)
       }
     }
   }

@@ -33,19 +33,27 @@ Frontend request behavior now implemented:
 - Cubic spline controls now allow all implemented boundary modes. When `clamped` is selected, the request includes `left_derivative` and `right_derivative` as strings.
 - Function-interval osculating does not synthesize generated nodes in React. The UI notes that interval nodes are backend-generated and sends no explicit order rows, preserving the backend default behavior without moving node generation into React.
 
+Focused Task 5 spec fix, also completed 2026-06-01:
+
+- Hermite and Osculating derivative payload requirements are now unioned per visible node without duplicate `(x, order)` entries.
+- Hermite methods keep provided order-1 derivative entries even when Osculating is also selected and a node has max order `0`.
+- Osculating point mode still emits derivative entries only for orders `1..max_order`.
+- The catalog example now loads `Osculating (Bessel-style)` as an implemented request with `osculatingOrders` and order-1 derivative values, instead of historical deferred copy.
+
 Verification from `frontend/`:
 
 | Command | Result |
 |---|---|
-| `npm test -- InputPanel.MethodConfig.test.tsx` | PASS - 14 tests. |
-| `npm test -- App.examples.test.tsx` | PASS - 11 tests after fixing the test label expectations. |
+| `npm test -- InputPanel.MethodConfig.test.tsx` | PASS - 15 tests after the focused spec-fix regression. |
+| `npm test -- App.examples.test.tsx` | PASS - 11 tests after updating the Osculating example expectation. |
+| `npm test -- InputPanel.MethodConfig.test.tsx App.examples.test.tsx` | PASS - 26 tests. |
 | `npm run lint` | PASS. |
-| `npm run build` | PASS with the existing Vite large-chunk advisory. |
+| `npm run build` | Not run for the focused spec fix because no broad TypeScript types changed. The original Task 5 build passed with the existing Vite large-chunk advisory. |
 
 Remaining frontend work:
 
 - Task 6 must replace the historical osculating deferred renderer with a real renderer for `methods.osculating` fields.
-- Method metadata/examples may still contain historical deferred osculating copy until Task 6 or a copy-specific cleanup updates renderer-facing language.
+- Method renderer metadata may still contain historical deferred osculating copy until Task 6 updates renderer-facing language.
 
 ## Reciprocal Graph Node Plotting Fix (2026-05-26)
 

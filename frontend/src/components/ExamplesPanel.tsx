@@ -275,12 +275,12 @@ const EXAMPLES: Example[] = [
     },
   },
   {
-    id: "osculating-deferred",
-    title: "Deferred: Osculating (Bessel-style)",
-    subtitle: "Same Bessel-style points and derivatives as Hermite; surfaces the deferred state",
+    id: "osculating-bessel-style",
+    title: "Osculating (Bessel-style)",
+    subtitle: "Same Bessel-style points and first derivatives; evaluate at x = 1.5",
     tier: "catalog",
-    category: "demo",
-    sourceNote: "Backend returns method_not_implemented; the frontend renders the deferred state.",
+    category: "lecture",
+    sourceNote: "Generalized confluent divided differences with first-derivative matching at each node.",
     form: {
       mode: "points",
       points: [
@@ -293,10 +293,15 @@ const EXAMPLES: Example[] = [
       exact: false,
       evaluationX: ["1.5"],
       graph: false,
+      osculatingOrders: [
+        { x: "1.3", order: 1 },
+        { x: "1.6", order: 1 },
+        { x: "1.9", order: 1 },
+      ],
       derivatives: [
-        { x: "1.3", value: "-0.52202324741466" },
-        { x: "1.6", value: "-0.56989593526168" },
-        { x: "1.9", value: "-0.581157072713434" },
+        { x: "1.3", order: 1, value: "-0.52202324741466" },
+        { x: "1.6", order: 1, value: "-0.56989593526168" },
+        { x: "1.9", order: 1, value: "-0.581157072713434" },
       ],
     },
   },

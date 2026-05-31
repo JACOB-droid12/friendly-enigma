@@ -293,6 +293,35 @@ describe("InputPanel — Method Configuration card", () => {
     ])
   })
 
+  it("keeps Hermite first derivatives when Osculating order zero is also selected", () => {
+    const request = buildRequest(
+      makeForm({
+        methods: ["hermite", "osculating"],
+        points: [
+          ["0", "1"],
+          ["1", "3"],
+        ],
+        osculatingOrders: [
+          { x: "0", order: 0 },
+          { x: "1", order: 1 },
+        ],
+        derivatives: [
+          { x: "0", order: 1, value: "2" },
+          { x: "1", order: 1, value: "5" },
+        ],
+      }),
+    )
+
+    expect(request.method_options?.osculating?.orders).toEqual([
+      { x: "0", order: 0 },
+      { x: "1", order: 1 },
+    ])
+    expect(request.derivatives).toEqual([
+      { x: "0", order: 1, value: "2" },
+      { x: "1", order: 1, value: "5" },
+    ])
+  })
+
   it("builds function-backed osculating requests without manual derivative values", () => {
     const request = buildRequest(
       makeForm({
