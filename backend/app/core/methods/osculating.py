@@ -36,6 +36,8 @@ def build_osculating(
     )
     expression = _newton_expression(repeated.repeated_x, repeated.coefficients)
     polynomial = sp.expand(expression)
+    degree = _polynomial_degree(polynomial)
+    constraint_degree = len(repeated.repeated_x) - 1
     evaluations = [
         {
             "x": target,
@@ -63,6 +65,7 @@ def build_osculating(
         "nested_form": str(_nested_expression(repeated.repeated_x, repeated.coefficients)),
         "expanded": str(polynomial),
         "polynomial": polynomial,
+        "degree": degree,
         "latex_expanded": sp.latex(polynomial),
         "latex_osculating": sp.latex(expression),
         "evaluations": evaluations,
@@ -72,7 +75,10 @@ def build_osculating(
             "Fill confluent divided differences with f^(k)(x_i) / k! for repeated nodes.",
             "Use the first row as Newton coefficients and expand the result for display.",
         ],
-        "warnings": [],
+        "warnings": _osculating_warnings(
+            degree=degree,
+            constraint_degree=constraint_degree,
+        ),
     }
 
 
@@ -84,7 +90,7 @@ def _orders_by_node(
         return {node.index: 1 for node in nodes}
 
     result = {node.index: 0 for node in nodes}
-    seen: set[tuple[int, int]] = set()
+    seen_nodes: set[int] = set()
     for item in raw_orders:
         x_text = str(item["x"])
         x_expr = to_sympy(x_text, exact=True, precision=precision)
@@ -97,14 +103,16 @@ def _orders_by_node(
             )
         node = matching[0]
         order = int(item["order"])
-        key = (node.index, order)
-        if key in seen:
+        if node.index in seen_nodes:
             raise InterpolationError(
                 "duplicate_derivative_order",
-                "Osculating method options repeat the same node and derivative order.",
+                (
+                    "Osculating method options repeat a node; each order entry defines one "
+                    "maximum order per node."
+                ),
                 {"method": "osculating", "x": x_text, "order": order},
             )
-        seen.add(key)
+        seen_nodes.add(node.index)
         result[node.index] = order
     return result
 
@@ -125,7 +133,7 @@ def _derivative_values(
         for order in range(1, orders_by_node_index[node.index] + 1):
             if function_expression is not None:
                 values[(node.index, order)] = _function_derivative_at_node(
-                    function_expression, node, order=order
+                    function_expression, node, order=order, precision=precision
                 )
                 continue
 
@@ -180,10 +188,15 @@ def _derivative_match(
 
 
 def _function_derivative_at_node(
-    function_expression: sp.Expr, node: Node, *, order: int
+    function_expression: sp.Expr, node: Node, *, order: int, precision: int
 ) -> sp.Expr:
     derivative = sp.diff(function_expression, X, order)
-    _raise_for_unsupported_function_value(derivative, node=node, order=order, artifact="derivative")
+    _raise_for_unsupported_function_value(
+        derivative, node=node, order=order, artifact="derivative", allow_symbolic=True
+    )
+    _raise_for_disagreeing_one_sided_limits(
+        derivative, node=node, order=order, precision=precision
+    )
     value = sp.simplify(derivative.subs(X, node.x))
     _raise_for_unsupported_function_value(
         value, node=node, order=order, artifact="derivative_at_node"
@@ -191,15 +204,90 @@ def _function_derivative_at_node(
     return value
 
 
-def _raise_for_unsupported_function_value(
-    value: sp.Expr, *, node: Node, order: int, artifact: str
+def _raise_for_disagreeing_one_sided_limits(
+    derivative: sp.Expr, *, node: Node, order: int, precision: int
 ) -> None:
-    if (
-        value.has(sp.I, sp.zoo, sp.nan, sp.oo, -sp.oo, sp.Derivative)
-        or value.is_real is False
-    ):
-        raise InterpolationError(
-            "function_domain_error",
-            "Derived osculating derivative must be real and finite at each requested node.",
-            {"method": "osculating", "x": node.x_text, "order": order, "artifact": artifact},
+    try:
+        left_limit = sp.simplify(sp.limit(derivative, X, node.x, dir="-"))
+        right_limit = sp.simplify(sp.limit(derivative, X, node.x, dir="+"))
+    except Exception as exc:
+        raise _function_domain_error(
+            node=node, order=order, artifact="derivative_limit"
+        ) from exc
+
+    _raise_for_unsupported_function_value(
+        left_limit, node=node, order=order, artifact="left_derivative_limit"
+    )
+    _raise_for_unsupported_function_value(
+        right_limit, node=node, order=order, artifact="right_derivative_limit"
+    )
+    if not _same_derivative_limit(left_limit, right_limit, precision=precision):
+        raise _function_domain_error(
+            node=node, order=order, artifact="one_sided_derivative_limits"
         )
+
+
+def _same_derivative_limit(left: sp.Expr, right: sp.Expr, *, precision: int) -> bool:
+    if sp.simplify(left - right) == 0:
+        return True
+    if left.has(sp.Float) or right.has(sp.Float):
+        return values_close(left, right, precision=precision)
+    return False
+
+
+def _raise_for_unsupported_function_value(
+    value: sp.Expr,
+    *,
+    node: Node,
+    order: int,
+    artifact: str,
+    allow_symbolic: bool = False,
+) -> None:
+    allowed_symbols = {X} if allow_symbolic else set()
+    if (
+        value.free_symbols - allowed_symbols
+        or value.has(
+            sp.I,
+            sp.zoo,
+            sp.nan,
+            sp.oo,
+            -sp.oo,
+            sp.Derivative,
+            sp.Integral,
+            sp.Limit,
+            sp.DiracDelta,
+            sp.SingularityFunction,
+        )
+        or value.is_real is False
+        or (not allow_symbolic and value.is_real is not True)
+        or value.is_finite is False
+        or (not allow_symbolic and value.is_finite is not True)
+    ):
+        raise _function_domain_error(node=node, order=order, artifact=artifact)
+
+
+def _function_domain_error(*, node: Node, order: int, artifact: str) -> InterpolationError:
+    return InterpolationError(
+        "function_domain_error",
+        "Derived osculating derivative must be real, finite, and two-sided at each requested node.",
+        {"method": "osculating", "x": node.x_text, "order": order, "artifact": artifact},
+    )
+
+
+def _polynomial_degree(polynomial: sp.Expr) -> int:
+    degree = sp.degree(polynomial, X)
+    if degree == -sp.oo:
+        return 0
+    return int(degree)
+
+
+def _osculating_warnings(*, degree: int, constraint_degree: int) -> list[dict[str, Any]]:
+    if constraint_degree < 10:
+        return []
+    return [
+        {
+            "code": "high_degree_warning",
+            "message": "High-degree osculating interpolation may be numerically unstable.",
+            "details": {"degree": degree, "constraint_degree": constraint_degree},
+        }
+    ]

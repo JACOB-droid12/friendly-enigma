@@ -1,6 +1,41 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Focused Task 3 code-quality fix is complete locally on `codex/interpolation-backend-v1`. This is backend-only and does not touch frontend files or cubic spline boundary implementation.
+
+Files changed in this fix:
+
+- `backend/app/core/methods/osculating.py`
+  - Rejects duplicate `method_options.osculating.orders[]` entries by normalized node, even when the repeated node uses a different order.
+  - Tightens function-mode derivative derivation by rejecting derivative expressions/values with singular, distribution, non-real, infinite, non-finite, unevaluated, or non-two-sided behavior at the requested node.
+  - Adds `degree` to successful osculating payloads and emits a method-level `high_degree_warning` when repeated osculating constraints imply degree `>= 10`.
+- `backend/app/core/service.py`
+  - Uses `methods.osculating.degree` for top-level `degree` and `input_summary.degree` when osculating is the successful polynomial source; non-osculating degree behavior remains node-count based.
+- `backend/app/tests/test_osculating.py`
+  - Added regressions for `abs(x)` at `x=0`, infinite derivative values, duplicate same-node order options with different orders, and method-level osculating degree.
+- `backend/app/tests/test_api.py`
+  - Added API regressions for `abs(x)` derivative rejection, duplicate same-node order rejection, top-level osculating degree metadata, and osculating high repeated-constraint warning.
+- `docs/API_CONTRACT.md`, `docs/FRONTEND_HANDOFF.md`, `docs/PLAN.md`, `docs/HANDOFF.md`
+  - Updated coordination/API notes for osculating duplicate order semantics, derivative safety, degree metadata, high-degree warnings, and the explicit one-node osculating exception.
+
+Commands run in this fix:
+
+| Command / Check | Result |
+|---|---|
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_osculating.py app/tests/test_api.py -q` before production changes | FAIL as expected - 8 failures covering abs cusp derivatives, duplicate same-node order options, and osculating degree metadata. |
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_osculating.py app/tests/test_api.py -q` after production changes | PASS - 44 passed in 4.66s. |
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_osculating.py app/tests/test_api.py app/tests/test_graph_data.py app/tests/test_validation.py -q` | PASS - 53 passed in 6.00s. |
+| `.\.venv\Scripts\python.exe -m ruff check app/core/methods/osculating.py app/core/service.py app/core/validation.py app/tests/test_osculating.py app/tests/test_api.py app/tests/test_graph_data.py app/tests/test_validation.py` before line wrap | FAIL - E501 line too long in `app/core/methods/osculating.py`. |
+| `.\.venv\Scripts\python.exe -m ruff check app/core/methods/osculating.py app/core/service.py app/core/validation.py app/tests/test_osculating.py app/tests/test_api.py app/tests/test_graph_data.py app/tests/test_validation.py` after line wrap | PASS - `All checks passed!`. |
+| `.\.venv\Scripts\python.exe -m pytest -q` | PASS - 134 passed in 7.75s. |
+| `.\.venv\Scripts\python.exe -m ruff check .` | PASS - `All checks passed!`. |
+
+Notes and risks:
+
+- The one-node function-backed osculating/Taylor-equivalent path remains intentional and documented as an explicit exception.
+- Existing untracked local QA artifacts remain unmodified: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`.
+
+## Previous Current Task
 Task 3: Backend Osculating Method is implemented locally on `codex/interpolation-backend-v1`. This task added the backend/core osculating method, routed it through service orchestration and graph sampling, and kept the frontend untouched.
 
 Files changed in this task:

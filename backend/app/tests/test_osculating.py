@@ -112,6 +112,41 @@ def test_osculating_function_mode_derives_derivatives_safely() -> None:
     assert result["evaluations"][0]["value"] == "5/2"
 
 
+@pytest.mark.parametrize("order", [1, 2])
+def test_osculating_function_mode_rejects_abs_derivative_at_cusp(order: int) -> None:
+    with pytest.raises(InterpolationError) as exc:
+        build_osculating(
+            _nodes([("0", "0")]),
+            precision=50,
+            evaluation_x=[],
+            derivatives=[],
+            method_options={"orders": [{"x": "0", "order": order}]},
+            function_expression=parse_function("abs(x)").expression,
+        )
+
+    assert exc.value.code == "function_domain_error"
+    assert exc.value.details["method"] == "osculating"
+    assert exc.value.details["x"] == "0"
+    assert exc.value.details["order"] in range(1, order + 1)
+
+
+def test_osculating_function_mode_rejects_infinite_derivative_value() -> None:
+    with pytest.raises(InterpolationError) as exc:
+        build_osculating(
+            _nodes([("0", "0")]),
+            precision=50,
+            evaluation_x=[],
+            derivatives=[],
+            method_options={"orders": [{"x": "0", "order": 1}]},
+            function_expression=sp.sqrt(X),
+        )
+
+    assert exc.value.code == "function_domain_error"
+    assert exc.value.details["method"] == "osculating"
+    assert exc.value.details["x"] == "0"
+    assert exc.value.details["order"] == 1
+
+
 def test_osculating_supports_mixed_higher_orders() -> None:
     result = build_osculating(
         _nodes([("0", "1"), ("1", "3")]),
@@ -162,6 +197,21 @@ def test_osculating_rejects_duplicate_method_option_order() -> None:
 
     assert exc.value.code == "duplicate_derivative_order"
     assert exc.value.details == {"method": "osculating", "x": "0.0", "order": 1}
+
+
+def test_osculating_rejects_duplicate_method_option_node_with_different_order() -> None:
+    with pytest.raises(InterpolationError) as exc:
+        build_osculating(
+            _nodes([("0", "1"), ("1", "2")]),
+            precision=50,
+            evaluation_x=[],
+            derivatives=[],
+            method_options={"orders": [{"x": "0", "order": 2}, {"x": "0", "order": 1}]},
+            function_expression=None,
+        )
+
+    assert exc.value.code == "duplicate_derivative_order"
+    assert exc.value.details == {"method": "osculating", "x": "0", "order": 1}
 
 
 def test_osculating_rejects_order_for_unknown_node() -> None:
@@ -223,6 +273,23 @@ def test_osculating_order_matching_accepts_high_precision_numeric_nodes() -> Non
     )
 
     assert result["evaluations"][0]["value"] == "3.24"
+
+
+def test_osculating_reports_effective_degree_for_repeated_constraints() -> None:
+    result = build_osculating(
+        _nodes([("0", "1"), ("1", "3")]),
+        precision=50,
+        evaluation_x=[],
+        derivatives=[
+            _derivative("0", 1, "-1"),
+            _derivative("0", 2, "0"),
+            _derivative("1", 1, "9"),
+        ],
+        method_options={"orders": [{"x": "0", "order": 2}, {"x": "1", "order": 1}]},
+        function_expression=None,
+    )
+
+    assert result["degree"] == 4
 
 
 def test_confluent_repeated_nodes_supports_mixed_derivative_orders() -> None:

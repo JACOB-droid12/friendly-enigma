@@ -7,16 +7,18 @@ Frontend v1.5 with critique-driven refactors. Builds, lints, type-checks, and te
 
 ## Task 3 Backend Osculating Update (2026-05-31)
 
-`osculating` is now implemented by the backend. Valid `methods: ["osculating"]` requests return `methods.osculating.status === "ok"` with `orders`, `repeated_nodes`, `confluent_divided_difference_table`, `coefficients`, `nested_form`, `expanded`, `latex_expanded`, `latex_osculating`, `evaluations`, `steps`, and `warnings`.
+`osculating` is now implemented by the backend. Valid `methods: ["osculating"]` requests return `methods.osculating.status === "ok"` with `orders`, `repeated_nodes`, `confluent_divided_difference_table`, `coefficients`, `nested_form`, `expanded`, `degree`, `latex_expanded`, `latex_osculating`, `evaluations`, `steps`, and `warnings`.
 
 Frontend-relevant contract changes:
 
 - Stop treating valid osculating responses as deferred `method_not_implemented` results.
 - Render `polynomial.osculating_form` and `polynomial.latex_osculating` when present.
 - Render `graph_data.source_method === "osculating"` as a method-owned polynomial sample, like Taylor/Hermite.
+- When osculating is the selected polynomial source, `degree`, `input_summary.degree`, and `methods.osculating.degree` reflect the osculating polynomial degree from repeated derivative constraints, not just distinct node count.
 - Point/data mode must send derivative values for every requested order `1..m_i`; function-backed modes can omit derivative values because the backend derives them safely from the parsed function.
-- `method_options.osculating.orders[]` is the maximum derivative order per node. If omitted, the backend defaults to first-derivative constraints at every node.
-- A single function node is accepted only for the narrow Taylor-equivalent osculating case: `methods` exactly `["osculating"]` and at least one explicit positive order.
+- `method_options.osculating.orders[]` is the maximum derivative order per node. Repeating the same normalized node is rejected with `duplicate_derivative_order` even if the duplicate entry has a different order. If omitted, the backend defaults to first-derivative constraints at every node.
+- Function-backed osculating rejects unsafe derivative results with `function_domain_error`, including `abs(x)` at `x=0` because the requested derivative is not two-sided at the node. Surface the backend message/code instead of deriving derivatives in React.
+- A single function node is accepted only for the narrow Taylor-equivalent osculating exception: `methods` exactly `["osculating"]` and at least one explicit positive order.
 
 ## Reciprocal Graph Node Plotting Fix (2026-05-26)
 

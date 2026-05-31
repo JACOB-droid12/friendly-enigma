@@ -33,6 +33,7 @@ def interpolate(request: InterpolateRequest) -> dict[str, object]:
         "ok" if all(result["status"] == "ok" for result in method_results.values()) else "partial"
     )
     polynomial_source = _polynomial_source(raw_results)
+    response_degree = _response_degree(problem, raw_results, polynomial_source)
     sorted_nodes = problem.sorted_nodes or _nodes_reordered(method_results)
     response = {
         "status": status,
@@ -41,7 +42,7 @@ def interpolate(request: InterpolateRequest) -> dict[str, object]:
         "input_summary": {
             "mode": problem.mode,
             "node_count": len(problem.nodes),
-            "degree": len(problem.nodes) - 1,
+            "degree": response_degree,
             "methods_requested": problem.methods,
             "precision": problem.precision,
             "exact": problem.exact,
@@ -52,7 +53,7 @@ def interpolate(request: InterpolateRequest) -> dict[str, object]:
         "nodes": [
             {"index": node.index, "x": node.x_text, "y": node.y_text} for node in problem.nodes
         ],
-        "degree": len(problem.nodes) - 1,
+        "degree": response_degree,
         "polynomial": _polynomial_block(raw_results, polynomial_source),
         "methods": method_results,
         "evaluations": _top_level_evaluations(problem, method_results),
@@ -61,6 +62,14 @@ def interpolate(request: InterpolateRequest) -> dict[str, object]:
         "educational_notes": educational_notes(),
     }
     return response
+
+
+def _response_degree(
+    problem, raw_results: dict[str, dict[str, Any]], polynomial_source: dict[str, Any] | None
+) -> int:
+    if polynomial_source is not None and polynomial_source is raw_results.get("osculating"):
+        return int(polynomial_source["degree"])
+    return len(problem.nodes) - 1
 
 
 def _nodes_reordered(methods: dict[str, dict[str, Any]]) -> bool:

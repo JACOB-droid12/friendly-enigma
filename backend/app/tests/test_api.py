@@ -243,6 +243,119 @@ def test_interpolate_osculating_function_mode_derives_derivatives() -> None:
     assert body["graph_data"]["source_method"] == "osculating"
 
 
+def test_interpolate_osculating_function_mode_rejects_abs_cusp_derivative() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "x_values_with_function",
+            "x_values": ["0"],
+            "function": "abs(x)",
+            "methods": ["osculating"],
+            "method_options": {"osculating": {"orders": [{"x": "0", "order": 1}]}},
+            "exact": True,
+            "precision": 50,
+        },
+    )
+
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["status"] == "partial"
+    assert body["methods"]["osculating"]["status"] == "error"
+    assert body["methods"]["osculating"]["error"]["code"] == "function_domain_error"
+    assert body["methods"]["osculating"]["error"]["details"]["x"] == "0"
+    assert body["methods"]["osculating"]["error"]["details"]["order"] == 1
+
+
+def test_interpolate_osculating_rejects_duplicate_order_node() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "points",
+            "points": [["0", "1"], ["1", "3"]],
+            "methods": ["osculating"],
+            "method_options": {
+                "osculating": {"orders": [{"x": "0", "order": 2}, {"x": "0", "order": 1}]}
+            },
+            "exact": True,
+            "precision": 50,
+        },
+    )
+
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["status"] == "partial"
+    assert body["methods"]["osculating"]["status"] == "error"
+    assert body["methods"]["osculating"]["error"]["code"] == "duplicate_derivative_order"
+
+
+def test_interpolate_osculating_degree_uses_constraint_count() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "points",
+            "points": [["0", "1"], ["1", "3"]],
+            "derivatives": [
+                {"x": "0", "order": 1, "value": "-1"},
+                {"x": "0", "order": 2, "value": "0"},
+                {"x": "1", "order": 1, "value": "9"},
+            ],
+            "methods": ["osculating"],
+            "method_options": {
+                "osculating": {"orders": [{"x": "0", "order": 2}, {"x": "1", "order": 1}]}
+            },
+            "exact": True,
+            "precision": 50,
+        },
+    )
+
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["status"] == "ok"
+    assert body["degree"] == 4
+    assert body["input_summary"]["degree"] == 4
+    assert body["methods"]["osculating"]["degree"] == 4
+
+
+def test_interpolate_osculating_high_constraint_degree_warns() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "points",
+            "points": [["0", "1"], ["1", "2"]],
+            "derivatives": [
+                {"x": "0", "order": order, "value": "0"} for order in range(1, 10)
+            ],
+            "methods": ["osculating"],
+            "method_options": {
+                "osculating": {"orders": [{"x": "0", "order": 9}, {"x": "1", "order": 0}]}
+            },
+            "exact": True,
+            "precision": 50,
+        },
+    )
+
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["status"] == "ok"
+    assert body["degree"] == 10
+    assert any(
+        warning["code"] == "high_degree_warning"
+        for warning in body["methods"]["osculating"]["warnings"]
+    )
+
+
 def test_interpolate_duplicate_derivative_data_rejected() -> None:
     client = TestClient(app)
 

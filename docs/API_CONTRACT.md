@@ -394,6 +394,7 @@ Request example:
   "coefficients": [],
   "nested_form": "...",
   "expanded": "x**2 + 2*x + 1",
+  "degree": 2,
   "latex_expanded": "...",
   "latex_osculating": "...",
   "evaluations": [{"x": "1/2", "value": "9/4"}],
@@ -406,16 +407,18 @@ Request example:
 Validation and safety:
 
 - `method_options.osculating.orders[].x` must match an interpolation node after numeric normalization; otherwise the method returns `derivative_node_not_found`.
-- Duplicate normalized `(x, order)` entries in `method_options.osculating.orders[]` return `duplicate_derivative_order`.
+- Duplicate normalized node entries in `method_options.osculating.orders[]` return `duplicate_derivative_order`, even when the repeated entries use different orders. Each `orders[]` item defines the maximum derivative order for that node, so last-write-wins is not allowed.
 - In point/data mode, derivative values for every requested order `1..m_i` must be supplied in `derivatives[]`; missing values return `missing_derivative_data`.
 - Duplicate `derivatives[]` entries for the same normalized `(x, order)` are rejected before method execution with HTTP `400` and `duplicate_derivative_data`.
-- In function-backed modes, required derivative values are derived from the already parsed safe SymPy expression. Non-real, infinite, undefined, or unevaluated derivative values return `function_domain_error`.
-- A narrow single-node function-backed osculating request is allowed only when `methods` is exactly `["osculating"]` and `method_options.osculating.orders[]` contains a positive order. This supports Taylor-equivalent osculating input such as `f(x)=exp(x)`, `x_values=["0"]`, order `2`.
+- In function-backed modes, required derivative values are derived from the already parsed safe SymPy expression. Non-real, complex, infinite, undefined, distribution-valued, singular, unevaluated, or one-sided/discontinuous derivative values return `function_domain_error` with details including `x`, `order`, and an `artifact` hint. For example, `abs(x)` at `x=0` is rejected for osculating derivative requests because the derivative is not two-sided at the node.
+- A narrow single-node function-backed osculating request is an explicit exception to the normal two-node validation rule. It is allowed only when `methods` is exactly `["osculating"]` and `method_options.osculating.orders[]` contains a positive order. This supports Taylor-equivalent osculating input such as `f(x)=exp(x)`, `x_values=["0"]`, order `2`.
 - If `orders` is omitted, the backend defaults to maximum order `1` at every node, matching first-derivative Hermite-style osculating behavior.
 
 Top-level response behavior:
 
 - `polynomial.osculating_form` and `polynomial.latex_osculating` are populated when osculating output is available.
+- When osculating is the successful polynomial source, top-level `degree`, `input_summary.degree`, and `methods.osculating.degree` use the expanded osculating polynomial degree instead of the distinct-node count degree.
+- High repeated-constraint osculating requests add a method-level `high_degree_warning` when the osculating constraint degree is at least 10, even if the distinct node count is small.
 - Top-level `evaluations[].best_method` prefers `osculating` ahead of Hermite and Taylor when multiple selected methods produce values.
 - When `graph: true` and osculating succeeds, `graph_data.P_x` samples the osculating polynomial and `graph_data.source_method` is `"osculating"`.
 
