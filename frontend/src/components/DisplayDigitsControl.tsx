@@ -48,7 +48,11 @@ export function DisplayDigitsControl({ className }: DisplayDigitsControlProps) {
           <Radio.Root
             key={String(opt)}
             value={String(opt)}
+            aria-label={label}
             aria-labelledby={optionLabelId}
+            inputRef={(node) => {
+              node?.setAttribute("aria-label", `Display precision ${label}`)
+            }}
             className={
               "h-6 px-2 rounded-md text-[11px] font-medium transition-subtle outline-none cursor-pointer " +
               "focus-visible:ring-3 focus-visible:ring-ring/50 " +

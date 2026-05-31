@@ -406,7 +406,7 @@ function ExampleCard({
         size="sm"
         className="text-[11px] h-6 px-2"
         onClick={() => onLoadExample(example.form)}
-        aria-label={`Load ${example.title} example`}
+        aria-label={`Load Example - Load ${example.title} example`}
       >
         Load Example
       </Button>

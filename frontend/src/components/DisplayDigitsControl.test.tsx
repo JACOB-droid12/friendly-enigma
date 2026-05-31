@@ -13,7 +13,7 @@ function renderControl() {
 
 describe("DisplayDigitsControl", () => {
   it("labels the Base UI radio group and options through stable visible label ids", () => {
-    renderControl()
+    const { container } = renderControl()
 
     const group = screen.getByRole("radiogroup", { name: "Display precision" })
     const labelledBy = group.getAttribute("aria-labelledby")
@@ -24,9 +24,17 @@ describe("DisplayDigitsControl", () => {
 
     for (const label of ["6", "12", "25", "Full"]) {
       const radio = screen.getByRole("radio", { name: label })
+      expect(radio).toHaveAttribute("aria-label", label)
       const optionId = radio.getAttribute("aria-labelledby")
       expect(optionId).toBeTruthy()
       expect(screen.getByText(label)).toHaveAttribute("id", optionId)
+    }
+
+    const nativeInputs = Array.from(container.querySelectorAll('input[type="radio"]'))
+    expect(nativeInputs).toHaveLength(4)
+    for (const [index, input] of nativeInputs.entries()) {
+      const label = ["6", "12", "25", "Full"][index]
+      expect(input).toHaveAttribute("aria-label", `Display precision ${label}`)
     }
   })
 

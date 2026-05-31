@@ -1,6 +1,66 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Task 7 accessibility fix is complete locally on `codex/interpolation-backend-v1`. This remained scoped to frontend form/control accessibility, Lighthouse accessibility failures, focused regression tests, and coordination docs. No backend math or API files were modified.
+
+Preview deployment checkpoint, separate from production:
+
+- Preview URL: `https://interpolation-workbench-731dpy4tj-marvillarq20-3593s-projects.vercel.app`
+- Vercel inspect URL: `https://vercel.com/marvillarq20-3593s-projects/interpolation-workbench/7dpxuQtN7s8MaVReKG39yhxXkdrb`
+- Deployment id: `dpl_7dpxuQtN7s8MaVReKG39yhxXkdrb`
+- Vercel target/status: `preview` / `Ready`
+- Production status: untouched; no production deployment or alias promotion was run.
+- Public access status: preview is behind Vercel Authentication. Node `fetch` returned HTTP `401 Unauthorized` for `/` and `/health` with the Vercel "Authentication Required" page.
+
+Files changed in this task:
+
+- `frontend/src/components/DisplayDigitsControl.tsx`
+  - Added an explicit `aria-label` to each Base UI `Radio.Root`.
+  - Added an `inputRef` callback that labels the hidden native radio input as `Display precision {label}`, addressing the Chrome "No label associated with a form field" issue at the native input layer instead of only the visible radio role.
+- `frontend/src/components/DisplayDigitsControl.test.tsx`
+  - Extended the existing regression to assert every visible radio role has an accessible label and every hidden native `input[type="radio"]` has an explicit `aria-label`.
+- `frontend/src/components/ui/switch.tsx`
+  - Replaced the Base UI switch wrapper with a native `button role="switch"` implementation so hidden unlabeled checkbox inputs are no longer created.
+- `frontend/src/components/ui/switch.test.tsx`
+  - Added a regression proving the switch has an accessible role/name and renders no hidden native checkbox.
+- `frontend/src/components/PrecisionSettings.tsx`, `frontend/src/components/InputPanel.tsx`
+  - Replaced orphan switch `<Label for=...>` usage with visible spans and `aria-labelledby` on the switch buttons.
+- `frontend/src/components/EvaluationTargets.tsx`
+  - Replaced a non-control `<Label>` group heading with a semantic span to remove an orphan label.
+- `frontend/src/components/ExamplesPanel.tsx`
+  - Changed example buttons so their accessible names include the visible `Load Example` text, satisfying Lighthouse label/name matching while preserving old example-specific test queries.
+- `frontend/src/components/MethodSelector.tsx`
+  - Raised low-contrast method card helper text from `/80` opacity to full contrast token values.
+- `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/FRONTEND_HANDOFF.md`
+  - Recorded Task 7 status and verification.
+
+Commands run in this task:
+
+| Command / Check | Result |
+|---|---|
+| `npm test -- DisplayDigitsControl.test.tsx` from `frontend/` before code change | PASS - existing visible-role labelling coverage passed. |
+| `npm test -- DisplayDigitsControl.test.tsx` from `frontend/` after adding explicit native-input labels | PASS - 1 file, 2 tests. |
+| `npm test -- DisplayDigitsControl.test.tsx switch.test.tsx` from `frontend/` | PASS - 2 files, 3 tests. |
+| `npm test -- DisplayDigitsControl.test.tsx switch.test.tsx InputPanel.MethodConfig.test.tsx` from `frontend/` | PASS - 3 files, 20 tests. |
+| `npm test -- switch.test.tsx InputPanel.MethodConfig.test.tsx DisplayDigitsControl.test.tsx` from `frontend/` | PASS - 3 files, 20 tests. |
+| `npm test -- DisplayDigitsControl.test.tsx switch.test.tsx InputPanel.MethodConfig.test.tsx MethodSelector.test.tsx App.examples.test.tsx` from `frontend/` after contrast/name fixes | PASS - 5 files, 35 tests. |
+| `npm run lint` from `frontend/` | PASS - no ESLint errors. |
+| `npm run build` from `frontend/` | PASS - `tsc -b && vite build`; Vite emitted the existing large-chunk advisory. |
+| `npx vercel --yes` from repo root | PASS - preview deployment `dpl_7dpxuQtN7s8MaVReKG39yhxXkdrb` became Ready; production untouched. |
+| `npx vercel inspect interpolation-workbench-731dpy4tj-marvillarq20-3593s-projects.vercel.app` | PASS - target `preview`, status `Ready`. |
+| Node `fetch` for preview `/` and `/health` | PASS for access diagnosis - both returned HTTP `401 Unauthorized`, confirming Vercel Authentication protection on the preview. |
+
+Accessibility evidence:
+
+- Automated DOM/role evidence now verifies the visible `radiogroup` has accessible name `Display precision`, each visible radio role is named `6`, `12`, `25`, or `Full`, and each hidden Base UI native radio input has an explicit `aria-label`.
+- Chrome DevTools MCP direct JSON-RPC verification on `http://127.0.0.1:5173/` reported no console `issue` messages and `missingExplicitLabels: []`.
+- Chrome DevTools MCP Lighthouse navigation audit reported Accessibility `100`, with reports written to `.codex/evidence/chrome-a11y/report.json` and `.codex/evidence/chrome-a11y/report.html`.
+
+Notes and risks:
+
+- Existing unrelated untracked files remain unmodified for now: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`. Repo hygiene is still a later blocker before final release completion.
+
+## Previous Current Task
 Task 6 frontend Osculating result rendering is complete locally on `codex/interpolation-backend-v1`. This remained scoped to frontend result rendering, fixtures, guidance copy, API response typing for top-level polynomial Osculating fields, and coordination docs. No backend math files were modified.
 
 Files changed in this task:
@@ -42,7 +102,7 @@ Notes and risks:
 - Full browser smoke, accessibility verification, local Vercel build, deployment, docs/audit cleanup, and final repo hygiene remain for later tasks.
 - Existing unrelated untracked files remain unmodified: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`.
 
-## Previous Current Task
+## Earlier Current Task
 Focused Task 5 UI-state fix is complete locally on `codex/interpolation-backend-v1`. This remained scoped to frontend request controls/state only, did not create a worktree, did not touch backend math, and did not implement or route the Osculating result renderer.
 
 Files changed in this fix:

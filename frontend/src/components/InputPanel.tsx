@@ -1,5 +1,4 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { PointsInput } from "./PointsInput"
@@ -244,13 +243,16 @@ export function InputPanel({ form, onChange, functionError, validationSuccess }:
           {/* Graph Toggle */}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="graph-toggle" className="text-sm">Graph Output</Label>
+              <span id="graph-toggle-label" className="text-sm font-medium leading-none">
+                Graph Output
+              </span>
               <p className="text-xs text-muted-foreground">
                 Generate plot arrays for f(x), P(x), and error
               </p>
             </div>
             <Switch
               id="graph-toggle"
+              aria-labelledby="graph-toggle-label"
               checked={form.graph}
               onCheckedChange={(graph) => update({ graph })}
             />

@@ -75,6 +75,24 @@ Frontend result behavior now implemented:
 - `ResultQualityGuide` warning guidance now reflects implemented higher-order Osculating and implemented spline boundary modes.
 - `DeferredMethodDetails` remains only as generic defensive UI for future `method_not_implemented` responses; Osculating no longer uses it.
 
+## Task 7 Accessibility Fix (2026-06-01)
+
+`DisplayDigitsControl` now labels both layers of the Base UI radio implementation:
+
+- Visible radio roots keep stable visible-label ids and also receive explicit `aria-label` values (`6`, `12`, `25`, `Full`).
+- Hidden native `input[type="radio"]` elements receive explicit `aria-label` values (`Display precision 6`, `Display precision 12`, `Display precision 25`, `Display precision Full`) through `inputRef`.
+- `DisplayDigitsControl.test.tsx` asserts the `radiogroup` accessible name, each visible radio accessible name, and each hidden native input label.
+
+Additional accessibility fixes landed in the same task:
+
+- The shared `Switch` component now renders as a labelled `button role="switch"` and no longer creates hidden Base UI checkbox inputs.
+- Exact-mode and graph-output switches use visible text spans with `aria-labelledby`; they no longer rely on orphan `<label for=...>` elements.
+- `EvaluationTargets` uses a semantic span for the group heading instead of a non-control label.
+- Example buttons now include visible text in their accessible names (`Load Example - Load ... example`) to satisfy label/name matching.
+- Method-card captions now use full-contrast text tokens instead of lower-opacity variants that failed Lighthouse color contrast.
+
+This is a real code fix for the prior Chrome "No label associated with a form field" report, not a documentation-only waiver. Chrome DevTools MCP direct JSON-RPC verification on `http://127.0.0.1:5173/` found no console `issue` messages, no unlabeled form fields, and Lighthouse Accessibility `100`. Reports were generated at `.codex/evidence/chrome-a11y/report.json` and `.codex/evidence/chrome-a11y/report.html`.
+
 Verification from `frontend/`:
 
 | Command | Result |
@@ -86,13 +104,25 @@ Verification from `frontend/`:
 | `npm test -- InputPanel.MethodConfig.test.tsx` | PASS - 17 tests after the UI-state fix regressions. |
 | `npm test -- OsculatingDetails.test.tsx` | PASS - 2 tests. |
 | `npm test -- OsculatingDetails.test.tsx results.smoke.test.tsx GuidedExplanation.test.tsx ResultQualityGuide.test.tsx` | PASS - 4 files, 16 tests. |
+| `npm test -- DisplayDigitsControl.test.tsx` | PASS - 2 tests after the native-input label fix. |
+| `npm test -- DisplayDigitsControl.test.tsx switch.test.tsx InputPanel.MethodConfig.test.tsx MethodSelector.test.tsx App.examples.test.tsx` | PASS - 5 files, 35 tests after the switch, orphan-label, contrast, and accessible-name fixes. |
 | `npm run lint` | PASS. |
-| `npm run build` | PASS after the focused type-safety fix and again after Task 6; Vite emitted the existing large-chunk advisory. |
+| `npm run build` | PASS after the focused type-safety fix, Task 6, and Task 7; Vite emitted the existing large-chunk advisory. |
 
 Remaining frontend work:
 
-- Browser smoke still needs to cover Osculating UI, spline boundary inputs, result tabs, graph/evaluation output, and 320x800 mobile layout against the live app.
-- Accessibility verification still needs to close the Chrome "No label associated with a form field" issue or document automated evidence if it is not exposed.
+- Browser smoke still needs to cover Osculating UI, spline boundary inputs, result tabs, graph/evaluation output, and 320x800 mobile layout against the live app. The display-precision/switch label issue now has Chrome DevTools MCP accessibility evidence.
+
+## Preview Deployment Checkpoint (2026-06-01)
+
+Per user request, a preview was deployed separately from production before production promotion:
+
+- Preview URL: `https://interpolation-workbench-731dpy4tj-marvillarq20-3593s-projects.vercel.app`
+- Inspect URL: `https://vercel.com/marvillarq20-3593s-projects/interpolation-workbench/7dpxuQtN7s8MaVReKG39yhxXkdrb`
+- Deployment id: `dpl_7dpxuQtN7s8MaVReKG39yhxXkdrb`
+- `npx vercel inspect` reports target `preview`, status `Ready`.
+- Production was not promoted or touched.
+- Direct unauthenticated access to `/` and `/health` returns HTTP `401 Unauthorized`, so the preview remains behind Vercel Authentication and is not public.
 
 ## Reciprocal Graph Node Plotting Fix (2026-05-26)
 

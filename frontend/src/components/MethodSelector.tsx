@@ -23,7 +23,7 @@ interface MethodSelectorProps {
  *
  * Role tags use the design-system label voice (`font-label`). The only
  * differentiator across method cards is the Barycentric tint
- * (`text-primary/80` vs `text-muted-foreground`); size, weight, padding,
+ * (`text-primary` vs `text-muted-foreground`); size, weight, padding,
  * and layout are identical so the eye is drawn to the actual method
  * name first, the role tag second.
  *
@@ -101,7 +101,7 @@ export function MethodSelector({ selected, onChange }: MethodSelectorProps) {
                         className={
                           "font-label " +
                           (m.highlight
-                            ? "text-primary/80"
+                            ? "text-primary"
                             : "text-muted-foreground")
                         }
                       >
@@ -112,12 +112,12 @@ export function MethodSelector({ selected, onChange }: MethodSelectorProps) {
                       {m.description}
                     </p>
                     {m.eligibilityHint && (
-                      <p className="mt-1 text-[11px] text-muted-foreground/80 leading-relaxed">
+                      <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed">
                         {m.eligibilityHint}
                       </p>
                     )}
                     {m.deferred && m.deferredNote && (
-                      <p className="mt-1 text-[11px] text-muted-foreground/80 leading-relaxed">
+                      <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed">
                         {m.deferredNote}
                       </p>
                     )}

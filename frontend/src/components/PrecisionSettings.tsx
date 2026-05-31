@@ -21,13 +21,16 @@ export function PrecisionSettings({
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
-          <Label htmlFor="exact-toggle" className="text-sm">Exact Mode</Label>
+          <span id="exact-toggle-label" className="text-sm font-medium leading-none">
+            Exact Mode
+          </span>
           <p className="text-[11px] text-muted-foreground leading-relaxed max-w-[280px]">
             SymPy Rational arithmetic. Symbolic fractions when possible. Precision still applies to numerical evaluations and graph sampling.
           </p>
         </div>
         <Switch
           id="exact-toggle"
+          aria-labelledby="exact-toggle-label"
           checked={exact === true}
           onCheckedChange={(checked) => onExactChange(checked ? true : false)}
         />

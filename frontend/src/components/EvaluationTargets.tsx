@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { useNewlyAddedIndex } from "@/lib/use-newly-added-index"
 import { Plus, X } from "lucide-react"
 
@@ -27,7 +26,7 @@ export function EvaluationTargets({ targets, onChange }: EvaluationTargetsProps)
   return (
     <div className="space-y-3" id="evaluation-targets">
       <div>
-        <Label className="text-sm">Evaluation Targets</Label>
+        <span className="text-sm font-medium leading-none">Evaluation Targets</span>
         <p className="text-xs text-muted-foreground mt-0.5">
           x-values where P(x) will be evaluated and compared across methods
         </p>
