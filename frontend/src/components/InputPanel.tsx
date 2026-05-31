@@ -183,6 +183,9 @@ export function InputPanel({ form, onChange, functionError, validationSuccess }:
                 onOsculatingOrdersChange={(osculatingOrders) =>
                   update({ osculatingOrders })
                 }
+                onOsculatingConfigChange={({ derivatives, osculatingOrders }) =>
+                  update({ derivatives, osculatingOrders })
+                }
                 manualValuesRequired={form.mode === "points"}
               />
             )}

@@ -1,6 +1,40 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Focused Task 5 UI-state fix is complete locally on `codex/interpolation-backend-v1`. This remained scoped to frontend request controls/state only, did not create a worktree, did not touch backend math, and did not implement or route the Osculating result renderer.
+
+Files changed in this fix:
+
+- `frontend/src/components/DerivativeInputTable.tsx`
+  - Changed derivative table emissions to merge table-owned derivative entries into the existing shared `form.derivatives` array instead of replacing the whole array.
+  - Hermite first-derivative edits now update visible order-1 entries while preserving higher-order Osculating entries.
+  - Osculating value/max-order edits now update required Osculating entries while preserving unrelated order-1 entries when a node's Osculating max order is `0`.
+  - Deduplicates emitted derivative state by `(x, order)` and sorts deterministically by visible node order, x string, and derivative order.
+- `frontend/src/components/InputPanel.tsx`
+  - Added a combined Osculating config state callback so max-order edits emit `derivatives` and `osculatingOrders` together from the same form snapshot.
+- `frontend/src/components/InputPanel.MethodConfig.test.tsx`
+  - Added the requested UI regression proving Hermite order-1 derivative state survives changing an Osculating max order to `0`.
+  - Added coverage proving Hermite table edits preserve higher-order Osculating state.
+- `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/FRONTEND_HANDOFF.md`
+  - Recorded this focused UI-state fix and verification.
+
+Commands run in this fix:
+
+| Command / Check | Result |
+|---|---|
+| `npm test -- InputPanel.MethodConfig.test.tsx` from `frontend/` after adding the requested regression and before production changes | FAIL as expected - emitted derivative state dropped `{ x: "0", order: 1, value: "2" }` when Osculating max order changed to `0`. |
+| `npm test -- InputPanel.MethodConfig.test.tsx` from `frontend/` after the state merge fix | PASS - 16 tests. |
+| `npm test -- InputPanel.MethodConfig.test.tsx` from `frontend/` after adding the Hermite-preserves-Osculating regression | PASS - 17 tests. |
+| `npm run lint` from `frontend/` | PASS. |
+
+Notes and risks:
+
+- `npm run build` was not run because this fix changed only local component props/state handling and did not broadly change the TypeScript API surface.
+- `docs/API_CONTRACT.md` was not changed because endpoint paths, request JSON, response JSON, validation errors, warnings, and frontend API notes did not change.
+- Task 6 still owns the Osculating result renderer and any `MethodDetails` routing changes.
+- Existing unrelated untracked files remain unmodified: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`.
+
+## Previous Current Task
 Focused Task 5 metadata/spec fix is complete locally on `codex/interpolation-backend-v1`. This remained scoped to frontend method metadata and selector tests, did not create a worktree, did not touch backend math, and did not implement or route the Osculating result renderer.
 
 Files changed in this fix:

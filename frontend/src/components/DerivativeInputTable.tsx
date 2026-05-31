@@ -59,6 +59,11 @@ export interface DerivativeInputTableProps {
   osculatingOrders?: OsculatingOrderFormEntry[]
   /** Called when an osculating maximum order changes. */
   onOsculatingOrdersChange?: (next: OsculatingOrderFormEntry[]) => void
+  /** Called when osculating order and derivative value state change together. */
+  onOsculatingConfigChange?: (next: {
+    derivatives: DerivativeFormEntry[]
+    osculatingOrders: OsculatingOrderFormEntry[]
+  }) => void
   /**
    * Whether osculating value inputs should render. Point/data mode
    * requires manual derivative values; function-backed modes derive
@@ -83,6 +88,7 @@ export default function DerivativeInputTable({
   onChange,
   osculatingOrders = [],
   onOsculatingOrdersChange,
+  onOsculatingConfigChange,
   manualValuesRequired = true,
   className,
 }: DerivativeInputTableProps) {
@@ -132,29 +138,90 @@ export default function DerivativeInputTable({
     return next
   }
 
+  function normalizeDerivativeEntries(entries: DerivativeFormEntry[]) {
+    const visibleXOrder = new Map(xs.map((x, index) => [x ?? "", index]))
+    const deduped = new Map<string, DerivativeFormEntry>()
+
+    for (const entry of entries) {
+      const order = entry.order ?? 1
+      deduped.set(`${entry.x}\u0000${order}`, { ...entry, order })
+    }
+
+    return [...deduped.values()].sort((a, b) => {
+      const aIndex = visibleXOrder.get(a.x) ?? Number.MAX_SAFE_INTEGER
+      const bIndex = visibleXOrder.get(b.x) ?? Number.MAX_SAFE_INTEGER
+      if (aIndex !== bIndex) return aIndex - bIndex
+      if (a.x !== b.x) return a.x.localeCompare(b.x)
+      return (a.order ?? 1) - (b.order ?? 1)
+    })
+  }
+
+  function mergeDerivativeEntries(
+    ownedEntries: DerivativeFormEntry[],
+    replacesExisting: (entry: DerivativeFormEntry) => boolean,
+  ) {
+    return normalizeDerivativeEntries([
+      ...derivatives.filter((entry) => !replacesExisting(entry)),
+      ...ownedEntries,
+    ])
+  }
+
   function handleValueChange(index: number, nextValue: string) {
-    const next: DerivativeFormEntry[] = []
+    const ownedEntries: DerivativeFormEntry[] = []
     for (let k = 0; k < xs.length; k += 1) {
       if (k === index) {
-        next.push({ x: xs[k] ?? "", order: 1, value: nextValue })
+        ownedEntries.push({ x: xs[k] ?? "", order: 1, value: nextValue })
       } else {
-        next.push({ x: xs[k] ?? "", order: 1, value: derivativeValue(k, 1) })
+        ownedEntries.push({ x: xs[k] ?? "", order: 1, value: derivativeValue(k, 1) })
       }
     }
-    onChange(next)
+    const visibleXs = new Set(xs.map((x) => x ?? ""))
+    onChange(
+      mergeDerivativeEntries(
+        ownedEntries,
+        (entry) => visibleXs.has(entry.x) && (entry.order ?? 1) === 1,
+      ),
+    )
   }
 
   function handleOsculatingValueChange(index: number, order: number, nextValue: string) {
-    onChange(osculatingDerivativeEntries({}, { index, order, value: nextValue }))
+    const ownedEntries = osculatingDerivativeEntries({}, { index, order, value: nextValue })
+    const visibleXs = new Set(xs.map((x) => x ?? ""))
+    const maxOrderByX = new Map(xs.map((x, i) => [x ?? "", maxOrderForNode(i)]))
+    onChange(
+      mergeDerivativeEntries(ownedEntries, (entry) => {
+        if (!visibleXs.has(entry.x)) return false
+        const entryOrder = entry.order ?? 1
+        return entryOrder >= 2 || (entryOrder === 1 && (maxOrderByX.get(entry.x) ?? 0) >= 1)
+      }),
+    )
   }
 
   function handleMaxOrderChange(index: number, rawValue: string) {
     const parsed = Number.parseInt(rawValue, 10)
     const order = Number.isFinite(parsed) ? Math.min(10, Math.max(0, parsed)) : 0
     const overrides = { [index]: order }
-    onOsculatingOrdersChange?.(syncedOrders(overrides))
+    const nextOrders = syncedOrders(overrides)
     if (manualValuesRequired) {
-      onChange(osculatingDerivativeEntries(overrides))
+      const ownedEntries = osculatingDerivativeEntries(overrides)
+      const visibleXs = new Set(xs.map((x) => x ?? ""))
+      const maxOrderByX = new Map(nextOrders.map((entry) => [entry.x, entry.order]))
+      const nextDerivatives = mergeDerivativeEntries(ownedEntries, (entry) => {
+        if (!visibleXs.has(entry.x)) return false
+        const entryOrder = entry.order ?? 1
+        return entryOrder >= 2 || (entryOrder === 1 && (maxOrderByX.get(entry.x) ?? 0) >= 1)
+      })
+      if (onOsculatingConfigChange) {
+        onOsculatingConfigChange({
+          derivatives: nextDerivatives,
+          osculatingOrders: nextOrders,
+        })
+      } else {
+        onChange(nextDerivatives)
+        onOsculatingOrdersChange?.(nextOrders)
+      }
+    } else {
+      onOsculatingOrdersChange?.(nextOrders)
     }
   }
 

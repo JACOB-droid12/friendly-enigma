@@ -47,6 +47,14 @@ Focused Task 5 metadata/spec fix, also completed 2026-06-01:
 - `MethodSelector` still supports generic deferred metadata, but the Osculating card now renders as an implemented Derivative Data method without a `Deferred` badge.
 - No Osculating result renderer, result types, backend math, or `MethodDetails` routing changed; those remain Task 6 scope.
 
+Focused Task 5 UI-state fix, also completed 2026-06-01:
+
+- Hermite and Osculating controls still share `form.derivatives`, but table edits now merge into the existing derivative state instead of replacing the whole array.
+- Hermite first-derivative edits update visible order-1 entries and preserve higher-order Osculating values.
+- Osculating max-order/value edits update Osculating-required entries and preserve unrelated Hermite order-1 values when Hermite is selected, including when an Osculating max order is changed to `0`.
+- Emitted derivative state is deduplicated by `(x, order)` and sorted deterministically by visible node order, x string, and derivative order.
+- Osculating max-order edits emit `derivatives` and `osculatingOrders` together from `InputPanel`, avoiding sibling state clobbering from sequential partial updates.
+
 Verification from `frontend/`:
 
 | Command | Result |
@@ -55,8 +63,9 @@ Verification from `frontend/`:
 | `npm test -- App.examples.test.tsx` | PASS - 11 tests after updating the Osculating example expectation. |
 | `npm test -- InputPanel.MethodConfig.test.tsx App.examples.test.tsx` | PASS - 26 tests. |
 | `npm test -- MethodSelector.test.tsx InputPanel.MethodConfig.test.tsx App.examples.test.tsx` | PASS - 30 tests after the metadata/spec fix. |
+| `npm test -- InputPanel.MethodConfig.test.tsx` | PASS - 17 tests after the UI-state fix regressions. |
 | `npm run lint` | PASS. |
-| `npm run build` | Not run for the focused spec fix because no broad TypeScript types changed. The original Task 5 build passed with the existing Vite large-chunk advisory. |
+| `npm run build` | Not run for the focused spec/UI-state fixes because no broad TypeScript types changed. The original Task 5 build passed with the existing Vite large-chunk advisory. |
 
 Remaining frontend work:
 

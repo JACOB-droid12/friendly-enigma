@@ -322,6 +322,82 @@ describe("InputPanel — Method Configuration card", () => {
     ])
   })
 
+  it("preserves Hermite first-derivative state when Osculating max order changes to zero", () => {
+    const onChange = vi.fn()
+    render(
+      <InputPanel
+        form={makeForm({
+          methods: ["hermite", "osculating"],
+          points: [
+            ["0", "1"],
+            ["1", "3"],
+          ],
+          osculatingOrders: [
+            { x: "0", order: 1 },
+            { x: "1", order: 1 },
+          ],
+          derivatives: [
+            { x: "0", order: 1, value: "2" },
+            { x: "1", order: 1, value: "5" },
+          ],
+        })}
+        onChange={onChange}
+      />,
+    )
+
+    fireEvent.change(screen.getByLabelText("Maximum derivative order for node 0"), {
+      target: { value: "0" },
+    })
+
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        derivatives: expect.arrayContaining([
+          { x: "0", order: 1, value: "2" },
+          { x: "1", order: 1, value: "5" },
+        ]),
+      }),
+    )
+  })
+
+  it("preserves higher-order Osculating state when Hermite derivatives are edited", () => {
+    const onChange = vi.fn()
+    render(
+      <InputPanel
+        form={makeForm({
+          methods: ["hermite", "osculating"],
+          points: [
+            ["0", "1"],
+            ["1", "3"],
+          ],
+          osculatingOrders: [
+            { x: "0", order: 2 },
+            { x: "1", order: 1 },
+          ],
+          derivatives: [
+            { x: "0", order: 1, value: "2" },
+            { x: "0", order: 2, value: "4" },
+            { x: "1", order: 1, value: "5" },
+          ],
+        })}
+        onChange={onChange}
+      />,
+    )
+
+    fireEvent.change(screen.getByLabelText("Derivative value for node 0"), {
+      target: { value: "3" },
+    })
+
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        derivatives: [
+          { x: "0", order: 1, value: "3" },
+          { x: "0", order: 2, value: "4" },
+          { x: "1", order: 1, value: "5" },
+        ],
+      }),
+    )
+  })
+
   it("builds function-backed osculating requests without manual derivative values", () => {
     const request = buildRequest(
       makeForm({
