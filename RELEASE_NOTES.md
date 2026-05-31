@@ -24,7 +24,8 @@ Date: 2026-06-01
 ## Release Access
 
 - Production promotion requires explicit approval.
-- Current preview access is protected by Vercel Authentication. Do not describe the preview as public.
+- Fresh current preview access is protected by Vercel Authentication. Do not describe the fresh preview as public.
+- Existing production is separate and unchanged from this preview-only run.
 
 ## Verification
 
@@ -43,7 +44,7 @@ Fresh post-RC local verification on 2026-05-27:
 - Frontend build: `npm run build` -> exit 0 with existing Vite large-chunk warning.
 - Frontend tests: `npm test` -> 14 files / 62 tests passed.
 
-Fresh post-RC preview verification will be recorded in `docs/HANDOFF.md` and `docs/PLAN.md` after the final deploy/smoke step in this session.
+Fresh post-RC preview verification is recorded in `docs/HANDOFF.md` and `docs/PLAN.md`.
 
 Fresh post-RC preview deployment on 2026-05-27:
 
@@ -68,8 +69,28 @@ RC blocker local verification completed so far on 2026-06-01:
 - Chrome DevTools MCP: no console form-label issues, no unlabeled form fields, Lighthouse Accessibility 100.
 - Local Vercel build: `npx vercel build --yes` passed from `W:\` after `.\scripts\bootstrap-release-env.ps1`.
 
+Final preview-only deployment on 2026-06-01:
+
+- Preview URL: `https://interpolation-workbench-eigtee1bc-marvillarq20-3593s-projects.vercel.app`
+- Deployment id: `dpl_F4a5VTBgFeNSpCo6sqNaaGUvqZHP`
+- Vercel target/status: `preview` / `Ready`
+- Preview public access: direct unauthenticated Node `fetch` to `/` and `/health` returned HTTP `401 Unauthorized`.
+- Existing production deployment remained separate and unchanged: `https://interpolation-workbench-r7dkw8cmy-marvillarq20-3593s-projects.vercel.app` (`dpl_8eqoGvLoqLosanRus34rRMBVzo3U`), target/status `production` / `Ready`.
+- Existing production aliases: `https://interpolation-workbench.vercel.app` and `https://interpolation-workbench-marvillarq20-3593s-projects.vercel.app`.
+- Existing production alias public access: unauthenticated `/` and `/health` returned HTTP `200`.
+- Production promotion was not run per the user instruction to keep the fresh deployment separate from production.
+
+Final local verification on 2026-06-01:
+
+- Backend pytest: 143 passed.
+- Backend Ruff: all checks passed.
+- Frontend Vitest: 15 files / 70 tests passed.
+- Frontend lint/build: passed; Vite emitted the existing large-chunk advisory.
+- Local Vercel build: passed from `W:\`, output `.vercel\output`, target `preview`.
+- Chrome DevTools MCP: Osculating UI, clamped spline UI, result tabs, graph/evaluation output, mobile emulation at `320x800`, no console `issue` messages, no unlabeled visible form controls, and Lighthouse snapshot Accessibility `100`.
+
 ## Known Caveats
 
-- Preview is currently protected by Vercel Authentication. Public/professor access needs protection disabled by an authorized account owner or a separate approved access path.
+- Fresh current preview is protected by Vercel Authentication. Current-branch public/professor access needs protection disabled by an authorized account owner, preview sharing through an approved access path, or an explicit production promotion.
 - `.impeccable/critique/screens/` and `.kiro/` contain tracked tooling/audit assets. They were inspected but not broadly removed in this RC pass.
 - The frontend bundle still carries Vite large-chunk warnings because the graph and polynomial renderers depend on heavier visualization/math display libraries. Current build output: main JS 725.00 kB / 211.84 kB gzip, GraphCard chunk 378.60 kB / 109.73 kB gzip, PolynomialCard chunk 6.55 kB / 2.30 kB gzip, CSS 92.11 kB / 19.37 kB gzip.

@@ -1,7 +1,47 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
-Task 9 stale audit/docs cleanup and repo hygiene is in progress on `codex/interpolation-backend-v1`. The current cleanup supersedes older audit text that described Osculating, non-natural spline boundaries, Phase 2 frontend controls, browser QA, local Vercel builds, or Windows launcher setup as unresolved release limitations.
+Final blocker-resolution verification and preview deployment are complete on `codex/interpolation-backend-v1` as of 2026-06-01. Production was intentionally kept separate per the user's latest instruction.
+
+Fresh deployment status:
+
+- Preview URL: `https://interpolation-workbench-eigtee1bc-marvillarq20-3593s-projects.vercel.app`
+- Preview deployment id: `dpl_F4a5VTBgFeNSpCo6sqNaaGUvqZHP`
+- Preview inspect URL: `https://vercel.com/marvillarq20-3593s-projects/interpolation-workbench/F4a5VTBgFeNSpCo6sqNaaGUvqZHP`
+- Preview target/status: `preview` / `Ready`
+- Preview public access: unauthenticated `fetch` to `/` and `/health` returned HTTP `401 Unauthorized`, so the preview is protected by Vercel Authentication.
+- Existing production deployment: `https://interpolation-workbench-r7dkw8cmy-marvillarq20-3593s-projects.vercel.app`, deployment id `dpl_8eqoGvLoqLosanRus34rRMBVzo3U`, target/status `production` / `Ready`.
+- Existing production aliases: `https://interpolation-workbench.vercel.app` and `https://interpolation-workbench-marvillarq20-3593s-projects.vercel.app`.
+- Existing production access check: unauthenticated `fetch` to `https://interpolation-workbench.vercel.app/` and `/health` returned HTTP `200`.
+- Production promotion was not run. The current branch changes are deployed only to the fresh preview.
+
+Final verification commands:
+
+| Command / Check | Result |
+|---|---|
+| `backend\.venv\Scripts\python.exe -m pytest` from `backend/` | PASS - 143 tests. |
+| `backend\.venv\Scripts\python.exe -m ruff check .` from `backend/` | PASS - all checks passed. |
+| `npm test` from `frontend/` | PASS - 15 files / 70 tests. |
+| `npm run lint` from `frontend/` | PASS. |
+| `npm run build` from `frontend/` | PASS - Vite large-chunk advisory only. |
+| `subst W: "..."; W:; npx vercel build --yes` | PASS - local Vercel build completed successfully, output `.vercel\output`, target `preview`, Python 3.12.13 / uv 0.11.17 locally. |
+| Chrome DevTools MCP Osculating UI smoke | PASS - loaded Osculating example, enabled graph output, computed, verified Graph/Evaluations/Methods tabs and Osculating method details. |
+| Chrome DevTools MCP spline UI smoke | PASS - loaded cubic spline example, selected `clamped`, entered endpoint derivatives, computed, and verified spline method details. |
+| Chrome DevTools MCP mobile check | PASS - emulated `320x800x1,mobile,touch`; `scrollWidth === clientWidth === 320`, no overflowing elements found. |
+| Chrome DevTools MCP accessibility checks | PASS - no unlabeled visible form controls, no console `issue` messages, Lighthouse snapshot Accessibility `100`. |
+| `npx vercel --yes` | PASS - fresh preview deployment ready; production untouched. |
+| `npx vercel inspect interpolation-workbench-eigtee1bc-marvillarq20-3593s-projects.vercel.app` | PASS - target `preview`, status `Ready`. |
+| Unauthenticated Node `fetch` to fresh preview `/` and `/health` | PASS for access diagnosis - both returned HTTP `401 Unauthorized`. |
+| `npx vercel ls interpolation-workbench` and production inspect | PASS - existing production deployment identified separately and not changed by this run. |
+| Unauthenticated Node `fetch` to existing production alias `/` and `/health` | PASS - both returned HTTP `200`. |
+
+Current release decision:
+
+- Do not claim RC/public readiness for the current branch because the current branch has not been promoted to production and the fresh preview is protected.
+- A public production alias exists, but it points to the older production deployment, not the current preview.
+
+## Previous Current Task
+Task 9 stale audit/docs cleanup and repo hygiene is complete locally on `codex/interpolation-backend-v1`. The cleanup supersedes older audit text that described Osculating, non-natural spline boundaries, Phase 2 frontend controls, browser QA, local Vercel builds, or Windows launcher setup as unresolved release limitations.
 
 Repo hygiene evidence moved into versioned docs:
 
