@@ -28,11 +28,17 @@ from app.schemas import InterpolateRequest
 def interpolate(request: InterpolateRequest) -> dict[str, object]:
     problem = normalize_request(request)
     raw_results, method_results = _run_methods(problem)
-    warnings = [*problem.warnings, *_method_disagreement_warnings(problem, method_results)]
     status = (
         "ok" if all(result["status"] == "ok" for result in method_results.values()) else "partial"
     )
     polynomial_source = _polynomial_source(raw_results)
+    warnings = _dedupe_warnings(
+        [
+            *problem.warnings,
+            *_source_method_warnings(raw_results, polynomial_source, method_results),
+            *_method_disagreement_warnings(problem, method_results),
+        ]
+    )
     response_degree = _response_degree(problem, raw_results, polynomial_source)
     sorted_nodes = problem.sorted_nodes or _nodes_reordered(method_results)
     response = {
@@ -78,6 +84,28 @@ def _nodes_reordered(methods: dict[str, dict[str, Any]]) -> bool:
             if warning.get("code") == "nodes_reordered":
                 return True
     return False
+
+
+def _source_method_warnings(
+    raw_results: dict[str, dict[str, Any]],
+    polynomial_source: dict[str, Any] | None,
+    methods: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    if polynomial_source is None or polynomial_source is not raw_results.get("osculating"):
+        return []
+    return methods.get("osculating", {}).get("warnings", [])
+
+
+def _dedupe_warnings(warnings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    deduped = []
+    seen = set()
+    for warning in warnings:
+        key = (warning.get("code"), repr(warning.get("details", {})))
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(warning)
+    return deduped
 
 
 def _run_methods(problem) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:

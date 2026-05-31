@@ -418,7 +418,7 @@ Top-level response behavior:
 
 - `polynomial.osculating_form` and `polynomial.latex_osculating` are populated when osculating output is available.
 - When osculating is the successful polynomial source, top-level `degree`, `input_summary.degree`, and `methods.osculating.degree` use the expanded osculating polynomial degree instead of the distinct-node count degree.
-- High repeated-constraint osculating requests add a method-level `high_degree_warning` when the osculating constraint degree is at least 10, even if the distinct node count is small.
+- High repeated-constraint osculating requests add `high_degree_warning` to both `methods.osculating.warnings` and top-level `warnings` when osculating is the successful polynomial source and its constraint degree is at least 10, even if the distinct node count is small.
 - Top-level `evaluations[].best_method` prefers `osculating` ahead of Hermite and Taylor when multiple selected methods produce values.
 - When `graph: true` and osculating succeeds, `graph_data.P_x` samples the osculating polynomial and `graph_data.source_method` is `"osculating"`.
 

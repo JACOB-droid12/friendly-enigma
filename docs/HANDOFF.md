@@ -1,6 +1,33 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Focused Task 3 follow-up fix is complete locally on `codex/interpolation-backend-v1`. This is backend-only, did not create a worktree, did not touch frontend files, did not touch cubic spline boundary code, and did not revert unrelated README/untracked changes.
+
+Files changed in this fix:
+
+- `backend/app/core/service.py`
+  - Promotes `methods.osculating.warnings` into top-level `warnings` only when osculating is the successful polynomial source.
+  - Deduplicates top-level warnings by code/details so promoted source warnings do not duplicate existing general warnings.
+- `backend/app/tests/test_api.py`
+  - Strengthened the osculating effective-degree 10 regression to assert top-level `degree`, `input_summary.degree`, method-level `high_degree_warning`, and top-level `high_degree_warning`.
+- `docs/API_CONTRACT.md`
+  - Clarified that high repeated-constraint osculating requests surface `high_degree_warning` at both method and top-level warning surfaces when osculating is the source.
+- `docs/PLAN.md`, `docs/HANDOFF.md`
+  - Recorded this focused follow-up status and verification.
+
+Commands run in this fix:
+
+| Command / Check | Result |
+|---|---|
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_api.py app/tests/test_osculating.py -q` | PASS - 44 passed in 6.90s. |
+| `.\.venv\Scripts\python.exe -m ruff check app/core/service.py app/tests/test_api.py app/tests/test_osculating.py` | PASS - `All checks passed!`. |
+
+Notes and risks:
+
+- Existing untracked local QA artifacts remain unmodified: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`.
+- The change intentionally does not promote warnings from non-source methods.
+
+## Previous Current Task
 Focused Task 3 code-quality fix is complete locally on `codex/interpolation-backend-v1`. This is backend-only and does not touch frontend files or cubic spline boundary implementation.
 
 Files changed in this fix:

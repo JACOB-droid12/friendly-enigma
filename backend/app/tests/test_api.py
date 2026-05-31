@@ -350,10 +350,12 @@ def test_interpolate_osculating_high_constraint_degree_warns() -> None:
     assert response.status_code == 200
     assert body["status"] == "ok"
     assert body["degree"] == 10
+    assert body["input_summary"]["degree"] == 10
     assert any(
         warning["code"] == "high_degree_warning"
         for warning in body["methods"]["osculating"]["warnings"]
     )
+    assert any(warning["code"] == "high_degree_warning" for warning in body["warnings"])
 
 
 def test_interpolate_duplicate_derivative_data_rejected() -> None:
