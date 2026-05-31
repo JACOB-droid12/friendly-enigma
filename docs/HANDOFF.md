@@ -1,6 +1,65 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Task 5: Frontend Request Controls And Types is implemented locally on `codex/interpolation-backend-v1`. This is frontend request/control work only, did not create a worktree, did not change backend math, and did not revert unrelated untracked changes.
+
+Files changed in this task:
+
+- `frontend/src/lib/api-types.ts`
+  - Added frontend request types for `SplineBoundaryCondition = "natural" | "clamped" | "not-a-knot" | "periodic"`, `OsculatingOrderOption`, `OsculatingMethodOptions`, optional clamped spline derivative strings, and `MethodOptions.osculating`.
+- `frontend/src/lib/interpolate-request.ts`
+  - New pure request-builder helper moved out of `App.tsx`.
+  - Builds `method_options.osculating.orders[]` from the current visible x-value rows, preserving max-order integers while syncing the `x` strings to current form state.
+  - Builds clamped spline `left_derivative` / `right_derivative` strings only when the selected boundary is `clamped`.
+  - Sends Hermite first-derivative entries as order `1`.
+  - Sends osculating point-mode derivative values for every requested order with string values; omits manual osculating derivatives for function-backed modes so the backend derives them.
+- `frontend/src/App.tsx`
+  - Added default form state for `osculatingOrders`, `splineLeftDerivative`, and `splineRightDerivative`.
+  - Uses the new `buildRequest` helper for compute payload construction.
+- `frontend/src/components/InputPanel.tsx`
+  - Added form state fields for osculating max orders and clamped spline endpoint derivatives.
+  - Shows Hermite first-derivative controls only for Hermite methods.
+  - Shows osculating max-order controls when `osculating` is selected; function-backed modes show max-order controls without manual derivative value inputs.
+  - Passes clamped derivative state into the cubic spline config block.
+- `frontend/src/components/DerivativeInputTable.tsx`
+  - Refactored into `first-derivative` and `osculating` modes.
+  - Preserves the existing Hermite first-derivative labels.
+  - Adds accessible osculating labels such as `Maximum derivative order for node 0` and `Derivative order 1 for node 0`.
+- `frontend/src/components/CubicSplineConfigBlock.tsx`
+  - Enables `natural`, `clamped`, `not-a-knot`, and `periodic`.
+  - Removes the disabled/deferred placeholder options.
+  - Renders labelled clamped endpoint derivative string fields.
+- `frontend/src/components/InputPanel.MethodConfig.test.tsx`
+  - Added osculating max-order/manual-derivative coverage.
+  - Added function-backed osculating no-manual-values coverage.
+  - Added spline boundary/clamped derivative field coverage.
+  - Added request-builder payload coverage for osculating and clamped spline options.
+- `frontend/src/App.examples.test.tsx`
+  - Updated the osculating example assertions for the new order-aware derivative input labels while preserving Hermite assertions.
+- `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/FRONTEND_HANDOFF.md`
+  - Recorded Task 5 scope, verification, and the remaining Task 6 renderer boundary.
+
+Commands run in this task:
+
+| Command / Check | Result |
+|---|---|
+| `npm test -- InputPanel.MethodConfig.test.tsx` from `frontend/` before helper extraction | PASS - 1 test file, 14 tests passed. |
+| `npm run lint` from `frontend/` before helper extraction | PASS with warning - ESLint exit 0, one `react-refresh/only-export-components` warning caused by exporting `buildRequest` from `App.tsx`. |
+| `npm test -- InputPanel.MethodConfig.test.tsx` from `frontend/` after moving request builder to `frontend/src/lib/interpolate-request.ts` | PASS - 1 test file, 14 tests passed. |
+| `npm run lint` from `frontend/` after helper extraction | PASS - no errors or warnings. |
+| `npm run build` from `frontend/` after helper extraction | PASS - `tsc -b && vite build`; Vite emitted the existing large-chunk advisory. |
+| `npm test -- App.examples.test.tsx` from `frontend/` after osculating label update, first run | FAIL - 2 failures because Hermite basis-form still expected an osculating label and the osculating example still expected the old Hermite label. |
+| `npm test -- App.examples.test.tsx` from `frontend/` after fixing test labels | PASS - 1 test file, 11 tests passed. |
+| `npm run lint` from `frontend/` final | PASS - no errors or warnings. |
+| `npm run build` from `frontend/` final | PASS - `tsc -b && vite build`; Vite emitted the existing large-chunk advisory. |
+
+Notes and risks:
+
+- Task 6 still owns the osculating result renderer. The current method-details path may still treat osculating via the existing deferred renderer; this task only updated request controls/types and payload construction.
+- Function-interval osculating uses backend-generated nodes, so the frontend cannot show per-node explicit x-value order rows without computing generated nodes client-side. The UI leaves a note and sends an empty `orders` list for that mode, allowing the backend default order behavior.
+- Existing untracked local QA artifacts remain unmodified: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`.
+
+## Previous Current Task
 Task 4: Cubic Spline Boundary Conditions is implemented locally on `codex/interpolation-backend-v1`. This is backend-only, did not create a worktree, did not touch frontend files, and did not revert unrelated user/untracked changes.
 
 Files changed in this task:

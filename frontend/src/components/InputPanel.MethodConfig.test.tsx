@@ -1,6 +1,7 @@
-import { render, screen, within } from "@testing-library/react"
+import { fireEvent, render, screen, within } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 import { InputPanel, type FormState } from "@/components/InputPanel"
+import { buildRequest } from "@/lib/interpolate-request"
 
 /**
  * Vitest smoke test for the "Method Configuration" card in
@@ -42,9 +43,12 @@ function makeForm(overrides: Partial<FormState> = {}): FormState {
     evaluationX: [],
     graph: false,
     derivatives: [],
+    osculatingOrders: [],
     taylorCenter: "0",
     taylorOrder: 3,
     splineBoundaryCondition: "natural",
+    splineLeftDerivative: "",
+    splineRightDerivative: "",
     ...overrides,
   }
 }
@@ -101,7 +105,6 @@ describe("InputPanel — Method Configuration card", () => {
   it.each([
     ["hermite_divided_difference"],
     ["hermite"],
-    ["osculating"],
   ] as const)(
     "renders the Derivative Data table when %s is selected",
     (method) => {
@@ -126,6 +129,61 @@ describe("InputPanel — Method Configuration card", () => {
       ).toBeInTheDocument()
     },
   )
+
+  it("renders order-aware osculating controls and manual derivative value inputs in points mode", () => {
+    render(
+      <InputPanel
+        form={makeForm({
+          methods: ["osculating"],
+          osculatingOrders: [
+            { x: "1", order: 2 },
+            { x: "2", order: 1 },
+          ],
+          derivatives: [
+            { x: "1", order: 1, value: "10" },
+            { x: "1", order: 2, value: "20" },
+            { x: "2", order: 1, value: "30" },
+          ],
+        })}
+        onChange={vi.fn()}
+      />,
+    )
+
+    expect(
+      screen.getByRole("heading", { name: "Osculating Derivative Orders" }),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText("Maximum derivative order for node 0")).toHaveValue(2)
+    expect(screen.getByLabelText("Maximum derivative order for node 1")).toHaveValue(1)
+    expect(screen.getByLabelText("Derivative order 1 for node 0")).toHaveValue("10")
+    expect(screen.getByLabelText("Derivative order 2 for node 0")).toHaveValue("20")
+    expect(screen.getByLabelText("Derivative order 1 for node 1")).toHaveValue("30")
+  })
+
+  it("does not render manual osculating derivative value inputs in function-backed mode", () => {
+    render(
+      <InputPanel
+        form={makeForm({
+          mode: "x_values_with_function",
+          xValues: ["0", "1"],
+          functionExpr: "exp(x)",
+          methods: ["osculating"],
+          osculatingOrders: [
+            { x: "0", order: 2 },
+            { x: "1", order: 1 },
+          ],
+        })}
+        onChange={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByLabelText("Maximum derivative order for node 0")).toHaveValue(2)
+    expect(screen.getByLabelText("Maximum derivative order for node 1")).toHaveValue(1)
+    expect(screen.queryByLabelText("Derivative order 1 for node 0")).toBeNull()
+    expect(screen.queryByLabelText("Derivative order 2 for node 0")).toBeNull()
+    expect(
+      screen.getByText(/backend derives derivative values from f\(x\)/i),
+    ).toBeInTheDocument()
+  })
 
   it("renders the Taylor configuration block when taylor is selected", () => {
     render(
@@ -160,6 +218,103 @@ describe("InputPanel — Method Configuration card", () => {
     ).toBeInTheDocument()
   })
 
+  it("enables implemented spline boundary modes and renders clamped derivative fields", () => {
+    const onChange = vi.fn()
+    const { rerender } = render(
+      <InputPanel
+        form={makeForm({ methods: ["cubic_spline"] })}
+        onChange={onChange}
+      />,
+    )
+
+    const selector = screen.getByRole("combobox", { name: "Boundary Condition" })
+    expect(within(selector).getByRole("option", { name: "Natural" })).not.toBeDisabled()
+    expect(within(selector).getByRole("option", { name: "Clamped" })).not.toBeDisabled()
+    expect(within(selector).getByRole("option", { name: "Not-a-Knot" })).not.toBeDisabled()
+    expect(within(selector).getByRole("option", { name: "Periodic" })).not.toBeDisabled()
+
+    fireEvent.change(selector, { target: { value: "clamped" } })
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ splineBoundaryCondition: "clamped" }),
+    )
+
+    rerender(
+      <InputPanel
+        form={makeForm({
+          methods: ["cubic_spline"],
+          splineBoundaryCondition: "clamped",
+          splineLeftDerivative: "0",
+          splineRightDerivative: "4",
+        })}
+        onChange={onChange}
+      />,
+    )
+
+    expect(screen.getByLabelText("Left endpoint derivative")).toHaveValue("0")
+    expect(screen.getByLabelText("Right endpoint derivative")).toHaveValue("4")
+  })
+
+  it("builds osculating and clamped spline method options without coercing numeric strings", () => {
+    const request = buildRequest(
+      makeForm({
+        methods: ["osculating", "cubic_spline"],
+        points: [
+          ["0", "1"],
+          ["1", "2"],
+        ],
+        osculatingOrders: [
+          { x: "stale", order: 2 },
+          { x: "stale", order: 1 },
+        ],
+        derivatives: [
+          { x: "0", order: 1, value: "3/2" },
+          { x: "0", order: 2, value: "5.25" },
+          { x: "1", order: 1, value: "7" },
+        ],
+        splineBoundaryCondition: "clamped",
+        splineLeftDerivative: "3/2",
+        splineRightDerivative: "7",
+      }),
+    )
+
+    expect(request.method_options?.osculating?.orders).toEqual([
+      { x: "0", order: 2 },
+      { x: "1", order: 1 },
+    ])
+    expect(request.method_options?.cubic_spline).toEqual({
+      boundary_condition: "clamped",
+      left_derivative: "3/2",
+      right_derivative: "7",
+    })
+    expect(request.derivatives).toEqual([
+      { x: "0", order: 1, value: "3/2" },
+      { x: "0", order: 2, value: "5.25" },
+      { x: "1", order: 1, value: "7" },
+    ])
+  })
+
+  it("builds function-backed osculating requests without manual derivative values", () => {
+    const request = buildRequest(
+      makeForm({
+        mode: "x_values_with_function",
+        xValues: ["0", "1"],
+        functionExpr: "exp(x)",
+        methods: ["osculating"],
+        osculatingOrders: [
+          { x: "0", order: 2 },
+          { x: "1", order: 0 },
+        ],
+        derivatives: [{ x: "0", order: 1, value: "999" }],
+      }),
+    )
+
+    expect(request.method_options?.osculating?.orders).toEqual([
+      { x: "0", order: 2 },
+      { x: "1", order: 0 },
+    ])
+    expect(request.derivatives).toBeUndefined()
+  })
+
   it("stacks Method Configuration blocks vertically below the md breakpoint", () => {
     // Select every Phase 2 method so all four adaptive blocks mount
     // inside the same Method Configuration body. The implementation
@@ -174,6 +329,7 @@ describe("InputPanel — Method Configuration card", () => {
           methods: [
             "newton_forward",
             "hermite_divided_difference",
+            "osculating",
             "taylor",
             "cubic_spline",
           ],
@@ -191,8 +347,8 @@ describe("InputPanel — Method Configuration card", () => {
     const body = sectionRoot!.querySelector(".space-y-5")
     expect(body).not.toBeNull()
     expect(body).toHaveClass("space-y-5")
-    // Sanity: the body holds all four adaptive blocks as direct
+    // Sanity: the body holds all adaptive blocks as direct
     // children, so they stack vertically.
-    expect(body!.children.length).toBe(4)
+    expect(body!.children.length).toBe(5)
   })
 })

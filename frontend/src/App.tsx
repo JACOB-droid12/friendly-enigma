@@ -10,9 +10,10 @@ import { ResultsPanel } from "@/components/ResultsPanel"
 import { ExamplesPanel } from "@/components/ExamplesPanel"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { interpolate, validateFunction, ApiError } from "@/lib/api-client"
-import type { DerivativeEntry, InterpolateRequest, InterpolateResponse, MethodName, MethodOptions } from "@/lib/api-types"
+import type { InterpolateResponse, MethodName } from "@/lib/api-types"
 import { DisplayDigitsProvider } from "@/lib/display-digits"
 import { assessEqualSpacing } from "@/lib/equal-spacing"
+import { buildRequest } from "@/lib/interpolate-request"
 import { useShortcuts } from "@/lib/use-shortcuts"
 import { AlertTriangle, Play, RotateCcw, HelpCircle, X, Keyboard, Loader2 } from "lucide-react"
 
@@ -31,74 +32,12 @@ const DEFAULT_FORM: FormState = {
   evaluationX: [],
   graph: false,
   derivatives: [],
+  osculatingOrders: [],
   taylorCenter: "0",
   taylorOrder: 3,
   splineBoundaryCondition: "natural",
-}
-
-function buildMethodOptions(form: FormState): MethodOptions | undefined {
-  const out: MethodOptions = {}
-
-  if (form.methods.includes("taylor")) {
-    out.taylor = {
-      center: form.taylorCenter,                 // string from input
-      order: form.taylorOrder,                   // integer 0..20
-    }
-  }
-
-  if (form.methods.includes("cubic_spline")) {
-    out.cubic_spline = {
-      boundary_condition: form.splineBoundaryCondition, // "natural"
-    }
-  }
-
-  return Object.keys(out).length > 0 ? out : undefined
-}
-
-function buildDerivatives(form: FormState): DerivativeEntry[] | undefined {
-  const needsDerivatives =
-    form.methods.includes("hermite_divided_difference") ||
-    form.methods.includes("hermite") ||
-    form.methods.includes("osculating")
-  if (!needsDerivatives) return undefined
-  return form.derivatives
-    .filter((d) => d.x.trim() !== "" && d.value.trim() !== "")
-    .map((d) => ({ x: d.x, order: 1, value: d.value }))
-}
-
-function buildRequest(form: FormState): InterpolateRequest {
-  const base: InterpolateRequest = {
-    mode: form.mode,
-    methods: form.methods,
-    precision: form.precision,
-    exact: form.exact,
-    evaluation_x: form.evaluationX.filter((x) => x.trim() !== ""),
-    graph: form.graph,
-  }
-
-  switch (form.mode) {
-    case "points":
-      base.points = form.points.filter((p) => p[0].trim() !== "" || p[1].trim() !== "")
-      break
-    case "x_values_with_function":
-      base.x_values = form.xValues.filter((x) => x.trim() !== "")
-      base.function = form.functionExpr
-      break
-    case "function_interval":
-      base.function = form.functionExpr
-      base.interval = [form.intervalStart, form.intervalEnd]
-      base.node_strategy = form.nodeStrategy
-      base.node_count = form.nodeCount
-      break
-  }
-
-  const methodOptions = buildMethodOptions(form)
-  if (methodOptions) base.method_options = methodOptions
-
-  const derivatives = buildDerivatives(form)
-  if (derivatives) base.derivatives = derivatives
-
-  return base
+  splineLeftDerivative: "",
+  splineRightDerivative: "",
 }
 
 export default function App() {

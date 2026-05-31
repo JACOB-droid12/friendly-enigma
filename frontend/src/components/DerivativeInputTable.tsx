@@ -9,16 +9,28 @@ import {
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 
+export type DerivativeInputMode = "first-derivative" | "osculating"
+
+export interface DerivativeFormEntry {
+  x: string
+  order?: number
+  value: string
+}
+
+export interface OsculatingOrderFormEntry {
+  x: string
+  order: number
+}
+
 /**
  * Props for {@link DerivativeInputTable}. The component is purely
  * presentational — it does not own state, does not call the API, and
  * does no math. All numeric values stay as strings at the API
- * boundary (R1.4). The parent (`InputPanel.tsx`) is responsible for
- * keeping `derivatives` in lockstep with `xs` across node add/remove
- * operations; this component cooperates by always emitting an
- * `onChange` payload of length `xs.length`.
+ * boundary (R1.4). Only osculating maximum derivative order is parsed
+ * as an integer UI control.
  */
 export interface DerivativeInputTableProps {
+  mode: DerivativeInputMode
   /**
    * Read-only x values for each node, in row order. Strings as the
    * user typed them in `PointsInput` / `XValuesInput` — preserved
@@ -31,79 +43,146 @@ export interface DerivativeInputTableProps {
    * `xs`. Shorter arrays render as empty `value` cells; entries past
    * `xs.length` are ignored.
    */
-  derivatives: Array<{ x: string; value: string }>
+  derivatives: DerivativeFormEntry[]
   /**
-   * Called with the next derivatives array when the user edits a
-   * `value` cell. The emitted array always has length `xs.length`.
+   * Called with the next derivatives array when the user edits a value
+   * cell. First-derivative mode emits one order-1 entry per node.
+   * Osculating mode emits one entry for every requested derivative
+   * order per node when manual values are required.
    */
-  onChange: (next: Array<{ x: string; value: string }>) => void
+  onChange: (next: DerivativeFormEntry[]) => void
+  /**
+   * Osculating maximum order per node. Required only in osculating
+   * mode; entries are kept in row order and synced to the current x
+   * strings whenever emitted.
+   */
+  osculatingOrders?: OsculatingOrderFormEntry[]
+  /** Called when an osculating maximum order changes. */
+  onOsculatingOrdersChange?: (next: OsculatingOrderFormEntry[]) => void
+  /**
+   * Whether osculating value inputs should render. Point/data mode
+   * requires manual derivative values; function-backed modes derive
+   * them on the backend from f(x).
+   */
+  manualValuesRequired?: boolean
   /** Optional class for the outermost wrapper. */
   className?: string
 }
 
 /**
- * Adaptive Input Panel block (R5.3, R5.4) that lets the user enter
- * `f'(x_i)` per node for the Derivative-Data Family methods
- * (`hermite_divided_difference`, `hermite`, and the deferred
- * `osculating`). Layout mirrors the labelled-grid conventions in
- * `PointsInput` and the index/numeric voice used by
- * `BarycentricDetails`'s weights table — no new design tokens are
- * introduced (R13).
- *
- * Rendered cells:
- * - `i`: row index in numeric voice (read-only).
- * - `x_i`: corresponding entry from `xs`, also in numeric voice
- *   (read-only display).
- * - `f'(x_i)`: editable string input bound to `derivatives[i].value`.
- *
- * Lockstep behavior (R5.3 acceptance): when the user edits row `i`,
- * `onChange` is called with a fresh array of length `xs.length`. The
- * edited row carries `{ x: xs[i], value: <new string> }`; non-edited
- * rows reuse the existing derivative entry when present and fall
- * back to `{ x: xs[k], value: "" }` when missing. Entries past
- * `xs.length` are dropped, which honors the "removing a node row
- * updates the derivative rows in lockstep" acceptance criterion.
- *
- * The helper paragraph reflects the current backend posture: only
- * first-derivative data is supported, so `order = 1` is injected by
- * the request builder (`buildDerivatives` in `App.tsx`). The
- * component itself does not surface or accept an `order` field.
- *
- * Default-exported to match the convention used by
- * `EqualSpacingHint`.
+ * Adaptive Input Panel block (R5.3, R5.4) for derivative-family
+ * request data. Hermite mode preserves the existing one-row-per-node
+ * first-derivative behavior. Osculating mode adds max-order controls
+ * and, in point/data mode, one manual derivative value input per
+ * requested order.
  */
 export default function DerivativeInputTable({
+  mode,
   xs,
   derivatives,
   onChange,
+  osculatingOrders = [],
+  onOsculatingOrdersChange,
+  manualValuesRequired = true,
   className,
 }: DerivativeInputTableProps) {
+  function derivativeValue(index: number, order: number) {
+    const x = xs[index] ?? ""
+    const matchByXAndOrder = derivatives.find(
+      (entry) => entry.x === x && (entry.order ?? 1) === order,
+    )
+    if (matchByXAndOrder) return matchByXAndOrder.value
+
+    if (mode === "first-derivative" && order === 1) {
+      return derivatives[index]?.value ?? ""
+    }
+
+    return ""
+  }
+
+  function maxOrderForNode(index: number) {
+    return osculatingOrders[index]?.order ?? 1
+  }
+
+  function syncedOrders(overrides: Record<number, number> = {}) {
+    return xs.map((x, index) => ({
+      x: x ?? "",
+      order: overrides[index] ?? maxOrderForNode(index),
+    }))
+  }
+
+  function osculatingDerivativeEntries(
+    overrides: Record<number, number> = {},
+    edited?: { index: number; order: number; value: string },
+  ) {
+    const next: DerivativeFormEntry[] = []
+    for (let index = 0; index < xs.length; index += 1) {
+      const maxOrder = overrides[index] ?? maxOrderForNode(index)
+      for (let order = 1; order <= maxOrder; order += 1) {
+        next.push({
+          x: xs[index] ?? "",
+          order,
+          value:
+            edited?.index === index && edited.order === order
+              ? edited.value
+              : derivativeValue(index, order),
+        })
+      }
+    }
+    return next
+  }
+
   function handleValueChange(index: number, nextValue: string) {
-    const next: Array<{ x: string; value: string }> = []
+    const next: DerivativeFormEntry[] = []
     for (let k = 0; k < xs.length; k += 1) {
       if (k === index) {
-        next.push({ x: xs[k] ?? "", value: nextValue })
-      } else if (k < derivatives.length) {
-        next.push(derivatives[k])
+        next.push({ x: xs[k] ?? "", order: 1, value: nextValue })
       } else {
-        next.push({ x: xs[k] ?? "", value: "" })
+        next.push({ x: xs[k] ?? "", order: 1, value: derivativeValue(k, 1) })
       }
     }
     onChange(next)
   }
 
+  function handleOsculatingValueChange(index: number, order: number, nextValue: string) {
+    onChange(osculatingDerivativeEntries({}, { index, order, value: nextValue }))
+  }
+
+  function handleMaxOrderChange(index: number, rawValue: string) {
+    const parsed = Number.parseInt(rawValue, 10)
+    const order = Number.isFinite(parsed) ? Math.min(10, Math.max(0, parsed)) : 0
+    const overrides = { [index]: order }
+    onOsculatingOrdersChange?.(syncedOrders(overrides))
+    if (manualValuesRequired) {
+      onChange(osculatingDerivativeEntries(overrides))
+    }
+  }
+
+  const isOsculating = mode === "osculating"
+  const title = isOsculating ? "Osculating Derivative Orders" : "Derivative Data"
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h3 className="font-label text-foreground">Derivative Data</h3>
-      <p className="text-xs text-muted-foreground">
-        Hermite currently supports first-derivative data only (order = 1).
-        Enter f&prime;(x<sub aria-hidden="true">i</sub>) per node; the
-        request builder fills the order field for you.
-      </p>
+      <h3 className="font-label text-foreground">{title}</h3>
+      {isOsculating ? (
+        <p className="text-xs text-muted-foreground">
+          Set the maximum derivative order per node.{" "}
+          {manualValuesRequired
+            ? "Point mode requires a derivative value for each requested order."
+            : "The backend derives derivative values from f(x) for function-backed input."}
+        </p>
+      ) : (
+        <p className="text-xs text-muted-foreground">
+          Hermite methods use first-derivative data only (order = 1). Enter
+          f&prime;(x<sub aria-hidden="true">i</sub>) per node.
+        </p>
+      )}
 
       {xs.length === 0 ? (
         <p className="text-xs text-muted-foreground">
-          Add at least one node above to enter a derivative.
+          {isOsculating
+            ? "Current nodes are generated from the interval by the backend, so explicit per-node orders are not available here."
+            : "Add at least one node above to enter a derivative."}
         </p>
       ) : (
         <div className="overflow-x-auto rounded-lg">
@@ -126,14 +205,27 @@ export default function DerivativeInputTable({
                   className="font-label text-muted-foreground px-3 py-2"
                   aria-label="f prime of x sub i (first derivative)"
                 >
-                  f&prime;(x<sub aria-hidden="true">i</sub>)
+                  {isOsculating ? (
+                    "Maximum order"
+                  ) : (
+                    <>
+                      f&prime;(x<sub aria-hidden="true">i</sub>)
+                    </>
+                  )}
                 </TableHead>
+                {isOsculating && manualValuesRequired && (
+                  <TableHead
+                    className="font-label text-muted-foreground px-3 py-2"
+                    aria-label="derivative values"
+                  >
+                    Derivative values
+                  </TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
               {xs.map((x, i) => {
-                const entry = i < derivatives.length ? derivatives[i] : undefined
-                const value = entry?.value ?? ""
+                const maxOrder = maxOrderForNode(i)
                 return (
                   <TableRow key={i}>
                     <TableCell className="font-numeric tabular-nums text-[11px] py-2 px-3 text-muted-foreground">
@@ -143,14 +235,48 @@ export default function DerivativeInputTable({
                       {x ?? ""}
                     </TableCell>
                     <TableCell className="py-2 px-3">
-                      <Input
-                        value={value}
-                        onChange={(e) => handleValueChange(i, e.target.value)}
-                        className="font-numeric text-sm h-8"
-                        aria-label={`Derivative value for node ${i}`}
-                        placeholder=""
-                      />
+                      {isOsculating ? (
+                        <Input
+                          type="number"
+                          min={0}
+                          max={10}
+                          step={1}
+                          value={maxOrder}
+                          onChange={(e) => handleMaxOrderChange(i, e.target.value)}
+                          className="font-numeric text-sm h-8 w-24"
+                          aria-label={`Maximum derivative order for node ${i}`}
+                        />
+                      ) : (
+                        <Input
+                          value={derivativeValue(i, 1)}
+                          onChange={(e) => handleValueChange(i, e.target.value)}
+                          className="font-numeric text-sm h-8"
+                          aria-label={`Derivative value for node ${i}`}
+                          placeholder=""
+                        />
+                      )}
                     </TableCell>
+                    {isOsculating && manualValuesRequired && (
+                      <TableCell className="py-2 px-3">
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {Array.from({ length: maxOrder }, (_, orderIndex) => {
+                            const order = orderIndex + 1
+                            return (
+                              <Input
+                                key={order}
+                                value={derivativeValue(i, order)}
+                                onChange={(e) =>
+                                  handleOsculatingValueChange(i, order, e.target.value)
+                                }
+                                className="font-numeric text-sm h-8 min-w-32"
+                                aria-label={`Derivative order ${order} for node ${i}`}
+                                placeholder={`order ${order}`}
+                              />
+                            )
+                          })}
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 )
               })}

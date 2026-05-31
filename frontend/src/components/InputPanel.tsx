@@ -9,7 +9,10 @@ import { MethodSelector } from "./MethodSelector"
 import { PrecisionSettings } from "./PrecisionSettings"
 import { EvaluationTargets } from "./EvaluationTargets"
 import EqualSpacingHint from "./EqualSpacingHint"
-import DerivativeInputTable from "./DerivativeInputTable"
+import DerivativeInputTable, {
+  type DerivativeFormEntry,
+  type OsculatingOrderFormEntry,
+} from "./DerivativeInputTable"
 import TaylorConfigBlock from "./TaylorConfigBlock"
 import CubicSplineConfigBlock from "./CubicSplineConfigBlock"
 import type { InputMode, MethodName, NodeStrategy, SplineBoundaryCondition } from "@/lib/api-types"
@@ -29,10 +32,13 @@ export interface FormState {
   evaluationX: string[]
   graph: boolean
   // Phase 2 additions (R5.3, R5.4, R5.5, R5.6)
-  derivatives: Array<{ x: string; value: string }>
+  derivatives: DerivativeFormEntry[]
+  osculatingOrders: OsculatingOrderFormEntry[]
   taylorCenter: string
   taylorOrder: number
   splineBoundaryCondition: SplineBoundaryCondition
+  splineLeftDerivative: string
+  splineRightDerivative: string
 }
 
 interface InputPanelProps {
@@ -74,14 +80,14 @@ export function InputPanel({ form, onChange, functionError, validationSuccess }:
     form.methods.includes("newton_forward") ||
     form.methods.includes("newton_backward") ||
     form.methods.includes("stirling")
-  const showDerivative =
+  const showHermiteDerivative =
     form.methods.includes("hermite_divided_difference") ||
-    form.methods.includes("hermite") ||
-    form.methods.includes("osculating")
+    form.methods.includes("hermite")
+  const showOsculating = form.methods.includes("osculating")
   const showTaylor = form.methods.includes("taylor")
   const showSpline = form.methods.includes("cubic_spline")
   const showMethodConfig =
-    showEqualSpacing || showDerivative || showTaylor || showSpline
+    showEqualSpacing || showHermiteDerivative || showOsculating || showTaylor || showSpline
 
   return (
     <div className="space-y-6">
@@ -159,11 +165,25 @@ export function InputPanel({ form, onChange, functionError, validationSuccess }:
           </div>
           <div className="p-5 space-y-5">
             {showEqualSpacing && <EqualSpacingHint values={xs} />}
-            {showDerivative && (
+            {showHermiteDerivative && (
               <DerivativeInputTable
+                mode="first-derivative"
                 xs={xs}
                 derivatives={form.derivatives}
                 onChange={(derivatives) => update({ derivatives })}
+              />
+            )}
+            {showOsculating && (
+              <DerivativeInputTable
+                mode="osculating"
+                xs={xs}
+                derivatives={form.derivatives}
+                onChange={(derivatives) => update({ derivatives })}
+                osculatingOrders={form.osculatingOrders}
+                onOsculatingOrdersChange={(osculatingOrders) =>
+                  update({ osculatingOrders })
+                }
+                manualValuesRequired={form.mode === "points"}
               />
             )}
             {showTaylor && (
@@ -180,6 +200,14 @@ export function InputPanel({ form, onChange, functionError, validationSuccess }:
                 boundaryCondition={form.splineBoundaryCondition}
                 onBoundaryConditionChange={(splineBoundaryCondition) =>
                   update({ splineBoundaryCondition })
+                }
+                leftDerivative={form.splineLeftDerivative}
+                rightDerivative={form.splineRightDerivative}
+                onLeftDerivativeChange={(splineLeftDerivative) =>
+                  update({ splineLeftDerivative })
+                }
+                onRightDerivativeChange={(splineRightDerivative) =>
+                  update({ splineRightDerivative })
                 }
               />
             )}

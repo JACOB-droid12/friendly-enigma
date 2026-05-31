@@ -20,6 +20,33 @@ Frontend-relevant contract changes:
 - Function-backed osculating rejects unsafe derivative results with `function_domain_error`, including `abs(x)` at `x=0` because the requested derivative is not two-sided at the node. Surface the backend message/code instead of deriving derivatives in React.
 - A single function node is accepted only for the narrow Taylor-equivalent osculating exception: `methods` exactly `["osculating"]` and at least one explicit positive order.
 
+## Task 5 Frontend Request Controls And Types (2026-06-01)
+
+Task 5 updates the React request-control surface without implementing the osculating result renderer.
+
+Frontend request behavior now implemented:
+
+- `frontend/src/lib/api-types.ts` mirrors the backend request contract for `method_options.osculating.orders[]` and cubic spline boundary modes `natural`, `clamped`, `not-a-knot`, and `periodic`.
+- `frontend/src/lib/interpolate-request.ts` builds `method_options.osculating.orders[]` from the current visible x-value rows while preserving max-order integers and numeric strings.
+- Point/data-mode osculating sends derivative entries for each requested order with `{ x, order, value }`; function-backed osculating omits manual derivative values so the backend derives them from `f(x)`.
+- Hermite request behavior remains first-derivative only with `order: 1`.
+- Cubic spline controls now allow all implemented boundary modes. When `clamped` is selected, the request includes `left_derivative` and `right_derivative` as strings.
+- Function-interval osculating does not synthesize generated nodes in React. The UI notes that interval nodes are backend-generated and sends no explicit order rows, preserving the backend default behavior without moving node generation into React.
+
+Verification from `frontend/`:
+
+| Command | Result |
+|---|---|
+| `npm test -- InputPanel.MethodConfig.test.tsx` | PASS - 14 tests. |
+| `npm test -- App.examples.test.tsx` | PASS - 11 tests after fixing the test label expectations. |
+| `npm run lint` | PASS. |
+| `npm run build` | PASS with the existing Vite large-chunk advisory. |
+
+Remaining frontend work:
+
+- Task 6 must replace the historical osculating deferred renderer with a real renderer for `methods.osculating` fields.
+- Method metadata/examples may still contain historical deferred osculating copy until Task 6 or a copy-specific cleanup updates renderer-facing language.
+
 ## Reciprocal Graph Node Plotting Fix (2026-05-26)
 
 `GraphCard` now parses backend numeric strings with a strict graph parser instead of `parseFloat`. This matters for exact-mode point inputs because the backend returns rational node strings such as `"1/2"` and `"2/3"`; `parseFloat` partially parsed those as `1` and `2`, which made the red node series appear at stale-looking integer coordinates while the orange `P(x)` curve was sampled from correct decimal `graph_data`.
@@ -1085,24 +1112,25 @@ Adaptive blocks rendered inside the card:
   the Compute button (with `aria-disabled="true"` and a tooltip
   reason) when every selected method is in the Equal-Spacing Family
   and the helper reports ineligibility.
-- **`DerivativeInputTable.tsx`** (R5.3 / R5.4). One row per
-  interpolation node currently in `form.points` or `form.xValues`,
-  read-only `x` cell paired with an editable `value` string input.
-  String at the API boundary; `order: 1` is injected by
-  `App.tsx` `buildDerivatives` per the current Hermite support
-  level.
+- **`DerivativeInputTable.tsx`** (R5.3 / R5.4). Supports two request
+  modes. `first-derivative` preserves the Hermite one-row-per-node
+  first-derivative input behavior and emits `order: 1`.
+  `osculating` shows a maximum derivative order per visible node and,
+  in points mode, derivative value inputs for every order `1..m_i`.
+  In function-backed modes, value inputs are hidden because the
+  backend derives derivative values from `f(x)`.
 - **`TaylorConfigBlock.tsx`** (R5.5). Labelled `center` string input
   and `<input type="number" min={0} max={20} step={1}>` for `order`.
   When `form.mode === "points"` the block renders a body-voice
   disabled hint instead ("Taylor needs a function expression. Switch
   to X + f(x) or Interval mode."), reusing the existing function
   input field rather than introducing a second one.
-- **`CubicSplineConfigBlock.tsx`** (R5.6 / R9.5). Current checked-in
-  frontend still has a historical `boundary_condition` `<select>` with
-  only `Natural` enabled. Task 4 backend support now implements
-  `clamped`, `not-a-knot`, and `periodic`; Task 5 should update this
-  control and add clamped derivative inputs without moving spline math
-  into React.
+- **`CubicSplineConfigBlock.tsx`** (R5.6 / R9.5). The
+  `boundary_condition` selector enables `Natural`, `Clamped`,
+  `Not-a-Knot`, and `Periodic`. Selecting `Clamped` renders left and
+  right endpoint derivative string inputs. The block sends options
+  only; React does not compute spline coefficients or generated
+  spline data.
 
 ### Family renderers
 

@@ -30,18 +30,27 @@ export interface TaylorMethodOptions {
   order: number              // integer 0..20
 }
 
-export type SplineBoundaryCondition = "natural"
-// Future boundary conditions are deferred per docs/API_CONTRACT.md and
-// R5.6. The literal stays narrow so the UI cannot send something the
-// backend rejects.
+export type SplineBoundaryCondition = "natural" | "clamped" | "not-a-knot" | "periodic"
+
+export interface OsculatingOrderOption {
+  x: string
+  order: number
+}
+
+export interface OsculatingMethodOptions {
+  orders: OsculatingOrderOption[]
+}
 
 export interface CubicSplineMethodOptions {
   boundary_condition: SplineBoundaryCondition
+  left_derivative?: string
+  right_derivative?: string
 }
 
 export interface MethodOptions {
   taylor?: TaylorMethodOptions
   cubic_spline?: CubicSplineMethodOptions
+  osculating?: OsculatingMethodOptions
 }
 
 // Request types

@@ -289,13 +289,13 @@ describe("lecture examples", () => {
     expect(screen.getByLabelText("Lagrange method")).not.toBeChecked()
     expect(screen.getByLabelText("Newton method")).not.toBeChecked()
 
-    expect(screen.getByLabelText("Derivative value for node 0")).toHaveValue(
+    expect(screen.getByLabelText("Derivative order 1 for node 0")).toHaveValue(
       "-0.52202324741466",
     )
-    expect(screen.getByLabelText("Derivative value for node 1")).toHaveValue(
+    expect(screen.getByLabelText("Derivative order 1 for node 1")).toHaveValue(
       "-0.56989593526168",
     )
-    expect(screen.getByLabelText("Derivative value for node 2")).toHaveValue(
+    expect(screen.getByLabelText("Derivative order 1 for node 2")).toHaveValue(
       "-0.581157072713434",
     )
 
