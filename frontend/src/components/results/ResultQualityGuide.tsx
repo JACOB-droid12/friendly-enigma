@@ -108,14 +108,14 @@ const WARNING_GUIDANCE: Record<string, { means: string; check: string }> = {
       "The numerical answer is still valid; consider using the recommended method for accuracy near this target.",
   },
   missing_derivative_data: {
-    means: "Hermite needs a first derivative at every node.",
-    check: "Fill in the derivative table or remove Hermite from the method list.",
+    means: "A derivative-based method is missing one or more requested derivative values.",
+    check: "Fill in the derivative table for each requested node/order pair or lower the requested order.",
   },
   invalid_derivative_order: {
     means:
       "The selected method does not currently support that derivative order.",
     check:
-      "Hermite supports order 1 only today; remove higher-order rows or wait for backend `osculating`.",
+      "Use Hermite for first-derivative matching or Osculating for higher-order derivative matching.",
   },
   unsupported_taylor_function: {
     means:
@@ -125,9 +125,9 @@ const WARNING_GUIDANCE: Record<string, { means: string; check: string }> = {
   },
   unsupported_boundary_condition: {
     means:
-      "Cubic spline got a boundary condition the backend does not implement.",
+      "Cubic spline got a boundary condition outside the implemented API contract.",
     check:
-      'Switch the boundary selector to "natural" (the only enabled option today).',
+      'Switch the boundary selector to "natural", "clamped", "not-a-knot", or "periodic".',
   },
   piecewise_method_no_global_polynomial: {
     means: "A piecewise method does not have a single global polynomial.",
@@ -138,7 +138,7 @@ const WARNING_GUIDANCE: Record<string, { means: string; check: string }> = {
     means:
       "The selected method is accepted by schema but not implemented yet.",
     check:
-      "Pick an implemented method (Hermite for derivative matching) or wait for backend support.",
+      "Pick an implemented method or check whether the frontend is sending an obsolete method name.",
   },
 }
 

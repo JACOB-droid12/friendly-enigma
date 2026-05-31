@@ -62,6 +62,19 @@ Focused Task 5 type-safety fix, also completed 2026-06-01:
 - Stale comments saying the backend had not implemented Osculating were removed from the API type file.
 - `MethodDetails` and renderer files remain intentionally untouched; Task 6 still owns visual rendering and routing.
 
+## Task 6 Frontend Osculating Result Rendering (2026-06-01)
+
+Task 6 replaces the historical Osculating deferred result path with real rendering for the implemented backend payload.
+
+Frontend result behavior now implemented:
+
+- `frontend/src/components/results/MethodDetails.tsx` routes `data.methods.osculating` to `OsculatingDetails`.
+- `frontend/src/components/results/methods/OsculatingDetails.tsx` renders `orders`, generalized `repeated_nodes`, `confluent_divided_difference_table`, `coefficients`, `nested_form`, `expanded`, `latex_expanded`, `latex_osculating`, `evaluations`, `steps`, method-level warnings, and method-level errors.
+- `frontend/src/test/interpolate-response.fixtures.ts` now exports `osculatingSuccessResponse` instead of the obsolete `osculatingDeferredResponse`.
+- `GuidedExplanation` now describes implemented Osculating output instead of a deferred method.
+- `ResultQualityGuide` warning guidance now reflects implemented higher-order Osculating and implemented spline boundary modes.
+- `DeferredMethodDetails` remains only as generic defensive UI for future `method_not_implemented` responses; Osculating no longer uses it.
+
 Verification from `frontend/`:
 
 | Command | Result |
@@ -71,13 +84,15 @@ Verification from `frontend/`:
 | `npm test -- InputPanel.MethodConfig.test.tsx App.examples.test.tsx` | PASS - 26 tests. |
 | `npm test -- MethodSelector.test.tsx InputPanel.MethodConfig.test.tsx App.examples.test.tsx` | PASS - 30 tests after the metadata/spec fix. |
 | `npm test -- InputPanel.MethodConfig.test.tsx` | PASS - 17 tests after the UI-state fix regressions. |
+| `npm test -- OsculatingDetails.test.tsx` | PASS - 2 tests. |
+| `npm test -- OsculatingDetails.test.tsx results.smoke.test.tsx GuidedExplanation.test.tsx ResultQualityGuide.test.tsx` | PASS - 4 files, 16 tests. |
 | `npm run lint` | PASS. |
-| `npm run build` | PASS after the focused type-safety fix; Vite emitted the existing large-chunk advisory. |
+| `npm run build` | PASS after the focused type-safety fix and again after Task 6; Vite emitted the existing large-chunk advisory. |
 
 Remaining frontend work:
 
-- Task 6 must replace the historical osculating deferred renderer with a real renderer for `methods.osculating` fields.
-- Historical deferred rendering code may still exist until Task 6 replaces the Osculating result details path.
+- Browser smoke still needs to cover Osculating UI, spline boundary inputs, result tabs, graph/evaluation output, and 320x800 mobile layout against the live app.
+- Accessibility verification still needs to close the Chrome "No label associated with a form field" issue or document automated evidence if it is not exposed.
 
 ## Reciprocal Graph Node Plotting Fix (2026-05-26)
 

@@ -120,6 +120,7 @@ export interface PolynomialData {
   // (`methods.hermite`) or Taylor (`methods.taylor`) result; null otherwise.
   hermite_form: string | null
   taylor_form: string | null
+  osculating_form?: string | null
   latex_expanded: string | null
   latex_lagrange: string | null
   latex_newton: string | null
@@ -127,6 +128,7 @@ export interface PolynomialData {
   // `taylor_form`; null otherwise.
   latex_hermite: string | null
   latex_taylor: string | null
+  latex_osculating?: string | null
   // Phase 2 (R9.3 / design.md §5.4): in addition to the V1 reasons, this
   // field may also carry "piecewise_method_no_global_polynomial" when the
   // response's only construction is a cubic spline. The type stays

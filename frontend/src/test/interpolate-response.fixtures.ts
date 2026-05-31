@@ -1263,116 +1263,100 @@ export const splineUnsupportedBoundaryResponse = {
 } satisfies InterpolateResponse
 
 // ---------------------------------------------------------------------------
-// Phase 2 — Deferred-Method fixture (Osculating sibling Lagrange)
+// Phase 2 - Osculating success fixture
 //
-// Per design.md §12.1 and tasks.md task 6.5. Sourced from
-// docs/API_CONTRACT.md "P2.2 Derivative-Data Methods" deferred-osculating
-// shape: when a request includes `osculating`, the backend returns a
-// top-level `status: "partial"` response in which `methods.osculating`
-// carries a method-level error with `error.code === "method_not_implemented"`
-// while any sibling methods that did succeed still appear with their full
-// happy-path payloads. This fixture pairs the deferred `osculating` entry
-// with a successful `lagrange` sibling so the deferred-method renderer
-// (D5) and method-tab dispatcher (D11 / D6) tests can assert that sibling
-// visibility survives the partial status.
-//
-// Lecture data: the same Bessel-style nodes used by the Hermite fixtures
-// — x = 1.3, 1.6, 1.9 with y = 0.6200860, 0.4554022, 0.2818186 — and a
-// single evaluation x = 1.5. Numeric string values inside
-// `polynomial.expanded`, `polynomial.lagrange_form`,
-// `polynomial.latex_expanded`, `polynomial.latex_lagrange`, the
-// `methods.lagrange` `basis_polynomials[]`, `summation_form`, `expanded`,
-// `latex_expanded`, `latex_lagrange`, `evaluations[].value`, the top-
-// level `evaluations[].best_P_x`/`method_values.lagrange`, and the
-// `steps[]` strings are illustrative shapes that look like real backend
-// strings; they are NOT derived from running the backend. They exist to
-// lock the response *shape* against the type so contract drift is
-// caught at compile time. Frontend renderers must continue to read
-// these as opaque backend strings (R1.4) without re-deriving them. The
-// node `x`/`y` strings and `methods.osculating.error.code` are derived
-// (the lecture data and the contract-mandated deferred error code,
-// respectively). Field names match the contract verbatim (R2.6).
+// This fixture locks the frontend result contract for generalized
+// osculating interpolation. Numeric strings are illustrative backend-shaped
+// values; renderers must treat them as opaque strings and must not
+// re-derive the polynomial or table client-side.
 // ---------------------------------------------------------------------------
 
-const osculatingDeferredNodes = [
-  { index: 0, x: "1.3", y: "0.6200860" },
-  { index: 1, x: "1.6", y: "0.4554022" },
-  { index: 2, x: "1.9", y: "0.2818186" },
+const osculatingNodes = [
+  { index: 0, x: "0", y: "1" },
+  { index: 1, x: "1", y: "3" },
 ]
 
-const osculatingDeferredPolynomial = {
-  expanded: "0.4554022 + 0.2(x - 1.6)",
+const osculatingPolynomial = {
+  expanded: "12*x**4 - 29*x**3 + 20*x**2 + 2*x + 1",
   factored: null,
-  lagrange_form:
-    "0.6200860*L_0(x) + 0.4554022*L_1(x) + 0.2818186*L_2(x)",
+  lagrange_form: null,
   newton_form: null,
   hermite_form: null,
   taylor_form: null,
-  latex_expanded: "0.4554022 + 0.2(x - 1.6)",
-  latex_lagrange:
-    "0.6200860\\,L_0(x) + 0.4554022\\,L_1(x) + 0.2818186\\,L_2(x)",
+  osculating_form: "1 + 2*x + 3*x**2 - 5*x**2*(x - 1) + 12*x**2*(x - 1)**2",
+  latex_expanded: "12 x^{4} - 29 x^{3} + 20 x^{2} + 2 x + 1",
+  latex_lagrange: null,
   latex_newton: null,
   latex_hermite: null,
   latex_taylor: null,
+  latex_osculating:
+    "1 + 2 x + 3 x^{2} - 5 x^{2}(x - 1) + 12 x^{2}(x - 1)^{2}",
   expanded_omitted_reason: null,
 }
 
-export const osculatingDeferredResponse = {
-  status: "partial",
+export const osculatingSuccessResponse = {
+  status: "ok",
   response_version: "1.0",
   metadata: { tolerance: cubicSplineTolerance },
   input_summary: {
     mode: "points",
-    node_count: 3,
-    degree: 2,
-    methods_requested: ["lagrange", "osculating"],
+    node_count: 2,
+    degree: 4,
+    methods_requested: ["osculating"],
     precision: 50,
     exact: true,
     function_known: false,
     graph_requested: false,
     sorted_nodes: false,
   },
-  nodes: osculatingDeferredNodes,
-  degree: 2,
-  polynomial: osculatingDeferredPolynomial,
+  nodes: osculatingNodes,
+  degree: 4,
+  polynomial: osculatingPolynomial,
   methods: {
-    lagrange: {
+    osculating: {
       status: "ok",
-      basis_polynomials: [
-        { index: 0, x_i: "1.3", basis: "L_0", expanded: "L_0", latex: "L_0" },
-        { index: 1, x_i: "1.6", basis: "L_1", expanded: "L_1", latex: "L_1" },
-        { index: 2, x_i: "1.9", basis: "L_2", expanded: "L_2", latex: "L_2" },
+      orders: [
+        { node_index: 0, x: "0", max_order: 2 },
+        { node_index: 1, x: "1", max_order: 1 },
       ],
-      summation_form:
-        "0.6200860*L_0(x) + 0.4554022*L_1(x) + 0.2818186*L_2(x)",
-      expanded: "0.4554022 + 0.2(x - 1.6)",
-      latex_expanded: "0.4554022 + 0.2(x - 1.6)",
-      latex_lagrange:
-        "0.6200860\\,L_0(x) + 0.4554022\\,L_1(x) + 0.2818186\\,L_2(x)",
-      evaluations: [{ x: "1.5", value: "0.5118770" }],
+      repeated_nodes: [
+        { index: 0, source_node_index: 0, x: "0", y: "1", derivative_order: 0, derivative_value: "1" },
+        { index: 1, source_node_index: 0, x: "0", y: "1", derivative_order: 1, derivative_value: "2" },
+        { index: 2, source_node_index: 0, x: "0", y: "1", derivative_order: 2, derivative_value: "6" },
+        { index: 3, source_node_index: 1, x: "1", y: "3", derivative_order: 0, derivative_value: "3" },
+        { index: 4, source_node_index: 1, x: "1", y: "3", derivative_order: 1, derivative_value: "5" },
+      ],
+      confluent_divided_difference_table: [
+        ["1", "2", "3", "-5", "12"],
+        ["1", "2", "-2", "7", null],
+        ["1", "2", "5", null, null],
+        ["3", "5", null, null, null],
+        ["3", null, null, null, null],
+      ],
+      coefficients: ["1", "2", "3", "-5", "12"],
+      nested_form:
+        "1 + 2*x + 3*x**2 - 5*x**2*(x - 1) + 12*x**2*(x - 1)**2",
+      expanded: "12*x**4 - 29*x**3 + 20*x**2 + 2*x + 1",
+      degree: 4,
+      latex_expanded: "12 x^{4} - 29 x^{3} + 20 x^{2} + 2 x + 1",
+      latex_osculating:
+        "1 + 2 x + 3 x^{2} - 5 x^{2}(x - 1) + 12 x^{2}(x - 1)^{2}",
+      evaluations: [{ x: "1/2", value: "41/16" }],
       steps: [
-        "Build each Lagrange basis polynomial so it is 1 at its own node and 0 at the others.",
+        "Choose the maximum derivative order required at each node.",
+        "Repeat each node once for the value and once for each requested derivative order.",
+        "Fill confluent divided differences with derivative values divided by factorial order.",
       ],
       warnings: [],
       error: null,
     },
-    osculating: {
-      status: "error",
-      warnings: [],
-      error: {
-        code: "method_not_implemented",
-        message:
-          "Osculating polynomial matching is accepted by the schema but is not implemented yet. Use Hermite for first-derivative matching.",
-        details: {},
-      },
-    },
   },
   evaluations: [
     {
-      x: "1.5",
-      best_P_x: "0.5118770",
-      best_method: "lagrange",
-      method_values: { lagrange: "0.5118770", osculating: null },
+      x: "1/2",
+      best_P_x: "41/16",
+      best_method: "osculating",
+      method_values: { osculating: "41/16" },
       f_x: null,
       absolute_error: null,
       warnings: [],

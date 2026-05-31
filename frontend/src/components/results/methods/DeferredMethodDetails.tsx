@@ -4,9 +4,9 @@ import type { ErrorBody, MethodName, WarningBody } from "@/lib/api-types"
 
 /**
  * Renderer for any method whose response carries
- * `error.code === "method_not_implemented"`. Currently only `osculating`
- * routes here, but the prop shape stays permissive on purpose so the
- * component can render any future deferred method without changes.
+ * `error.code === "method_not_implemented"`. The prop shape stays
+ * permissive on purpose so the component can render any future deferred
+ * method without changes.
  *
  * Layout follows `design.md` §9.5:
  *   1. "Deferred" badge (`variant="secondary"`).
@@ -15,9 +15,7 @@ import type { ErrorBody, MethodName, WarningBody } from "@/lib/api-types"
  *      Warning, not destructive, because the response is a deliberate
  *      deferred state (the request was valid; the method just is not
  *      implemented yet) rather than a validation failure.
- *   3. Lecture-aware copy — a single body-voice paragraph that explains
- *      why the method is deferred and points at the closest implemented
- *      alternative.
+ *   3. Body copy — a single paragraph that explains the response state.
  *   4. No tables, no terms, no derivatives. Per R10.3 the renderer must
  *      not simulate, approximate, or hide the deferred state.
  *
@@ -43,18 +41,13 @@ interface DeferredMethodDetailsProps {
 }
 
 /**
- * Lecture-aware copy keyed by method name. Static strings only — no
- * math, no simulation. R10.3 forbids approximating or hiding the
- * deferred state, but a static lecture line that points at an
- * implemented alternative is fine.
+ * Static copy only: no math, no simulation, and no method-specific
+ * claims about current release blockers.
  */
-const LECTURE_COPY: Partial<Record<MethodName, string>> = {
-  osculating:
-    "Generalized osculating polynomials match higher-order derivatives at each node. The backend has not implemented this yet; pick Hermite for first-derivative matching.",
-}
+const LECTURE_COPY: Partial<Record<MethodName, string>> = {}
 
 const GENERIC_LECTURE_COPY =
-  "This method is accepted by the backend schema but is not implemented yet."
+  "This method is accepted by the backend schema but is not available in this response."
 
 export default function DeferredMethodDetails({
   method,

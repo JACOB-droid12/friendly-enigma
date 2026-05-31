@@ -1,29 +1,45 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
-Focused Task 5 type-safety fix is complete locally on `codex/interpolation-backend-v1`. This remained scoped to frontend API response types plus coordination docs, did not create a worktree, did not touch backend math, and did not implement or route the Osculating result renderer.
+Task 6 frontend Osculating result rendering is complete locally on `codex/interpolation-backend-v1`. This remained scoped to frontend result rendering, fixtures, guidance copy, API response typing for top-level polynomial Osculating fields, and coordination docs. No backend math files were modified.
 
-Files changed in this fix:
+Files changed in this task:
 
+- `frontend/src/components/results/methods/OsculatingDetails.tsx`
+  - New real Osculating renderer for `methods.osculating`.
+  - Renders method-level errors/warnings, `orders`, generalized repeated nodes, confluent divided-difference table, coefficients, Newton nested form, expanded form, LaTeX forms, evaluations, and construction steps exactly from backend fields.
+- `frontend/src/components/results/methods/OsculatingDetails.test.tsx`
+  - Added coverage for Osculating sections, table/form/evaluation rendering, KaTeX output, and `MethodDetails` routing.
+- `frontend/src/components/results/MethodDetails.tsx`
+  - Routes `data.methods.osculating` to `OsculatingDetails` instead of the historical deferred renderer.
+- `frontend/src/components/results/GuidedExplanation.tsx`
+  - Replaced the `method_not_implemented` deferred Osculating block with current Osculating guide copy.
+- `frontend/src/components/results/ResultQualityGuide.tsx`
+  - Updated derivative and spline warning guidance so it no longer says higher-order derivatives or non-natural spline boundaries are waiting for backend support.
+- `frontend/src/components/results/methods/DeferredMethodDetails.tsx`
+  - Removed Osculating-specific deferred copy; kept generic defensive rendering for any future `method_not_implemented` response.
+- `frontend/src/components/results/methods/DeferredMethodDetails.test.tsx`
+  - Removed the obsolete Osculating deferred fixture test.
 - `frontend/src/lib/api-types.ts`
-  - Updated `OsculatingResult` from the historical deferred-only shape to the implemented backend result contract needed by Task 6 renderer work.
-  - Added optional fields for `orders`, generalized `repeated_nodes`, `confluent_divided_difference_table`, `coefficients`, `nested_form`, `expanded`, `degree`, `latex_expanded`, `latex_osculating`, `evaluations`, and `steps`.
-  - Preserved `status`, `warnings`, and `error`.
-  - Removed the stale comment saying Osculating was deferred / `method_not_implemented` only.
-- `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/API_CONTRACT.md`, `docs/FRONTEND_HANDOFF.md`
-  - Recorded this focused type-safety update and verification.
+  - Added optional top-level polynomial fields `osculating_form` and `latex_osculating`.
+- `frontend/src/test/interpolate-response.fixtures.ts`
+  - Replaced `osculatingDeferredResponse` with `osculatingSuccessResponse`, including orders, repeated nodes, confluent table, coefficients, forms, and evaluations.
+- `docs/HANDOFF.md`, `docs/PLAN.md`, `docs/FRONTEND_HANDOFF.md`
+  - Recorded Task 6 status and verification.
 
-Commands run in this fix:
+Commands run in this task:
 
 | Command / Check | Result |
 |---|---|
+| `npm test -- OsculatingDetails.test.tsx` from `frontend/` | PASS - 1 file, 2 tests. |
+| `npm test -- OsculatingDetails.test.tsx results.smoke.test.tsx GuidedExplanation.test.tsx ResultQualityGuide.test.tsx` from `frontend/` | PASS - 4 files, 16 tests. |
 | `npm run lint` from `frontend/` | PASS - no ESLint errors. |
 | `npm run build` from `frontend/` | PASS - `tsc -b && vite build`; Vite emitted the existing large-chunk advisory. |
 
 Notes and risks:
 
-- Task 6 still owns the Osculating result renderer and any `MethodDetails` routing changes.
-- No backend files were modified.
+- Generic `method_not_implemented` frontend warning/deferred infrastructure remains for defensive future use, but Osculating no longer routes through it.
+- Full browser smoke, accessibility verification, local Vercel build, deployment, docs/audit cleanup, and final repo hygiene remain for later tasks.
 - Existing unrelated untracked files remain unmodified: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`.
 
 ## Previous Current Task

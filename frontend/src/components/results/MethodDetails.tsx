@@ -17,7 +17,7 @@ import EqualSpacingDetails from "./methods/EqualSpacingDetails"
 import HermiteDetails from "./methods/HermiteDetails"
 import TaylorDetails from "./methods/TaylorDetails"
 import CubicSplineDetails from "./methods/CubicSplineDetails"
-import DeferredMethodDetails from "./methods/DeferredMethodDetails"
+import OsculatingDetails from "./methods/OsculatingDetails"
 
 /**
  * Pick the default tab for `MethodDetails`. Prefers Classroom-Facing Methods
@@ -162,10 +162,7 @@ export function MethodDetails({ data }: MethodDetailsProps) {
           )}
           {data.methods.osculating && (
             <TabsContent value="osculating" className="mt-4">
-              <DeferredMethodDetails
-                method="osculating"
-                result={data.methods.osculating}
-              />
+              <OsculatingDetails result={data.methods.osculating} />
             </TabsContent>
           )}
           {data.methods.taylor && (

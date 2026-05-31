@@ -269,17 +269,18 @@ export function GuidedExplanation({ data }: GuidedExplanationProps) {
           {data.methods.cubic_spline && (
             <MethodBlock title="Cubic Spline">
               <p>
-                Natural cubic spline ties the second derivative to zero at the boundary. The
-                polynomial is piecewise; no single global polynomial exists.
+                Cubic spline builds a piecewise cubic across ordered nodes using the selected
+                boundary condition. The polynomial is piecewise; no single global polynomial exists.
               </p>
             </MethodBlock>
           )}
 
-          {data.methods.osculating?.error?.code === "method_not_implemented" && (
-            <MethodBlock title="Deferred methods">
+          {data.methods.osculating && (
+            <MethodBlock title="Osculating">
               <p>
-                Generalized osculating polynomial matching is deferred until the backend implements
-                it. The frontend shows the backend response exactly.
+                Osculating interpolation repeats each node according to its requested derivative
+                order and fills a confluent divided-difference table. Backend returns the orders,
+                repeated nodes, coefficients, polynomial forms, and evaluations.
               </p>
             </MethodBlock>
           )}
