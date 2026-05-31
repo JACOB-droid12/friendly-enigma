@@ -1,6 +1,53 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Task 8 local Vercel build and Windows release interpreter fix is complete locally on `codex/interpolation-backend-v1`. This changed release/bootstrap files, Vercel Python packaging metadata, ignore rules, and coordination docs. No backend math/API behavior or frontend app behavior changed.
+
+Files changed in this task:
+
+- `scripts/bootstrap-release-env.ps1`
+  - Uses `backend\.venv\Scripts\python.exe` as the release Python interpreter.
+  - Installs/verifies `uv` in the Python 3.12.13 backend virtualenv.
+  - Writes ignored local shims `uv.exe`, `cmd.exe`, `npm.cmd`, and `frontend\npm.cmd` so Vercel's Windows local builders can find `uv`, `cmd`, `npm`, and `node` even when they strip PATH.
+  - Creates/uses a `W:` subst drive pointing at the repository root for Vercel local builds, avoiding Vercel CLI's unquoted-path bug when the repository path contains a space.
+- `pyproject.toml`
+  - Added root Vercel Python packaging metadata aligned with `.python-version` and backend support: `requires-python = ">=3.11,<3.14"` plus the serverless runtime dependencies.
+- `uv.lock`
+  - Regenerated from the root Vercel packaging metadata with Python 3.12 so local `@vercel/python` uses compatible lock metadata instead of the stale/generated `==3.13.*` lock.
+- `.gitignore`, `.vercelignore`
+  - Ignore/exclude local Vercel/Windows shims and `.vercel_python_packages/` so generated machine artifacts do not enter Git or deployment uploads.
+- `docs/RELEASE_VERIFICATION_WINDOWS.md`
+  - Added copy-pasteable Windows release commands using `backend\.venv\Scripts\python.exe` / Python 3.12.13 and the path-safe `W:` local Vercel build.
+- `docs/HANDOFF.md`, `docs/PLAN.md`
+  - Recorded Task 8 status and verification.
+
+Commands run in this task:
+
+| Command / Check | Result |
+|---|---|
+| `npx vercel build --yes` from repo root before fix | FAIL - `spawn uv ENOENT`. |
+| `.\scripts\bootstrap-release-env.ps1` after adding `uv.cmd` | PASS - installed `uv 0.11.17` into `backend\.venv`; exposed the next local builder issue. |
+| `npx vercel build --yes` after `uv` shim | FAIL - `spawn cmd.exe ENOENT`. |
+| `npx vercel build --yes` after ignored `cmd.exe` and `npm.cmd` shims | FAIL twice while exposing stripped-PATH issues: first `npm` was not found after `cd frontend`, then `node` was not found from npm scripts. |
+| `npx vercel build --yes` after npm shim PATH update | FAIL - frontend build completed, then Vercel re-invoked `uv.EXE` through an unquoted long path containing `Emmy Lou`. |
+| `subst W: "C:\Users\Emmy Lou\Documents\New project 3"; W:; npx vercel build --yes` before root Python metadata fix | FAIL - got past path quoting, then Vercel/uv found stale generated `pyproject.toml` / `uv.lock` requiring `==3.13.*`. |
+| `backend\.venv\Scripts\python.exe -m uv lock --python 3.12` | PASS - regenerated `uv.lock` with `requires-python = ">=3.11, <3.14"`. |
+| `npx vercel build --yes` from `W:\` after final fix | PASS - build completed successfully, target `preview`, output dir `W:\.vercel\output`; Vite emitted the existing large-chunk advisory. |
+| `backend\.venv\Scripts\python.exe --version` | PASS - `Python 3.12.13`. |
+| `backend\.venv\Scripts\python.exe -m uv --version` | PASS - `uv 0.11.17`. |
+
+Release command resolution:
+
+- Do not use the broken `py -3.13` launcher for release verification.
+- Use `backend\.venv\Scripts\python.exe` for backend release checks.
+- Run local Vercel builds from the `W:` subst drive created by `scripts\bootstrap-release-env.ps1`, then run `npx vercel build --yes`.
+
+Notes and risks:
+
+- Ignored local shims now exist on this machine: `cmd.exe`, `npm.cmd`, `uv.exe`, `frontend\npm.cmd`, and `.vercel_python_packages/`. They are intentionally ignored and excluded from Vercel uploads.
+- Existing unrelated untracked QA artifacts still remain for the later repo hygiene blocker: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`.
+
+## Previous Current Task
 Task 7 accessibility fix is complete locally on `codex/interpolation-backend-v1`. This remained scoped to frontend form/control accessibility, Lighthouse accessibility failures, focused regression tests, and coordination docs. No backend math or API files were modified.
 
 Preview deployment checkpoint, separate from production:
@@ -60,7 +107,7 @@ Notes and risks:
 
 - Existing unrelated untracked files remain unmodified for now: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`. Repo hygiene is still a later blocker before final release completion.
 
-## Previous Current Task
+## Earlier Current Task
 Task 6 frontend Osculating result rendering is complete locally on `codex/interpolation-backend-v1`. This remained scoped to frontend result rendering, fixtures, guidance copy, API response typing for top-level polynomial Osculating fields, and coordination docs. No backend math files were modified.
 
 Files changed in this task:

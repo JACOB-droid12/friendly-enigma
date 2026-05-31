@@ -1,5 +1,10 @@
 .codex/
 .vercel/
+.vercel_python_packages/
+cmd.exe
+npm.cmd
+uv.exe
+frontend/npm.cmd
 ~$*.docx
 Lecture/~$*.docx
 __pycache__/

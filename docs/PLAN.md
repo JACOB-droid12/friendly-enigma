@@ -20,6 +20,8 @@ Task 7 accessibility fix status, 2026-06-01: complete. `DisplayDigitsControl` no
 
 Preview deployment checkpoint, 2026-06-01: completed separately from production per user request. `npx vercel --yes` created preview deployment `dpl_7dpxuQtN7s8MaVReKG39yhxXkdrb` at `https://interpolation-workbench-731dpy4tj-marvillarq20-3593s-projects.vercel.app`; `npx vercel inspect` reports target `preview` and status `Ready`. Production was not promoted or touched. Direct unauthenticated Node `fetch` to `/` and `/health` returns HTTP `401 Unauthorized`, so the preview remains behind Vercel Authentication and is not public.
 
+Task 8 local Vercel build and Windows release interpreter status, 2026-06-01: complete. The original local `npx vercel build --yes` blocker (`spawn uv ENOENT`) is resolved by `scripts/bootstrap-release-env.ps1`, which installs/verifies `uv` in `backend\.venv` and writes ignored Windows shims for Vercel's local builders. A second Vercel CLI Windows local-build issue was resolved by running the build from a `W:` subst drive created by the bootstrap script, avoiding unquoted long paths with spaces. Root Vercel Python packaging metadata now uses `requires-python = ">=3.11,<3.14"` and `uv.lock` was regenerated for Python 3.12 compatibility. Required local build verification passed from `W:\`: `npx vercel build --yes` -> build completed successfully, target `preview`, output dir `.vercel\output`. Release docs now use `backend\.venv\Scripts\python.exe` / Python 3.12.13 instead of the broken `py -3.13` launcher.
+
 ## Milestones
 | Milestone | Status | Acceptance Criteria |
 |---|---|---|
@@ -74,6 +76,7 @@ Preview deployment checkpoint, 2026-06-01: completed separately from production 
 | Focused Task 5 type-safety fix | Completed locally 2026-06-01 | Updated the frontend `OsculatingResult` API type to match the implemented backend response shape enough for Task 6 renderer work, while keeping result fields optional for method-level error responses. Removed stale deferred-only comments. Verification passed from `frontend/`: `npm run lint` -> pass and `npm run build` -> pass with the existing Vite large-chunk advisory. No backend math, Osculating result renderer, or `MethodDetails` routing changed. |
 | Task 6 frontend Osculating result rendering | Completed locally 2026-06-01 | Added `OsculatingDetails` and routed `MethodDetails` to it. The renderer surfaces orders, generalized repeated nodes, confluent divided-difference table, coefficients, Newton nested form, expanded and LaTeX forms, evaluations, warnings/errors, and construction steps from the backend payload. Removed the obsolete Osculating deferred fixture/test and updated guide/warning copy for implemented Osculating and spline boundary modes. Verification passed from `frontend/`: `npm test -- OsculatingDetails.test.tsx` -> 2 passed, targeted result suite -> 16 passed, `npm run lint` -> pass, and `npm run build` -> pass with the existing Vite large-chunk advisory. |
 | Task 7 accessibility fix | Completed locally 2026-06-01 | Added explicit labels to `DisplayDigitsControl` visible radio roots and hidden native radio inputs; replaced the shared Base UI switch wrapper with a labelled `button role="switch"` implementation; removed orphan label usage around switches and `EvaluationTargets`; fixed Lighthouse label/name mismatch on example buttons and low-contrast method-card text. Verification passed from `frontend/`: focused accessibility/control tests -> 35 passed, `npm run lint` -> pass, and `npm run build` -> pass with the existing Vite large-chunk advisory. Chrome DevTools MCP verification found no console `issue` messages, no unlabeled form fields, and Lighthouse Accessibility `100`. |
+| Task 8 local Vercel build and Windows release interpreter | Completed locally 2026-06-01 | Added `scripts/bootstrap-release-env.ps1`, root Vercel Python `pyproject.toml`, Python 3.12-compatible `uv.lock`, and `docs/RELEASE_VERIFICATION_WINDOWS.md`. The bootstrap installs/verifies `uv` in `backend\.venv`, writes ignored local shims for Vercel's stripped Windows PATH, and creates a `W:` subst drive for path-safe local builds. Verification passed: `backend\.venv\Scripts\python.exe --version` -> Python 3.12.13; `backend\.venv\Scripts\python.exe -m uv --version` -> uv 0.11.17; `npx vercel build --yes` from `W:\` -> completed successfully. Release verification no longer depends on `py -3.13`. |
 
 ## Validation Commands
 Run these from `backend/`:
@@ -115,6 +118,17 @@ npx vercel curl /api/interpolate --deployment https://interpolation-workbench-bn
 npx vercel curl /api/interpolate --deployment https://interpolation-workbench-bnuyc0i94-marvillarq20-3593s-projects.vercel.app -- --request POST --header "Content-Type: application/json" --data '{"mode":"x_values_with_function","x_values":["1.0","1.3","1.6","1.9","2.2"],"function":"cos(x)","methods":["newton_forward"],"precision":50,"exact":true,"evaluation_x":["1.5"],"graph":true}'
 ```
 
+Windows release verification commands for the current RC blocker work:
+
+```powershell
+.\scripts\bootstrap-release-env.ps1
+backend\.venv\Scripts\python.exe --version
+backend\.venv\Scripts\python.exe -m pytest
+backend\.venv\Scripts\python.exe -m ruff check .
+W:
+npx vercel build --yes
+```
+
 ## Stop-and-Fix Rules
 - If duplicate x-values are accepted, stop and fix validation.
 - If unsafe function strings parse as valid, stop and fix `core/parser.py`.
@@ -142,9 +156,9 @@ npx vercel curl /api/interpolate --deployment https://interpolation-workbench-bn
 - Do not move interpolation, finite-difference, Hermite, Taylor, spline, graph-sampling, or error computation into React.
 - Recommended frontend next step: Claude Opus should review and commit the untracked frontend/design assets that are intended to become the V1 frontend baseline.
 - Frontend accessibility fix: `DisplayDigitsControl` hidden Base UI native radio inputs now have explicit `aria-label` values and focused regression coverage. Task 10 still needs browser smoke evidence for the live app.
-- Optional backend hardening: keep using `backend/.venv\Scripts\python.exe` for release verification unless the broken WindowsApps `py -3.13` launcher target is repaired.
+- Use `backend/.venv\Scripts\python.exe` for release verification. Do not use the broken WindowsApps `py -3.13` launcher target in release scripts/docs.
 - Current Git hygiene note: tracked `Lecture/` files are currently deleted in the worktree. Codex did not stage or commit those deletions; restore or intentionally commit them separately before calling the repository clean.
 - Vercel preview is protected by Deployment Protection/SSO. Keep this in mind for professor/public access, or promote/configure access only after the user explicitly approves.
-- Local `npx vercel build --yes` currently fails on this Windows machine because `uv` is not on PATH; remote Vercel builds are passing.
+- Local `npx vercel build --yes` passes on this Windows machine when run from the `W:` subst drive created by `scripts\bootstrap-release-env.ps1`.
 - Candidate B remains deferred. Chebyshev exact-mode Float generation was not changed by Candidate A tolerance hardening or the graph accuracy fix.
 - Screenshot capture through the Browser plugin timed out during the reciprocal graph QA pass; DOM/SVG coordinate evidence was recorded instead.

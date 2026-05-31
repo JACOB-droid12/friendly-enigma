@@ -2,6 +2,11 @@
 .impeccable/
 .kiro/
 .vscode/
+.vercel_python_packages/
+cmd.exe
+npm.cmd
+uv.exe
+frontend/npm.cmd
 Lecture/
 backend/.venv/
 backend/.pytest_cache/
