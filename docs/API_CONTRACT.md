@@ -1,9 +1,11 @@
 # API Contract — Interpolating Polynomial Program Backend
 
 ## Status
-Implemented v1 backend contract plus Phase 2 P2.1/P2.2/P2.3/P2.4 backend method expansion, with P2.5 final audit complete. The backend owns parsing, validation, numerical precision, interpolation, osculating interpolation, Taylor approximation, natural cubic spline generation, evaluations, warnings, derivative-data handling, and graph-ready arrays.
+Implemented v1 backend contract plus Phase 2 P2.1/P2.2/P2.3/P2.4 backend method expansion, with P2.5 final audit complete. The backend owns parsing, validation, numerical precision, interpolation, osculating interpolation, Taylor approximation, cubic spline generation, evaluations, warnings, derivative-data handling, and graph-ready arrays.
 
 Task 3 backend osculating is implemented locally. Valid `osculating` requests now route through service orchestration, use generalized confluent repeated nodes, and return method-owned polynomial output instead of `method_not_implemented`.
+
+Task 4 cubic spline boundary conditions are implemented locally. Valid `natural`, `clamped`, `not-a-knot`, and `periodic` requests now compute spline segments instead of returning `unsupported_boundary_condition`.
 
 ## Base URL
 Development default:
@@ -123,7 +125,7 @@ Accepted Phase 2 method names:
 - `taylor`
 - `cubic_spline`
 
-P2.0 accepts the Phase 2 method names to stabilize the contract. P2.1 implements `newton_forward`, `newton_backward`, and `stirling`. P2.2 implements `hermite_divided_difference` and `hermite`. P2.3 implements `taylor`. P2.4 implements natural `cubic_spline`. P2.5 audits the implemented backend expansion. Task 3 implements `osculating`.
+P2.0 accepts the Phase 2 method names to stabilize the contract. P2.1 implements `newton_forward`, `newton_backward`, and `stirling`. P2.2 implements `hermite_divided_difference` and `hermite`. P2.3 implements `taylor`. P2.4 implements `cubic_spline` with natural, clamped, not-a-knot, and periodic boundary conditions. P2.5 audits the implemented backend expansion. Task 3 implements `osculating`.
 
 ### Phase 2 Optional Method Blocks
 
@@ -154,8 +156,10 @@ Rules:
 
 - `taylor.center` must be a numeric string and is required when `taylor` is selected.
 - `taylor.order` must be a JSON integer from 0 through 20 and is required when `taylor` is selected. Booleans, floats, and stringified floats are rejected by schema validation.
-- `cubic_spline.boundary_condition` is schema-limited to `natural`, `clamped`, `not-a-knot`, or `periodic`. Current spline computation still supports only `natural`; other accepted literals return method-level error code `unsupported_boundary_condition`.
-- `cubic_spline.left_derivative` and `cubic_spline.right_derivative` are optional strict strings for the clamped-boundary contract. They are preserved at the schema boundary but are not used until clamped spline computation is implemented.
+- `cubic_spline.boundary_condition` is schema-limited to `natural`, `clamped`, `not-a-knot`, or `periodic`, and all four literals are implemented.
+- `clamped` cubic splines require strict numeric strings in `cubic_spline.left_derivative` and `cubic_spline.right_derivative`; missing values return method-level error code `missing_boundary_parameter`.
+- `not-a-knot` cubic splines require at least four nodes; too few nodes return method-level error code `invalid_node_count`.
+- `periodic` cubic splines require matching first and last y-values; nonmatching endpoints return method-level error code `periodic_endpoint_mismatch`.
 - `osculating.orders` is an optional list of strict objects with string `x` and integer `order` from 0 through 10. Each object declares the maximum derivative order used at that node. If omitted, backend osculating defaults to first-derivative Hermite-style constraints at every node.
 - Unknown method option blocks are rejected by schema validation. Current accepted blocks are `taylor`, `cubic_spline`, and `osculating`.
 - Numeric-string option fields are strict strings at the schema boundary; for example, `method_options.taylor.center: 0` is rejected with FastAPI HTTP `422`, while `"0"` is accepted.
@@ -489,13 +493,13 @@ Validation and safety:
 - Functions or centers that produce non-real, infinite, undefined, or unevaluated derivative terms return method-level error code `unsupported_taylor_function`.
 - The frontend must not compute Taylor derivatives, terms, evaluations, or errors.
 
-## P2.4 Natural Cubic Spline Method
+## P2.4 Cubic Spline Method
 
 Implemented P2.4 method name:
 
 - `cubic_spline`
 
-P2.4 supports only the natural boundary condition. Unsupported boundary conditions return method-level error code `unsupported_boundary_condition`.
+P2.4 supports `natural`, `clamped`, `not-a-knot`, and `periodic` boundary conditions. Unsupported boundary literals should be rejected by schema validation before method execution; the backend still keeps `unsupported_boundary_condition` as a defensive method-level error for out-of-contract callers.
 
 Request example:
 
@@ -522,6 +526,7 @@ Request example:
 {
   "status": "ok",
   "boundary_condition": "natural",
+  "boundary_parameters": {},
   "ordered_nodes": [
     {"index": 0, "x": "1", "y": "2"}
   ],
@@ -555,6 +560,11 @@ Spline-specific rules:
 
 - Segments are ordered by increasing x-value.
 - If input nodes are reordered for segment construction, the method returns warning code `nodes_reordered`.
+- `boundary_parameters` is `{}` except for `clamped`, where it includes normalized `left_derivative` and `right_derivative` strings.
+- `natural` enforces `S''(x_0) = 0` and `S''(x_n) = 0`.
+- `clamped` enforces endpoint first derivatives from `left_derivative` and `right_derivative`.
+- `not-a-knot` enforces third-derivative continuity at the first and last interior knots and requires at least four nodes.
+- `periodic` requires `y_0 == y_n` and enforces endpoint value, first-derivative, and second-derivative periodicity.
 - `segments[].coefficients` are local coefficients for `S_i(x) = a + b(x-x_i) + c(x-x_i)^2 + d(x-x_i)^3`.
 - Spline-only responses do not have a single global polynomial. The top-level `polynomial.expanded` is `null` and `polynomial.expanded_omitted_reason` is `piecewise_method_no_global_polynomial`.
 - When `graph: true` and `cubic_spline` succeeds, `graph_data.source_method` is `cubic_spline` and `graph_data.P_x` is sampled from backend-owned spline segments.
@@ -757,7 +767,7 @@ Validation:
 - `partial`: normalization succeeded but a method failed or returned a structured method problem.
 - `error`: validation or normalization failed before method execution.
 
-`input_summary.sorted_nodes` is `true` when at least one successful method reorders input nodes for computation. In the current method set, natural `cubic_spline` sorts nodes by increasing x-value and also preserves the existing method-level `nodes_reordered` warning with ordered input indices.
+`input_summary.sorted_nodes` is `true` when at least one successful method reorders input nodes for computation. In the current method set, `cubic_spline` sorts nodes by increasing x-value and also preserves the existing method-level `nodes_reordered` warning with ordered input indices.
 
 ## Graph Data
 When `graph: true`, `graph_data` is:
@@ -822,6 +832,8 @@ Implemented error codes:
 - `invalid_derivative_order`
 - `unsupported_taylor_function`
 - `unsupported_boundary_condition`
+- `missing_boundary_parameter`
+- `periodic_endpoint_mismatch`
 
 Implemented warning codes:
 
@@ -848,7 +860,7 @@ Implemented warning codes:
 - Render Hermite basis output from `methods.hermite.basis_form` only when returned by the backend.
 - Render Osculating repeated nodes, `orders`, `confluent_divided_difference_table`, coefficients, nested/expanded forms, `latex_osculating`, and evaluations exactly as returned by the backend.
 - Render Taylor terms from `methods.taylor.terms` and Taylor notes from backend text fields.
-- Render cubic spline segments from `methods.cubic_spline.segments` and continuity checks from `methods.cubic_spline.continuity_checks`.
+- Render cubic spline boundary condition, boundary parameters, segments, and continuity checks from `methods.cubic_spline` exactly as returned.
 - Render Neville data as one triangular table per target x-value.
 - Show barycentric weights in a table with one row per node.
 - Show warnings prominently.

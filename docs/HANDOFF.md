@@ -1,6 +1,55 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Task 4: Cubic Spline Boundary Conditions is implemented locally on `codex/interpolation-backend-v1`. This is backend-only, did not create a worktree, did not touch frontend files, and did not revert unrelated user/untracked changes.
+
+Files changed in this task:
+
+- `backend/app/core/methods/cubic_spline.py`
+  - Removed the natural-only guard for schema-valid boundary modes.
+  - Added a boundary-aware n-by-n second-derivative linear system for `natural`, `clamped`, `not-a-knot`, and `periodic`.
+  - Clamped mode parses `left_derivative` and `right_derivative` through the shared numeric-string precision path and enforces endpoint first derivatives.
+  - Not-a-knot mode enforces third-derivative continuity at the first and last interior knots and rejects fewer than four nodes with `invalid_node_count`.
+  - Periodic mode requires matching endpoint y-values and enforces endpoint value, first-derivative, and second-derivative periodicity.
+  - Added `boundary_parameters` to successful spline payloads; currently populated for clamped derivatives.
+  - Replaced spline node sorting's Python `float` key with SymPy high-precision ordering.
+- `backend/app/core/errors.py`
+  - Registered `missing_boundary_parameter` and `periodic_endpoint_mismatch`.
+- `backend/app/tests/test_cubic_spline.py`
+  - Replaced the old clamped-unsupported regression with core tests for clamped endpoint derivative enforcement, missing clamped parameters, not-a-knot third-derivative continuity, not-a-knot node-count validation, periodic endpoint conditions, and periodic endpoint mismatch validation.
+- `backend/app/tests/test_api.py`
+  - Added API contract tests for clamped, not-a-knot, and periodic successful spline requests with graph/evaluation data still sourced from `cubic_spline`.
+  - Added API validation coverage for periodic endpoint mismatch.
+- `docs/API_CONTRACT.md`
+  - Documented implemented spline boundary modes, clamped derivative parameters, not-a-knot node count, periodic endpoint validation, `boundary_parameters`, and new error codes.
+- `docs/FRONTEND_HANDOFF.md`
+  - Updated Claude Opus guidance: all four boundary modes are backend-supported now; Task 5 should enable controls and clamped derivative inputs without moving spline math into React.
+- `docs/PLAN.md`, `docs/HANDOFF.md`
+  - Recorded Task 4 scope, status, commands, and remaining frontend follow-up.
+
+Commands run in this task:
+
+| Command / Check | Result |
+|---|---|
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_cubic_spline.py app/tests/test_api.py::test_interpolate_clamped_cubic_spline_method_contract app/tests/test_api.py::test_interpolate_not_a_knot_cubic_spline_method_contract app/tests/test_api.py::test_interpolate_periodic_cubic_spline_method_contract app/tests/test_api.py::test_interpolate_periodic_cubic_spline_invalid_endpoint_values -q` before production changes | FAIL as expected - 10 failures because valid non-natural modes still raised `unsupported_boundary_condition`. |
+| Same targeted command after implementation | PASS - 13 passed in 2.08s. |
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_cubic_spline.py app/tests/test_api.py app/tests/test_graph_data.py -q` | PASS - 49 passed in 15.69s. |
+| `.\.venv\Scripts\python.exe -m ruff check app/core/methods/cubic_spline.py app/tests/test_cubic_spline.py app/tests/test_api.py app/tests/test_graph_data.py` before formatting fix | FAIL - E501 long boundary step strings and I001 import ordering in `test_cubic_spline.py`. |
+| `.\.venv\Scripts\python.exe -m ruff check app/core/methods/cubic_spline.py app/tests/test_cubic_spline.py app/tests/test_api.py app/tests/test_graph_data.py` after formatting fix | PASS - `All checks passed!`. |
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_cubic_spline.py app/tests/test_api.py app/tests/test_graph_data.py -q` after formatting fix | PASS - 49 passed in 5.00s. |
+| `.\.venv\Scripts\python.exe -m pytest -q` | PASS - 143 passed in 6.17s. |
+| `.\.venv\Scripts\python.exe -m ruff check .` | PASS - `All checks passed!`. |
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_cubic_spline.py app/tests/test_api.py app/tests/test_graph_data.py -q` after boundary-step wording fix | PASS - 49 passed in 4.74s. |
+| `.\.venv\Scripts\python.exe -m ruff check app/core/methods/cubic_spline.py app/tests/test_cubic_spline.py app/tests/test_api.py app/tests/test_graph_data.py` after boundary-step wording fix | PASS - `All checks passed!`. |
+| `.\.venv\Scripts\python.exe -m pytest -q` final committed-tree check | PASS - 143 passed in 5.95s. |
+| `.\.venv\Scripts\python.exe -m ruff check .` final committed-tree check | PASS - `All checks passed!`. |
+
+Notes and risks:
+
+- Frontend controls are intentionally unchanged for Task 4; Task 5 owns enabling spline boundary UI controls.
+- Existing untracked local QA artifacts remain unmodified: `.codex-local-qa-graph.png`, `.codex-local-qa-mobile.png`, and `.impeccable/critique/2026-05-26T13-30-00Z__frontend-audit.md`.
+
+## Previous Current Task
 Focused Task 3 follow-up fix is complete locally on `codex/interpolation-backend-v1`. This is backend-only, did not create a worktree, did not touch frontend files, did not touch cubic spline boundary code, and did not revert unrelated README/untracked changes.
 
 Files changed in this fix:
@@ -200,7 +249,7 @@ Commands run in this task:
 Notes and risks:
 
 - `osculating` request options are now schema-valid, but the method remains deferred and should still return `method_not_implemented` until generalized repeated-node derivative support is implemented.
-- Non-natural spline boundary literals are schema-valid for the frontend contract, but current computation still supports only natural cubic splines; non-natural boundary conditions should continue to surface method-level `unsupported_boundary_condition`.
+- Historical note superseded by Task 4: non-natural spline boundary literals became schema-valid in Task 1 and are now implemented in backend computation for `clamped`, `not-a-knot`, and `periodic`.
 - No frontend files were edited.
 
 ## Previous Current Task
@@ -2171,7 +2220,7 @@ scenario is marked PASS unless it was directly observed.
 | G6 | PHASE2-TAYLOR-01 — Taylor happy path | PASS | `screenshots/phase2-taylor-01-happy.png` | `cos(x)` at `center = 0`, `order = 3`. Term table (orders 0–3), `taylor_form`, `latex_taylor`, evaluation chip `P(1/2) = 7/8`, and remainder note all rendered from the live response. |
 | G6 | PHASE2-TAYLOR-02 — Taylor unsupported function | PASS | `screenshots/phase2-taylor-02-unsupported.png` | Trigger was `sqrt(x)` at `center = 0`. Backend returned `unsupported_taylor_function` with `details.value: "zoo"`; renderer surfaced the inline `ErrorNotice`. **Honest deviation:** design.md §13 phrases this as "unsafe or unsupported function expression"; a truly unsafe expression like `gamma(x)` would be rejected earlier by the parser whitelist with the different `unsafe_expression` code. `sqrt(x)` parses cleanly through the whitelist but its derivative at the chosen Taylor center is `zoo` (complex infinity), which is the documented `unsupported_taylor_function` path. |
 | G7 | PHASE2-SPLINE-01 — Cubic spline happy path | PASS | `screenshots/phase2-spline-01-happy.png` | Lecture three-point example, `boundary_condition: "natural"`, `evaluation_x = ["5/2"]`, `graph: true`, `exact: true`. Boundary-condition badge, ordered nodes, second-derivative chips, segments table, continuity checks, evaluation chip `P(5/2) = 125/32 (segment 1)`, and the piecewise notice all rendered. **`graph_data.source_method` observed: `"cubic_spline"`** (R9.4 / R17.5). |
-| G7 | PHASE2-SPLINE-02 — Cubic spline unsupported boundary | PARTIAL | `screenshots/phase2-spline-02-unsupported-boundary.png` | The network expectation and backend error contract are exercised end-to-end: `methods.cubic_spline.error.code: "unsupported_boundary_condition"`, `error.details: { boundary_condition: "clamped", supported: ["natural"] }`. **Honest deviation:** the request was driven via a direct in-page `fetch("/api/interpolate", ...)` from the DevTools console because locked decision #5 keeps the boundary-condition `<select>` non-natural options as `disabled` `<option>` placeholders, so the UI cannot send a non-natural value (design.md §13 row PHASE2-SPLINE-02 explicitly notes this fallback). The renderer's `unsupported_boundary_condition` error branch is covered by `frontend/src/components/results/methods/CubicSplineDetails.test.tsx`. |
+| G7 | PHASE2-SPLINE-02 — Cubic spline unsupported boundary | HISTORICAL PARTIAL | `screenshots/phase2-spline-02-unsupported-boundary.png` | Superseded by Task 4 backend boundary support. At the time, the network expectation and backend error contract were exercised end-to-end: `methods.cubic_spline.error.code: "unsupported_boundary_condition"`, `error.details: { boundary_condition: "clamped", supported: ["natural"] }`. **Honest deviation:** the request was driven via a direct in-page `fetch("/api/interpolate", ...)` from the DevTools console because locked decision #5 kept the boundary-condition `<select>` non-natural options as `disabled` `<option>` placeholders, so the UI could not send a non-natural value. Future QA should cover clamped, not-a-knot, and periodic success paths. |
 | G8 | PHASE2-OSCULATING-01 — Deferred Osculating | PASS | `screenshots/phase2-osculating-01-deferred.png`, `screenshots/phase2-osculating-01-with-sibling.png` | Two passes. Pass A: `osculating` alone — backend returned `method_not_implemented`; renderer surfaced the `Deferred` badge, the `ErrorNotice`, and the lecture-aware copy. Pass B: `osculating` alongside `hermite_divided_difference` — sibling renderer rendered the full happy-path output (R10.4). |
 | G9 | PHASE2-V1-01 — V1 Linear Lagrange regression | PASS | `screenshots/phase2-v1-01-linear-lagrange.png` | Lagrange basis polynomials, summation form, expanded `6 - x`, LaTeX, and steps all rendered. SummaryCard family grouping preserved. |
 | G9 | PHASE2-V1-02 — V1+ `1/x` regression (function-backed) | PASS | `screenshots/phase2-v1-02-one-over-x.png` | `f(x) = 1/x` at `2, 2.75, 4`. `POST /api/validate-function` returned 200 (debounced); compute returned `P(3) = 29/88`, `f(3) = 1/3`, `\|error\| = 1/264`. |

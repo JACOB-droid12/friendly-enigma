@@ -128,11 +128,11 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 ## Phase 2 Backend Expansion
 
-P2.0 backend contract prep accepts Phase 2 method names under the stable `POST /api/interpolate` endpoint. P2.1 implements equal-spacing methods. P2.2 implements first-derivative Hermite methods. P2.3 implements Taylor polynomials. P2.4 implements natural cubic spline segments. P2.5 audit is complete with release caveats documented in `docs/PHASE_2_FINAL_AUDIT.md`. Backend tests and Ruff now pass under Python 3.12.13, satisfying the Python 3.11+ backend runtime gate. If Claude Opus exposes a deferred or ineligible Phase 2 method, the frontend must render the method-level error returned under `methods.<method>.error` and must not simulate the method client-side.
+P2.0 backend contract prep accepts Phase 2 method names under the stable `POST /api/interpolate` endpoint. P2.1 implements equal-spacing methods. P2.2 implements first-derivative Hermite methods. P2.3 implements Taylor polynomials. P2.4 implements cubic spline segments with natural, clamped, not-a-knot, and periodic boundary conditions. P2.5 audit is complete with release caveats documented in `docs/PHASE_2_FINAL_AUDIT.md`. Backend tests and Ruff now pass under Python 3.12.13, satisfying the Python 3.11+ backend runtime gate. If Claude Opus exposes a deferred or ineligible Phase 2 method, the frontend must render the method-level error returned under `methods.<method>.error` and must not simulate the method client-side.
 
 P2.5 frontend integration status:
 
-- Backend payloads for `newton_forward`, `newton_backward`, `stirling`, `hermite_divided_difference`, `hermite`, `taylor`, and natural `cubic_spline` are ready for Claude Opus rendering work.
+- Backend payloads for `newton_forward`, `newton_backward`, `stirling`, `hermite_divided_difference`, `hermite`, `taylor`, and all implemented `cubic_spline` boundary modes are ready for Claude Opus rendering work.
 - `osculating` is implemented and should render from the successful backend payload when valid.
 - Codex did not implement Phase 2 React controls/renderers during P2.5.
 - Backend verification passed under Python 3.12.13 with `.\.venv\Scripts\python.exe -m pytest` and `.\.venv\Scripts\python.exe -m ruff check .`.
@@ -151,7 +151,7 @@ Accepted Phase 2 method names:
 | `hermite` | Derivative data | Hermite basis / derivative-matching construction when backend supports it |
 | `osculating` | Derivative data | Generalized derivative matching through confluent repeated nodes |
 | `taylor` | Function derivative | Local polynomial approximation from safe symbolic derivatives |
-| `cubic_spline` | Piecewise | Natural cubic spline segments and backend graph samples |
+| `cubic_spline` | Piecewise | Cubic spline segments, boundary metadata, and backend graph samples |
 
 Optional request blocks now documented in `docs/API_CONTRACT.md`:
 
@@ -162,11 +162,13 @@ Optional request blocks now documented in `docs/API_CONTRACT.md`:
 
 - `method_options` is now schema-hardened. Accepted blocks are `taylor`, `cubic_spline`, and `osculating`; unknown option blocks return FastAPI HTTP `422`.
 - `method_options.taylor.center` is a strict numeric string. Send `"0"`, not `0`.
-- `method_options.cubic_spline.boundary_condition` is limited to `"natural"`, `"clamped"`, `"not-a-knot"`, or `"periodic"` at the schema boundary. Only `"natural"` is implemented today; non-natural literals remain method-level `unsupported_boundary_condition`.
-- `method_options.cubic_spline.left_derivative` and `right_derivative` are optional strict strings for the future clamped-boundary contract.
+- `method_options.cubic_spline.boundary_condition` is limited to `"natural"`, `"clamped"`, `"not-a-knot"`, or `"periodic"` at the schema boundary, and all four literals are implemented by the backend.
+- `method_options.cubic_spline.left_derivative` and `right_derivative` are strict numeric strings required only for `"clamped"`; missing values return method-level `missing_boundary_parameter`.
+- `"not-a-knot"` requires at least four nodes and returns method-level `invalid_node_count` if too few are supplied.
+- `"periodic"` requires matching first/last y-values and returns method-level `periodic_endpoint_mismatch` when they differ.
 - `method_options.osculating.orders[]` accepts strict `{ "x": string, "order": integer }` entries with `order` from 0 through 10 and drives real backend osculating output.
 - Duplicate `derivatives[]` entries with the same normalized `x` and `order` now fail before method execution with HTTP `400` and error code `duplicate_derivative_data`.
-- `input_summary.sorted_nodes` is now live. It becomes `true` when a supported backend method reorders nodes; current case is natural `cubic_spline`, while the existing method-level `nodes_reordered` warning remains present.
+- `input_summary.sorted_nodes` is now live. It becomes `true` when a supported backend method reorders nodes; current case is `cubic_spline`, while the existing method-level `nodes_reordered` warning remains present.
 - `methods.stirling.evaluations[].terms` is now populated from direct centered Stirling finite-difference summation, not a Lagrange fallback.
 - Display precision radio controls use explicit per-instance label ids for Base UI group/options.
 - Graph rendering differentiates `f(x)` and `P(x)` by style as well as color: `f(x)` is dashed and `P(x)` remains solid.
@@ -283,13 +285,14 @@ Backend P2.4 implements:
 
 Request rules:
 
-- Use `method_options.cubic_spline.boundary_condition = "natural"`.
-- Other boundary conditions return method-level error code `unsupported_boundary_condition`.
+- Use `method_options.cubic_spline.boundary_condition` with `"natural"`, `"clamped"`, `"not-a-knot"`, or `"periodic"`.
+- For `"clamped"`, also send `left_derivative` and `right_derivative` as numeric strings.
+- For `"periodic"`, the first and last y-values must match.
 - Existing point/function modes still provide the nodes; the spline method owns ordering and segment generation.
 
 Frontend rendering rules:
 
-- Render `methods.cubic_spline.ordered_nodes`, `second_derivatives`, `segments`, `continuity_checks`, `evaluations`, `steps`, `warnings`, and `error` exactly as returned.
+- Render `methods.cubic_spline.boundary_condition`, `boundary_parameters`, `ordered_nodes`, `second_derivatives`, `segments`, `continuity_checks`, `evaluations`, `steps`, `warnings`, and `error` exactly as returned.
 - Render `segments` as piecewise interval rows with local coefficients `a`, `b`, `c`, `d`, `local_form`, expanded segment, and LaTeX.
 - If the top-level `polynomial.expanded_omitted_reason` is `piecewise_method_no_global_polynomial`, show that the spline has piecewise segments instead of a single global polynomial.
 - If `graph_data.source_method === "cubic_spline"`, render graph arrays exactly as returned. Do not resample the spline in React.
@@ -297,7 +300,8 @@ Frontend rendering rules:
 
 Recommended Phase 2 UI additions for Claude Opus:
 
-- Natural spline boundary selector, with only `natural` enabled unless a later backend milestone adds more.
+- Boundary selector with all implemented backend modes enabled.
+- Clamped endpoint derivative inputs that send string values only when `boundary_condition === "clamped"`.
 - Piecewise segment table.
 - Continuity-check panel for interior knots.
 - Segment-boundary display on the graph or method panel using backend interval metadata.
@@ -1093,11 +1097,12 @@ Adaptive blocks rendered inside the card:
   disabled hint instead ("Taylor needs a function expression. Switch
   to X + f(x) or Interval mode."), reusing the existing function
   input field rather than introducing a second one.
-- **`CubicSplineConfigBlock.tsx`** (R5.6 / R9.5). A
-  `boundary_condition` `<select>` with `Natural` enabled and all other
-  documented boundary conditions present as `disabled` placeholders
-  carrying `title` tooltips that explain the deferral (locked
-  decision #5).
+- **`CubicSplineConfigBlock.tsx`** (R5.6 / R9.5). Current checked-in
+  frontend still has a historical `boundary_condition` `<select>` with
+  only `Natural` enabled. Task 4 backend support now implements
+  `clamped`, `not-a-knot`, and `periodic`; Task 5 should update this
+  control and add clamped derivative inputs without moving spline math
+  into React.
 
 ### Family renderers
 
@@ -1143,7 +1148,10 @@ manipulation, and no client-side resampling.
   text labels, and evaluation chips that surface `segment_index`
   when present. Surfaces a body-voice piecewise notice when
   `polynomial.expanded_omitted_reason ===
-  "piecewise_method_no_global_polynomial"`. Inline `ErrorNotice` for
+  "piecewise_method_no_global_polynomial"`. Inline `ErrorNotice`
+  remains useful for method-level validation errors such as
+  `missing_boundary_parameter`, `invalid_node_count`,
+  `periodic_endpoint_mismatch`, and defensive
   `unsupported_boundary_condition`.
 
 ### Osculating renderer update
@@ -1272,7 +1280,7 @@ below traces back to a per-scenario results file under
 | Taylor | PHASE2-TAYLOR-01 happy path | PASS | `phase2-taylor-01-happy.png` | `phase2-taylor-results.md` |
 | Taylor | PHASE2-TAYLOR-02 unsupported function | PASS | `phase2-taylor-02-unsupported.png` | `phase2-taylor-results.md` |
 | Cubic Spline | PHASE2-SPLINE-01 happy path with graph | PASS | `phase2-spline-01-happy.png` | `phase2-spline-results.md` |
-| Cubic Spline | PHASE2-SPLINE-02 unsupported boundary | PARTIAL | `phase2-spline-02-unsupported-boundary.png` | `phase2-spline-results.md` |
+| Cubic Spline | PHASE2-SPLINE-02 unsupported boundary | HISTORICAL PARTIAL | `phase2-spline-02-unsupported-boundary.png` | Superseded by Task 4 backend boundary support; future QA should cover clamped, not-a-knot, and periodic success plus periodic endpoint validation. |
 | Osculating historical QA | PHASE2-OSCULATING-01 deferred + sibling | HISTORICAL PASS | `phase2-osculating-01-deferred.png`, `phase2-osculating-01-with-sibling.png` | `phase2-osculating-results.md`; superseded by backend Task 3, so future QA should cover successful osculating rendering. |
 | V1 / V1+ regressions | PHASE2-V1-01..04 | PASS | `phase2-v1-01-linear-lagrange.png`, `phase2-v1-02-one-over-x.png`, `phase2-v1-03-neville.png`, `phase2-v1-04-newton-dd.png` | `phase2-v1-results.md` |
 | Mobile | PHASE2-MOBILE-01 320px overflow | PASS | `phase2-mobile-01-320px.png`, `phase2-mobile-01-320px-hermite.png` | `phase2-mobile-results.md` |
@@ -1308,13 +1316,16 @@ Frontend-relevant details:
   exercises. A truly unsafe expression like `gamma(x)` would be
   rejected earlier by the parser whitelist with the different
   documented `unsafe_expression` code.
-- **SPLINE-02 PARTIAL.** Driven through a direct in-page
+- **SPLINE-02 historical note.** Driven through a direct in-page
   `fetch("/api/interpolate", ...)` from the DevTools console because
   locked decision #5 keeps the boundary-condition `<select>`
   non-natural options as `disabled` placeholders, so the UI cannot
   send a non-natural value. The renderer's inline `ErrorNotice` for
   `unsupported_boundary_condition` is covered by
   `frontend/src/components/results/methods/CubicSplineDetails.test.tsx`.
+  This is superseded by Task 4 backend support for `clamped`,
+  `not-a-knot`, and `periodic`; the frontend control remains a Task 5
+  follow-up.
 - **MOBILE-01 viewport tooling.** The 320×800 viewport was achieved
   via `mcp_chrome_devtools_emulate` with
   `viewport: "320x800x1,mobile,touch"` rather than `resize_page`,

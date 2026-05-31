@@ -500,6 +500,125 @@ def test_interpolate_cubic_spline_unsorted_nodes_sets_summary_flag() -> None:
     ]
 
 
+def test_interpolate_clamped_cubic_spline_method_contract() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "points",
+            "points": [["0", "0"], ["1", "1"], ["2", "4"]],
+            "methods": ["cubic_spline"],
+            "method_options": {
+                "cubic_spline": {
+                    "boundary_condition": "clamped",
+                    "left_derivative": "0",
+                    "right_derivative": "4",
+                }
+            },
+            "evaluation_x": ["1/2"],
+            "precision": 50,
+            "exact": True,
+            "graph": True,
+        },
+    )
+
+    body = response.json()
+    spline = body["methods"]["cubic_spline"]
+
+    assert response.status_code == 200
+    assert body["status"] == "ok"
+    assert spline["status"] == "ok"
+    assert spline["boundary_condition"] == "clamped"
+    assert spline["boundary_parameters"] == {
+        "left_derivative": "0",
+        "right_derivative": "4",
+    }
+    assert spline["evaluations"][0]["value"] is not None
+    assert body["graph_data"]["source_method"] == "cubic_spline"
+
+
+def test_interpolate_not_a_knot_cubic_spline_method_contract() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "points",
+            "points": [["0", "0"], ["1", "1"], ["2", "0"], ["3", "1"]],
+            "methods": ["cubic_spline"],
+            "method_options": {"cubic_spline": {"boundary_condition": "not-a-knot"}},
+            "evaluation_x": ["3/2"],
+            "precision": 50,
+            "exact": True,
+            "graph": True,
+        },
+    )
+
+    body = response.json()
+    spline = body["methods"]["cubic_spline"]
+
+    assert response.status_code == 200
+    assert body["status"] == "ok"
+    assert spline["status"] == "ok"
+    assert spline["boundary_condition"] == "not-a-knot"
+    assert spline["segments"]
+    assert spline["evaluations"][0]["value"] is not None
+    assert body["graph_data"]["source_method"] == "cubic_spline"
+
+
+def test_interpolate_periodic_cubic_spline_method_contract() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "points",
+            "points": [["0", "0"], ["1", "1"], ["2", "0"]],
+            "methods": ["cubic_spline"],
+            "method_options": {"cubic_spline": {"boundary_condition": "periodic"}},
+            "evaluation_x": ["1/2"],
+            "precision": 50,
+            "exact": True,
+            "graph": True,
+        },
+    )
+
+    body = response.json()
+    spline = body["methods"]["cubic_spline"]
+
+    assert response.status_code == 200
+    assert body["status"] == "ok"
+    assert spline["status"] == "ok"
+    assert spline["boundary_condition"] == "periodic"
+    assert spline["segments"]
+    assert spline["evaluations"][0]["value"] is not None
+    assert body["graph_data"]["source_method"] == "cubic_spline"
+
+
+def test_interpolate_periodic_cubic_spline_invalid_endpoint_values() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/interpolate",
+        json={
+            "mode": "points",
+            "points": [["0", "0"], ["1", "1"], ["2", "2"]],
+            "methods": ["cubic_spline"],
+            "method_options": {"cubic_spline": {"boundary_condition": "periodic"}},
+            "precision": 50,
+            "exact": True,
+        },
+    )
+
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["status"] == "partial"
+    assert body["methods"]["cubic_spline"]["status"] == "error"
+    assert body["methods"]["cubic_spline"]["error"]["code"] == "periodic_endpoint_mismatch"
+
+
 def test_interpolate_method_options_unknown_block_rejected_by_schema() -> None:
     client = TestClient(app)
 

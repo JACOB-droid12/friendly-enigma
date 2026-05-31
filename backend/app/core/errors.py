@@ -20,6 +20,8 @@ ERROR_CODES = {
     "invalid_derivative_order",
     "unsupported_taylor_function",
     "unsupported_boundary_condition",
+    "missing_boundary_parameter",
+    "periodic_endpoint_mismatch",
 }
 
 WARNING_CODES = {
