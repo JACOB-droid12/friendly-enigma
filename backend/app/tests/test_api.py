@@ -152,7 +152,10 @@ def test_interpolate_hermite_methods_contract() -> None:
     assert body["methods"]["hermite_divided_difference"]["divided_difference_table"]
     assert body["methods"]["hermite"]["basis_form"]["status"] == "included"
     assert body["evaluations"][0]["best_method"] == "hermite"
-    assert body["polynomial"]["hermite_form"]
+    hermite_form = body["polynomial"]["hermite_form"]
+    assert isinstance(hermite_form, str)
+    assert hermite_form == body["methods"]["hermite"]["nested_form"]
+    assert isinstance(body["methods"]["hermite"]["basis_form"], dict)
 
 
 def test_interpolate_hermite_missing_derivative_returns_method_error() -> None:

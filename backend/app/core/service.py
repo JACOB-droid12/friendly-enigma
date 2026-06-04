@@ -225,14 +225,16 @@ def _polynomial_block(
     polynomial_source: dict[str, Any] | None,
 ) -> dict[str, Any]:
     polynomial = polynomial_source.get("polynomial") if polynomial_source else None
+    hermite_result = raw_results.get("hermite", {})
+    hermite_dd_result = raw_results.get("hermite_divided_difference", {})
+    hermite_form = hermite_result.get("nested_form") or hermite_dd_result.get("nested_form")
     return {
         "expanded": polynomial_source.get("expanded") if polynomial_source else None,
         "factored": str(sp.factor(polynomial)) if polynomial is not None else None,
         "lagrange_form": raw_results.get("lagrange", {}).get("summation_form"),
         "newton_form": raw_results.get("newton", {}).get("nested_form"),
         "osculating_form": raw_results.get("osculating", {}).get("nested_form"),
-        "hermite_form": raw_results.get("hermite", {}).get("basis_form")
-        or raw_results.get("hermite_divided_difference", {}).get("nested_form"),
+        "hermite_form": hermite_form,
         "taylor_form": raw_results.get("taylor", {}).get("taylor_form"),
         "latex_expanded": polynomial_source.get("latex_expanded") if polynomial_source else None,
         "latex_lagrange": raw_results.get("lagrange", {}).get("latex_lagrange"),
