@@ -11,6 +11,10 @@ interface PolynomialCardProps {
   polynomial: PolynomialData
 }
 
+function stringForm(value: unknown): string | null {
+  return typeof value === "string" ? value : null
+}
+
 function CopyableFormula({
   text,
   copyAriaLabel,
@@ -70,6 +74,18 @@ function CopyableFormula({
 export function PolynomialCard({ polynomial }: PolynomialCardProps) {
   const [tab, setTab] = useState("expanded")
   const { digits, formatPoly, formatLiterals, formatLatex } = useDisplayDigits()
+  const expanded = stringForm(polynomial.expanded)
+  const factored = stringForm(polynomial.factored)
+  const lagrangeForm = stringForm(polynomial.lagrange_form)
+  const newtonForm = stringForm(polynomial.newton_form)
+  const hermiteForm = stringForm(polynomial.hermite_form)
+  const taylorForm = stringForm(polynomial.taylor_form)
+  const expandedLatexForm = stringForm(polynomial.latex_expanded)
+  const lagrangeLatexForm = stringForm(polynomial.latex_lagrange)
+  const newtonLatexForm = stringForm(polynomial.latex_newton)
+  const hermiteLatexForm = stringForm(polynomial.latex_hermite)
+  const taylorLatexForm = stringForm(polynomial.latex_taylor)
+  const expandedOmittedReason = stringForm(polynomial.expanded_omitted_reason)
 
   /*
    * Display-precision routing per polynomial form.
@@ -91,28 +107,28 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
    * through the Copy button (which always copies the unrounded backend
    * string) and through the "Full" Display-digits radio.
    */
-  const expandedFormatted = formatPoly(polynomial.expanded)
-  const factoredText = formatLiterals(polynomial.factored)
-  const lagrangeText = formatLiterals(polynomial.lagrange_form)
-  const newtonText = formatLiterals(polynomial.newton_form)
-  const hermiteText = formatLiterals(polynomial.hermite_form)
-  const taylorText = formatLiterals(polynomial.taylor_form)
-  const expandedLatex = formatLatex(polynomial.latex_expanded)
-  const lagrangeLatex = formatLatex(polynomial.latex_lagrange)
-  const newtonLatex = formatLatex(polynomial.latex_newton)
-  const hermiteLatex = formatLatex(polynomial.latex_hermite)
-  const taylorLatex = formatLatex(polynomial.latex_taylor)
+  const expandedFormatted = formatPoly(expanded)
+  const factoredText = formatLiterals(factored)
+  const lagrangeText = formatLiterals(lagrangeForm)
+  const newtonText = formatLiterals(newtonForm)
+  const hermiteText = formatLiterals(hermiteForm)
+  const taylorText = formatLiterals(taylorForm)
+  const expandedLatex = formatLatex(expandedLatexForm)
+  const lagrangeLatex = formatLatex(lagrangeLatexForm)
+  const newtonLatex = formatLatex(newtonLatexForm)
+  const hermiteLatex = formatLatex(hermiteLatexForm)
+  const taylorLatex = formatLatex(taylorLatexForm)
 
   // Phase 2 (R2.4 / R7.2 / R8.1): conditional Hermite and Taylor tabs.
-  const showHermite = polynomial.hermite_form != null
-  const showTaylor = polynomial.taylor_form != null
+  const showHermite = hermiteForm != null
+  const showTaylor = taylorForm != null
 
   // Phase 2 (R9.3): when the backend reports the response is a piecewise
   // spline with no global polynomial, the Expanded tab content becomes a
   // body-voice notice and the Factored tab is hidden because there is
   // nothing to factor.
   const isPiecewiseNoGlobal =
-    polynomial.expanded_omitted_reason === "piecewise_method_no_global_polynomial"
+    expandedOmittedReason === "piecewise_method_no_global_polynomial"
   const showFactored = !isPiecewiseNoGlobal
 
   // The piecewise notice already lives in the Expanded tab body
@@ -121,8 +137,8 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
   // backend code through the shared registry so the user sees a friendly
   // label (e.g. "Polynomial Omitted") instead of a raw snake_case code.
   const omittedNotice =
-    polynomial.expanded_omitted_reason && !isPiecewiseNoGlobal
-      ? resolveBackendCodePayload(polynomial.expanded_omitted_reason, null)
+    expandedOmittedReason && !isPiecewiseNoGlobal
+      ? resolveBackendCodePayload(expandedOmittedReason, null)
       : null
 
   // Guard: if the active tab disappears (e.g. user had Factored selected
@@ -187,7 +203,7 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
                 )}
                 <CopyableFormula
                   text={expandedFormatted.text}
-                  fullPrecisionText={polynomial.expanded}
+                  fullPrecisionText={expanded}
                   copyAriaLabel="Copy expanded polynomial"
                 />
               </>
@@ -197,8 +213,8 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
           {showFactored && (
             <TabsContent value="factored" className="space-y-3 mt-4">
               <CopyableFormula
-                text={factoredText || polynomial.factored}
-                fullPrecisionText={polynomial.factored}
+                text={factoredText || factored}
+                fullPrecisionText={factored}
                 copyAriaLabel="Copy factored polynomial"
               />
             </TabsContent>
@@ -209,8 +225,8 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
               <KatexDisplay latex={lagrangeLatex} plainText={lagrangeText} />
             </div>
             <CopyableFormula
-              text={lagrangeText || polynomial.lagrange_form}
-              fullPrecisionText={polynomial.lagrange_form}
+              text={lagrangeText || lagrangeForm}
+              fullPrecisionText={lagrangeForm}
               copyAriaLabel="Copy Lagrange form"
             />
           </TabsContent>
@@ -220,8 +236,8 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
               <KatexDisplay latex={newtonLatex} plainText={newtonText} />
             </div>
             <CopyableFormula
-              text={newtonText || polynomial.newton_form}
-              fullPrecisionText={polynomial.newton_form}
+              text={newtonText || newtonForm}
+              fullPrecisionText={newtonForm}
               copyAriaLabel="Copy Newton nested form"
             />
           </TabsContent>
@@ -229,8 +245,8 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
           {showHermite && (
             <TabsContent value="hermite" className="space-y-3 mt-4">
               <CopyableFormula
-                text={hermiteText || polynomial.hermite_form}
-                fullPrecisionText={polynomial.hermite_form}
+                text={hermiteText || hermiteForm}
+                fullPrecisionText={hermiteForm}
                 copyAriaLabel="Copy Hermite form"
               />
               {hermiteLatex != null && (
@@ -244,8 +260,8 @@ export function PolynomialCard({ polynomial }: PolynomialCardProps) {
           {showTaylor && (
             <TabsContent value="taylor" className="space-y-3 mt-4">
               <CopyableFormula
-                text={taylorText || polynomial.taylor_form}
-                fullPrecisionText={polynomial.taylor_form}
+                text={taylorText || taylorForm}
+                fullPrecisionText={taylorForm}
                 copyAriaLabel="Copy Taylor form"
               />
               {taylorLatex != null && (

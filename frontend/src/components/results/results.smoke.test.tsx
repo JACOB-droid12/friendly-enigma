@@ -1,12 +1,16 @@
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 import { DisplayDigitsProvider } from "@/lib/display-digits"
-import type { InterpolateResponse, MethodName } from "@/lib/api-types"
+import type { InterpolateResponse, MethodName, PolynomialData } from "@/lib/api-types"
 import { EvaluationTable } from "./EvaluationTable"
 import { GraphCard } from "./GraphCard"
 import { MethodDetails } from "./MethodDetails"
 import { PolynomialCard } from "./PolynomialCard"
-import { linearPointsResponse, oneOverXResponse } from "@/test/interpolate-response.fixtures"
+import {
+  hermiteResponse,
+  linearPointsResponse,
+  oneOverXResponse,
+} from "@/test/interpolate-response.fixtures"
 
 function renderWithDisplay(ui: React.ReactElement) {
   return render(<DisplayDigitsProvider>{ui}</DisplayDigitsProvider>)
@@ -41,6 +45,26 @@ describe("interpolation result smoke rendering", () => {
     )
     expect(screen.getByText("Best P(x)")).toBeInTheDocument()
     expect(screen.getAllByText("3").length).toBeGreaterThan(0)
+  })
+
+  it("renders the Hermite polynomial tab when the top-level Hermite form is a string", () => {
+    renderWithDisplay(<PolynomialCard polynomial={hermiteResponse.polynomial} />)
+
+    fireEvent.click(screen.getByRole("tab", { name: "Hermite" }))
+
+    expect(screen.getByLabelText("Copy Hermite form")).toBeInTheDocument()
+    expect(screen.getAllByText(hermiteResponse.polynomial.hermite_form!).length).toBeGreaterThan(0)
+  })
+
+  it("does not crash when a malformed response sends the Hermite basis object as the top-level form", () => {
+    const malformedPolynomial = Object.assign({}, hermiteResponse.polynomial, {
+      hermite_form: hermiteResponse.methods.hermite.basis_form,
+    }) as unknown as PolynomialData
+
+    renderWithDisplay(<PolynomialCard polynomial={malformedPolynomial} />)
+
+    expect(screen.getByRole("tab", { name: "Expanded" })).toBeInTheDocument()
+    expect(screen.queryByRole("tab", { name: "Hermite" })).not.toBeInTheDocument()
   })
 
   it("renders backend Lagrange basis entries from the basis field", () => {
