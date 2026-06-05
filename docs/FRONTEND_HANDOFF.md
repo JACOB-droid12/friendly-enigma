@@ -9,7 +9,7 @@ The backend top-level polynomial contract has been corrected for Hermite. `polyn
 Frontend renderers should continue treating top-level `polynomial.*_form` fields as strings only. `PolynomialCard` defensively treats unexpected non-string top-level forms as absent so a malformed payload cannot reach display-digit string formatters and unmount the React root.
 
 ## Status
-Frontend v1.5 with critique-driven refactors. Builds, lints, type-checks, and tests clean (12 test files, 57 tests). Live-tested against backend.
+Hermite crash fix frontend status: focused smoke coverage, lint, and production build verification passed for the `PolynomialCard` guard. Full browser re-certification still needs the Hermite Basis Form flow and prior form-label console issue check rerun before release is called UI PASS.
 
 ## Task 3 Backend Osculating Update (2026-05-31)
 
