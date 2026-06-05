@@ -1,6 +1,49 @@
 # Handoff — Interpolating Polynomial Program
 
 ## Current Task
+Hermite Polynomial tab crash blocker is fixed locally on `codex/interpolation-backend-v1` as of 2026-06-05.
+
+Root cause:
+
+- `backend/app/core/service.py` returned the structured `methods.hermite.basis_form` object as top-level `polynomial.hermite_form`.
+- `frontend/src/components/results/PolynomialCard.tsx` treated top-level polynomial forms as strings and passed the object into display-digit formatting, causing `TypeError: input.replace is not a function`.
+
+Files changed:
+
+- `backend/app/core/service.py`
+- `backend/app/tests/test_api.py`
+- `frontend/src/components/results/PolynomialCard.tsx`
+- `frontend/src/components/results/results.smoke.test.tsx`
+- `docs/API_CONTRACT.md`
+- `docs/FRONTEND_HANDOFF.md`
+- `docs/PLAN.md`
+- `docs/HANDOFF.md`
+
+Commands run:
+
+| Command | Result |
+|---|---|
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_api.py::test_interpolate_hermite_methods_contract -q` from `backend/` before backend fix | FAIL as expected: `polynomial.hermite_form` was a dict, not a string. |
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_api.py::test_interpolate_hermite_methods_contract -q` from `backend/` after backend fix | PASS - 1 test. |
+| `.\.venv\Scripts\python.exe -m pytest app/tests/test_api.py app/tests/test_hermite.py -q` from `backend/` | PASS - 37 tests. |
+| `.\.venv\Scripts\python.exe -m ruff check app/core/service.py app/tests/test_api.py` from `backend/` | PASS - all checks passed. |
+| `npm test -- results.smoke.test.tsx` from `frontend/` before frontend guard | FAIL as expected after the red regression: 8 passed, 1 failed with `TypeError: input.replace is not a function`. |
+| `npm test -- results.smoke.test.tsx` from `frontend/` after frontend guard | PASS - 9 tests. |
+| `npm run lint` from `frontend/` | PASS - no ESLint errors. |
+| `npm run build` from `frontend/` | PASS - existing Vite large-chunk advisory only. |
+
+Commits created in this blocker fix:
+
+- `b9d05a9 fix: keep hermite polynomial form string-valued`
+- `62902b6 fix: guard polynomial forms before display formatting`
+
+Notes and risks:
+
+- Backend top-level `polynomial.hermite_form` is now string-or-null. `methods.hermite.basis_form` remains the structured basis artifact.
+- `PolynomialCard` now treats unexpected non-string top-level form fields as absent instead of stringifying them.
+- Full browser re-certification should rerun the Hermite Basis Form flow and the prior form-label console issue check before release is called UI PASS.
+
+## Previous Current Task
 Error Analysis Workbench brainstorming and implementation planning are complete as of 2026-06-05. The approved design is committed at `docs/superpowers/specs/2026-06-05-error-analysis-workbench-design.md`, and the implementation plan is written at `docs/superpowers/plans/2026-06-05-error-analysis-workbench.md`. No backend, API, or frontend runtime behavior has been changed yet.
 
 Files changed in this planning checkpoint:

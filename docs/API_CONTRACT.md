@@ -761,6 +761,8 @@ Validation:
 }
 ```
 
+Top-level `polynomial.*_form` fields are display strings or `null`. Rich structured method artifacts stay under `methods.<method>`. In particular, `polynomial.hermite_form` is a string such as the Hermite nested form; the Hermite basis object is only returned as `methods.hermite.basis_form`.
+
 `status` values:
 
 - `ok`: normalization and selected methods succeeded.

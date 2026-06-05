@@ -2,6 +2,12 @@
 
 For the remaining Claude Opus Phase 2 React workbench implementation checklist, see `docs/OPUS_PHASE_2_FRONTEND_HANDOFF.md`.
 
+## Hermite Polynomial Crash Fix (2026-06-05)
+
+The backend top-level polynomial contract has been corrected for Hermite. `polynomial.hermite_form` is now string-or-null and uses the Hermite nested form when Hermite succeeds. The structured basis-form object remains under `methods.hermite.basis_form`.
+
+Frontend renderers should continue treating top-level `polynomial.*_form` fields as strings only. `PolynomialCard` defensively treats unexpected non-string top-level forms as absent so a malformed payload cannot reach display-digit string formatters and unmount the React root.
+
 ## Status
 Frontend v1.5 with critique-driven refactors. Builds, lints, type-checks, and tests clean (12 test files, 57 tests). Live-tested against backend.
 
